@@ -1260,10 +1260,11 @@ async function startPdfExport(list){
       const px=12,py=20,pw=88,ph=117;
       pdf.setFillColor(224,220,215);
       pdf.rect(px,py,pw,ph,'F');
-      const photoUrl=c.cover_url||(c.photo_urls&&c.photo_urls[0])||'';
+      const photoUrl   = c.cover_url    || (c.photo_urls&&c.photo_urls[0])    || '';
+      const photoFid   = c.cover_file_id|| (c.photo_file_ids&&c.photo_file_ids[0])|| null;
       if(photoUrl){
         try{
-          const imgData=await loadImgB64(photoUrl);
+          const imgData=await loadImgB64(photoUrl, photoFid);
           pdf.addImage(imgData,'JPEG',px,py,pw,ph,'','FAST');
         }catch(e){
           pdf.setFillColor(210,205,200);pdf.rect(px,py,pw,ph,'F');
@@ -1282,7 +1283,8 @@ async function startPdfExport(list){
           const sx=px+(j-1)*(sw+1.5);
           pdf.setFillColor(224,220,215);pdf.rect(sx,sy,sw,sh,'F');
           try{
-            const id2=await loadImgB64(c.photo_urls[j]);
+            const fid2 = c.photo_file_ids&&c.photo_file_ids[j]||null;
+            const id2  = await loadImgB64(c.photo_urls[j], fid2);
             pdf.addImage(id2,'JPEG',sx,sy,sw,sh,'','FAST');
           }catch(e){}
           pdf.setDrawColor(200,195,188);pdf.setLineWidth(0.15);
@@ -1400,22 +1402,25 @@ function setPdfP(pct,msg){
   document.getElementById('pdf-bar').style.width=pct+'%';
   document.getElementById('pdf-status').textContent=msg;
 }
-function loadImgB64(url){
-  return new Promise((resolve,reject)=>{
-    const img=new Image();
-    img.crossOrigin='anonymous';
-    img.onload=()=>{
-      try{
-        const cv=document.createElement('canvas');
-        cv.width=img.naturalWidth||img.width;
-        cv.height=img.naturalHeight||img.height;
-        cv.getContext('2d').drawImage(img,0,0);
-        resolve(cv.toDataURL('image/jpeg',0.82));
-      }catch(e){reject(e);}
-    };
-    img.onerror=()=>reject(new Error('img load: '+url));
-    img.src=url+(url.includes('?')?'&':'?')+'_t='+Date.now();
-  });
+
+// Carica immagine Drive come base64 passando per Apps Script (proxy server-side).
+// Il canvas del browser non può leggere immagini Drive per policy CORS ("tainted canvas").
+// Apps Script invece le scarica server-side senza restrizioni e restituisce base64 pura.
+// fileId (opzionale): se presente usa DriveApp diretto (più veloce, qualità originale).
+// url: fallback thumbnail, usato se fileId non è disponibile (foto legacy).
+async function loadImgB64(url, fileId) {
+  const params = { action: 'getImageBase64', token: CONFIG.TOKEN };
+  if (fileId) {
+    params.fileId = fileId;
+  } else {
+    params.url = url;
+  }
+  const qs  = new URLSearchParams(params).toString();
+  const res = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${qs}`);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'Proxy immagine fallito');
+  // Restituisce dataURL compatibile con jsPDF addImage
+  return `data:${data.mime};base64,${data.base64}`;
 }
 
 // ============================================================
