@@ -3,191 +3,578 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Casting Board — Gallery</title>
+<title>Casting Board</title>
 <script src="config.js"></script>
+<!-- jsPDF per export book -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+/* ============================================================
+   CASTING BOARD — Luxury Editorial Dark Theme
+   Cormorant Garamond (display) + DM Sans (UI)
+   ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);
-  --text:#f0f0f0;--text2:#888;--text3:#444;
-  --gold:#e8c97a;--gold2:#b89d57;--green:#4caf7d;--red:#e05c5c;--blue:#5b9cf6;
-  --r:10px;--r-sm:6px;
+  --ink:#0b0b0b;
+  --ink2:#141414;
+  --ink3:#1e1e1e;
+  --ink4:#282828;
+  --rule:rgba(255,255,255,0.07);
+  --rule2:rgba(255,255,255,0.14);
+  --rule3:rgba(255,255,255,0.22);
+  --snow:#f5f2ee;
+  --muted:#6b6866;
+  --faint:#3a3836;
+  --gold:#c9a96e;
+  --gold2:#a8884d;
+  --gold3:rgba(201,169,110,0.12);
+  --green:#4d9e7a;
+  --red:#b05555;
+  --blue:#4a7fb5;
+  --r:3px;
+  --r-md:6px;
+  --r-lg:10px;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',-apple-system,sans-serif;
 }
-html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
 
-/* Login overlay */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;padding:24px}
-.login-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:32px 28px;width:100%;max-width:320px;text-align:center}
-.login-box h2{font-size:18px;font-weight:600;margin-bottom:6px}
-.login-box p{color:var(--text2);font-size:13px;margin-bottom:20px}
-.login-box input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);padding:11px 13px;font-size:15px;margin-bottom:12px;text-align:center}
-.login-box button{width:100%;padding:11px;background:var(--gold);color:#1a1400;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:600;cursor:pointer}
-#login-err{color:var(--red);font-size:12px;margin-top:8px;display:none}
+html,body{
+  background:var(--ink);color:var(--snow);
+  font-family:var(--sans);font-size:13px;
+  line-height:1.6;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
 
-/* Layout */
-.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:12px}
-.topbar-left h1{font-size:16px;font-weight:600;letter-spacing:-0.2px}
-.topbar-left p{font-size:11px;color:var(--text2);margin-top:1px}
-.topbar-right{display:flex;gap:6px;align-items:center;flex-shrink:0}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r-sm);font-size:12px;font-weight:500;cursor:pointer;border:none;transition:opacity 0.15s}
-.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
-.btn-ghost:hover{color:var(--text);border-color:var(--text2)}
-.btn-gold{background:var(--gold);color:#1a1400}
-.btn-gold:hover{opacity:0.9}
-.btn-active{background:rgba(232,201,122,0.15);color:var(--gold);border:1px solid rgba(232,201,122,0.3)}
+/* ---- LOGIN ---- */
+#login{
+  position:fixed;inset:0;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  z-index:999;padding:24px;
+  background-image:repeating-linear-gradient(
+    0deg,transparent,transparent 39px,rgba(255,255,255,0.02) 39px,rgba(255,255,255,0.02) 40px
+  );
+}
+.login-box{
+  background:var(--ink2);border:1px solid var(--rule2);
+  border-radius:var(--r-lg);padding:48px 36px;
+  width:100%;max-width:320px;text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,0.6);
+}
+.login-logo{
+  font-family:var(--serif);font-size:13px;font-weight:300;
+  letter-spacing:0.4em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:32px;display:block;
+}
+.login-box h2{
+  font-family:var(--serif);font-size:30px;font-weight:300;
+  letter-spacing:-0.02em;margin-bottom:6px;color:var(--snow);
+}
+.login-box p{color:var(--muted);font-size:12px;margin-bottom:28px;letter-spacing:0.02em}
+.login-box input{
+  width:100%;background:var(--ink3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--snow);padding:13px 16px;
+  font-size:15px;text-align:center;font-family:var(--sans);
+  letter-spacing:0.1em;margin-bottom:14px;
+  transition:border-color 0.2s;
+}
+.login-box input:focus{outline:none;border-color:var(--gold2)}
+.login-box button{
+  width:100%;padding:13px;background:var(--gold);color:var(--ink);
+  border:none;border-radius:var(--r);font-size:12px;
+  font-weight:500;letter-spacing:0.12em;text-transform:uppercase;
+  cursor:pointer;font-family:var(--sans);transition:opacity 0.15s;
+}
+.login-box button:hover{opacity:0.88}
+#login-err{color:var(--red);font-size:11px;margin-top:10px;display:none;letter-spacing:0.04em}
 
-/* Search */
-.searchbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;gap:8px;align-items:center}
-.searchbar input{flex:1;max-width:380px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);padding:8px 12px;font-size:13px}
-.searchbar input:focus{outline:none;border-color:var(--gold2)}
+/* ---- TOP BAR ---- */
+#app{display:none}
+.topbar{
+  background:var(--ink2);border-bottom:1px solid var(--rule);
+  padding:0 20px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  backdrop-filter:blur(12px);
+}
+.topbar-brand{
+  font-family:var(--serif);font-size:18px;font-weight:300;
+  letter-spacing:0.06em;color:var(--snow);
+  display:flex;align-items:center;gap:12px;
+}
+.topbar-brand::after{
+  content:'';display:block;width:1px;height:16px;
+  background:var(--rule2);
+}
+.topbar-count{font-size:11px;color:var(--muted);letter-spacing:0.06em;font-weight:300}
+.topbar-actions{display:flex;align-items:center;gap:4px}
+.tbtn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 12px;border-radius:var(--r);
+  font-size:11px;font-weight:400;letter-spacing:0.06em;
+  cursor:pointer;border:none;font-family:var(--sans);
+  text-transform:uppercase;transition:all 0.15s;
+  white-space:nowrap;
+}
+.tbtn-ghost{background:transparent;color:var(--muted);border:1px solid transparent}
+.tbtn-ghost:hover{color:var(--snow);background:var(--ink3);border-color:var(--rule2)}
+.tbtn-outline{background:transparent;color:var(--snow);border:1px solid var(--rule2)}
+.tbtn-outline:hover{border-color:var(--rule3);background:var(--ink3)}
+.tbtn-gold{background:var(--gold);color:var(--ink);font-weight:500}
+.tbtn-gold:hover{opacity:0.88}
+.tbtn-active{background:var(--gold3);color:var(--gold);border:1px solid rgba(201,169,110,0.25)}
+.tbtn-sep{width:1px;height:20px;background:var(--rule);margin:0 4px}
 
-/* Filters panel */
-#filters-panel{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:none;flex-wrap:wrap;gap:10px}
-#filters-panel.open{display:flex}
-.filter-field{display:flex;flex-direction:column;gap:4px;min-width:130px}
-.filter-field label{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px}
-.filter-field input,.filter-field select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);padding:6px 9px;font-size:12px}
-.filter-field input:focus,.filter-field select:focus{outline:none;border-color:var(--gold2)}
-.filter-field select option{background:var(--bg3)}
-.clear-btn{align-self:flex-end;padding:6px 10px;background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:var(--r-sm);cursor:pointer;font-size:11px}
-.clear-btn:hover{color:var(--text2)}
+/* ---- BRAND BAR ---- */
+.brand-bar{
+  background:var(--ink2);border-bottom:1px solid var(--rule);
+  padding:0 20px;display:flex;align-items:stretch;gap:0;
+  overflow-x:auto;scrollbar-width:none;
+}
+.brand-bar::-webkit-scrollbar{display:none}
+.brand-tab{
+  padding:0 18px;border-bottom:2px solid transparent;
+  cursor:pointer;font-size:11px;font-weight:400;
+  letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--muted);background:none;border-left:none;
+  border-right:none;border-top:none;
+  transition:color 0.15s,border-color 0.15s;
+  white-space:nowrap;height:38px;display:flex;align-items:center;
+  font-family:var(--sans);flex-shrink:0;
+}
+.brand-tab:hover{color:var(--snow)}
+.brand-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.brand-bar-end{margin-left:auto;display:flex;align-items:center;padding:0 0 0 16px;border-left:1px solid var(--rule);flex-shrink:0}
+.brand-add{
+  font-size:11px;color:var(--muted);background:none;border:none;
+  cursor:pointer;padding:4px 8px;letter-spacing:0.06em;
+  text-transform:uppercase;font-family:var(--sans);transition:color 0.15s;
+}
+.brand-add:hover{color:var(--snow)}
 
-/* Filter badge */
-.badge-count{background:var(--gold);color:#1a1400;border-radius:50%;width:15px;height:15px;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+/* ---- SEARCH + FILTERS ---- */
+.searchbar{
+  background:var(--ink2);border-bottom:1px solid var(--rule);
+  padding:8px 20px;display:flex;gap:8px;align-items:center;
+}
+.search-input{
+  flex:1;max-width:400px;background:var(--ink3);
+  border:1px solid var(--rule);border-radius:var(--r);
+  color:var(--snow);padding:8px 12px;font-size:12px;
+  font-family:var(--sans);letter-spacing:0.02em;
+}
+.search-input:focus{outline:none;border-color:var(--rule3)}
+.search-input::placeholder{color:var(--faint)}
 
-/* Gallery grid */
-#gallery{padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
-@media(max-width:600px){#gallery{grid-template-columns:repeat(2,1fr);gap:8px;padding:10px}}
+#filter-panel{
+  background:var(--ink2);border-bottom:1px solid var(--rule);
+  padding:10px 20px;display:none;flex-wrap:wrap;gap:10px;
+  align-items:flex-end;
+}
+#filter-panel.open{display:flex}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff label{
+  font-size:9px;font-weight:500;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.1em;
+}
+.ff select,.ff input{
+  background:var(--ink3);border:1px solid var(--rule);
+  border-radius:var(--r);color:var(--snow);
+  padding:6px 9px;font-size:11px;font-family:var(--sans);
+  min-width:110px;
+}
+.ff select:focus,.ff input:focus{outline:none;border-color:var(--rule3)}
+.ff select option{background:var(--ink3)}
+.filter-dot{
+  background:var(--gold);color:var(--ink);border-radius:50%;
+  width:14px;height:14px;font-size:8px;font-weight:500;
+  display:inline-flex;align-items:center;justify-content:center;
+  vertical-align:middle;margin-left:3px;
+}
 
-/* Card */
-.card{background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s}
-.card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,0.45)}
-.card.sl{border-color:rgba(232,201,122,0.35)}
-.card-photo{position:relative;aspect-ratio:3/4;background:var(--bg4);overflow:hidden}
-.card-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.3s}
-.card:hover .card-photo img{transform:scale(1.03)}
-.card-photo .no-photo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:28px}
-.star-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:background 0.15s,color 0.15s}
-.star-btn.on{background:var(--gold);color:#1a1400}
-.status-badge{position:absolute;bottom:6px;left:6px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:0.3px;text-transform:uppercase}
-.s-pending{background:rgba(255,255,255,0.08);color:#777}
-.s-shortlisted{background:rgba(232,201,122,0.18);color:var(--gold)}
-.s-booked{background:rgba(76,175,125,0.18);color:var(--green)}
-.s-rejected{background:rgba(224,92,92,0.15);color:var(--red)}
-.card-info{padding:8px 10px 10px}
-.card-info .name{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card-info .sub{font-size:11px;color:var(--text2);margin-top:2px}
-.card-info .meas{font-size:10px;color:var(--text3);margin-top:3px}
+/* ---- GALLERY ---- */
+#gallery{
+  padding:16px 20px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(185px,1fr));
+  gap:12px;
+}
+@media(max-width:600px){
+  #gallery{grid-template-columns:repeat(2,1fr);gap:8px;padding:10px}
+}
 
-/* States */
-.loading-state{display:flex;align-items:center;justify-content:center;min-height:300px;color:var(--text3);gap:10px;font-size:13px}
-.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite}
+/* ---- CARD ---- */
+.card{
+  background:var(--ink2);border:1px solid var(--rule);
+  border-radius:var(--r-md);overflow:hidden;cursor:pointer;
+  transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;
+  position:relative;
+}
+.card:hover{
+  border-color:var(--rule2);transform:translateY(-3px);
+  box-shadow:0 16px 48px rgba(0,0,0,0.5);
+}
+.card.sl{border-color:rgba(201,169,110,0.3)}
+.card-photo{position:relative;aspect-ratio:3/4;background:var(--ink3);overflow:hidden}
+.card-photo img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.card:hover .card-photo img{transform:scale(1.06)}
+.card-photo .no-ph{
+  width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  color:var(--faint);font-size:11px;letter-spacing:0.06em;
+  text-transform:uppercase;
+}
+.card-photo .no-ph::before{
+  content:'';display:block;width:32px;height:32px;
+  border:1px solid var(--faint);border-radius:50%;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='8' r='4' stroke='%233a3836' stroke-width='1.5'/%3E%3Cpath stroke='%233a3836' stroke-width='1.5' d='M4 20c0-4 3.6-7 8-7s8 3 8 7'/%3E%3C/svg%3E") center/20px no-repeat;
+}
+/* overlay gradient basso card */
+.card-overlay{
+  position:absolute;bottom:0;left:0;right:0;height:50%;
+  background:linear-gradient(to top,rgba(11,11,11,0.85),transparent);
+  pointer-events:none;
+}
+.star-btn{
+  position:absolute;top:8px;right:8px;
+  background:rgba(11,11,11,0.55);color:rgba(255,255,255,0.5);
+  border:1px solid rgba(255,255,255,0.1);border-radius:50%;
+  width:28px;height:28px;font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);transition:all 0.2s;
+}
+.star-btn.on{background:var(--gold);color:var(--ink);border-color:transparent}
+.status-badge{
+  position:absolute;bottom:8px;left:8px;
+  font-size:8px;font-weight:500;padding:3px 7px;border-radius:2px;
+  text-transform:uppercase;letter-spacing:0.1em;
+}
+.s-pending{background:rgba(255,255,255,0.08);color:var(--muted)}
+.s-shortlisted{background:rgba(201,169,110,0.2);color:var(--gold)}
+.s-booked{background:rgba(77,158,122,0.2);color:var(--green)}
+.s-rejected{background:rgba(176,85,85,0.18);color:var(--red)}
+/* brand dots on card */
+.card-brand-pills{
+  position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:3px;
+  max-width:calc(100% - 44px);
+}
+.card-brand-pill{
+  font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
+  background:rgba(74,127,181,0.25);color:var(--blue);
+  letter-spacing:0.06em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-info{padding:10px 12px 12px}
+.card-name{
+  font-family:var(--serif);font-size:16px;font-weight:300;
+  letter-spacing:-0.01em;color:var(--snow);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-sub{
+  font-size:10px;color:var(--muted);margin-top:3px;
+  letter-spacing:0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ---- EMPTY / LOADING ---- */
+.state{
+  grid-column:1/-1;padding:80px 20px;
+  text-align:center;color:var(--faint);
+}
+.state h3{
+  font-family:var(--serif);font-size:22px;font-weight:300;
+  color:var(--muted);margin-bottom:8px;letter-spacing:-0.01em;
+}
+.state p{font-size:12px;letter-spacing:0.02em}
+.spinner{
+  display:inline-block;width:20px;height:20px;
+  border:1.5px solid var(--rule2);border-top-color:var(--gold);
+  border-radius:50%;animation:spin 0.8s linear infinite;
+  vertical-align:middle;margin-right:8px;
+}
 @keyframes spin{to{transform:rotate(360deg)}}
-.empty{text-align:center;padding:60px 24px;color:var(--text3)}
-.empty h3{color:var(--text2);margin-bottom:6px;font-size:15px}
 
-/* Lightbox */
-#lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:500;display:none;align-items:center;justify-content:center}
-#lightbox.open{display:flex}
-#lightbox img{max-height:90vh;max-width:90vw;object-fit:contain;border-radius:4px}
-#lb-prev,#lb-next{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:50%;width:42px;height:42px;font-size:20px;cursor:pointer}
-#lb-prev{left:14px}
-#lb-next{right:14px}
-#lb-close{position:fixed;top:14px;right:14px;background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer}
-#lb-counter{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.45);font-size:12px}
+/* ---- LIGHTBOX ---- */
+#lb{
+  position:fixed;inset:0;background:rgba(0,0,0,0.96);
+  z-index:700;display:none;align-items:center;justify-content:center;
+}
+#lb.open{display:flex}
+#lb-img{
+  max-height:90vh;max-width:88vw;object-fit:contain;
+  border-radius:2px;box-shadow:0 32px 80px rgba(0,0,0,0.8);
+}
+.lb-nav{
+  position:fixed;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);
+  border:1px solid rgba(255,255,255,0.1);border-radius:50%;
+  width:44px;height:44px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;backdrop-filter:blur(4px);
+}
+.lb-nav:hover{background:rgba(255,255,255,0.14);color:#fff}
+#lb-prev{left:16px}#lb-next{right:16px}
+#lb-close{
+  position:fixed;top:14px;right:14px;
+  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);
+  border:1px solid rgba(255,255,255,0.1);border-radius:50%;
+  width:36px;height:36px;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+#lb-close:hover{background:rgba(255,255,255,0.14);color:#fff}
+#lb-counter{
+  position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+  font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.08em;
+}
 
-/* Profile drawer */
-#drawer{position:fixed;top:0;right:-100%;width:min(460px,100%);height:100%;background:var(--bg2);border-left:1px solid var(--border2);z-index:400;overflow-y:auto;transition:right 0.25s cubic-bezier(0.4,0,0.2,1)}
+/* ---- DRAWER ---- */
+#ov{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:499;display:none;backdrop-filter:blur(2px)}
+#ov.open{display:block}
+#drawer{
+  position:fixed;top:0;right:-100%;
+  width:min(500px,100%);height:100%;
+  background:var(--ink2);border-left:1px solid var(--rule2);
+  z-index:500;overflow-y:auto;
+  transition:right 0.28s cubic-bezier(0.4,0,0.2,1);
+  scrollbar-width:thin;scrollbar-color:var(--rule2) transparent;
+}
 #drawer.open{right:0}
-#drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:399;display:none}
-#drawer-overlay.open{display:block}
-.drawer-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:10}
-.drawer-header h2{font-size:16px;font-weight:600}
-.drawer-header .close-btn{background:transparent;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px}
-.drawer-photos{display:grid;grid-template-columns:1fr;gap:0}
-.drawer-hero{aspect-ratio:4/5;background:var(--bg3);overflow:hidden;cursor:pointer}
-.drawer-hero img{width:100%;height:100%;object-fit:cover;display:block}
-.drawer-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px}
-.drawer-strip .thumb{aspect-ratio:1/1;background:var(--bg3);overflow:hidden;cursor:pointer;border-radius:4px}
-.drawer-strip .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.drawer-body{padding:16px}
-.info-card{background:var(--bg3);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px}
-.info-card-title{padding:8px 12px;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
-.info-card-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px}
-.info-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-size:12px}
-.info-row .lbl{color:var(--text3);flex-shrink:0;min-width:90px}
-.info-row .val{color:var(--text);text-align:right;word-break:break-word}
-.info-row a{color:var(--gold)}
-.status-select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;width:100%;margin-bottom:8px}
-.status-select option{background:var(--bg3)}
-.btn-sl-toggle{width:100%;padding:9px;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:12px;transition:opacity 0.15s}
-.btn-sl-on{background:var(--gold);color:#1a1400}
-.btn-sl-off{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border2)}
+.dr-head{
+  padding:14px 18px;border-bottom:1px solid var(--rule);
+  display:flex;align-items:flex-start;justify-content:space-between;
+  position:sticky;top:0;background:var(--ink2);z-index:10;
+  backdrop-filter:blur(8px);
+}
+.dr-head-inner{}
+.dr-head h2{
+  font-family:var(--serif);font-size:24px;font-weight:300;
+  letter-spacing:-0.01em;color:var(--snow);line-height:1.2;
+}
+.dr-head p{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:0.04em}
+.dr-close{
+  background:none;border:none;color:var(--faint);
+  font-size:18px;cursor:pointer;padding:4px;
+  transition:color 0.15s;line-height:1;flex-shrink:0;margin-top:2px;
+}
+.dr-close:hover{color:var(--snow)}
+
+/* Photos in drawer */
+.dr-hero{
+  aspect-ratio:4/5;background:var(--ink3);overflow:hidden;
+  cursor:pointer;position:relative;
+}
+.dr-hero img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s}
+.dr-hero:hover img{transform:scale(1.03)}
+.dr-hero-badge{
+  position:absolute;bottom:12px;right:12px;
+  font-size:9px;letter-spacing:0.08em;text-transform:uppercase;
+  color:rgba(255,255,255,0.5);background:rgba(11,11,11,0.6);
+  padding:4px 8px;border-radius:2px;backdrop-filter:blur(4px);
+}
+.dr-strip{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:3px;
+  background:var(--ink);padding:3px;
+}
+.dr-thumb{
+  aspect-ratio:1;background:var(--ink3);overflow:hidden;
+  cursor:pointer;position:relative;
+}
+.dr-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.15s}
+.dr-thumb:hover img{opacity:0.8}
+.dr-thumb.active-t::after{
+  content:'';position:absolute;inset:0;
+  border:2px solid var(--gold);pointer-events:none;
+}
+
+/* Drawer body */
+.dr-body{padding:18px}
+
+/* Action row */
+.dr-actions{display:flex;gap:8px;margin-bottom:16px}
+.sl-btn{
+  flex:1;padding:10px;border:none;border-radius:var(--r);
+  font-size:11px;font-weight:500;letter-spacing:0.08em;
+  text-transform:uppercase;cursor:pointer;font-family:var(--sans);
+  transition:all 0.15s;
+}
+.sl-on{background:var(--gold);color:var(--ink)}
+.sl-off{background:var(--ink3);color:var(--muted);border:1px solid var(--rule2)}
+.sl-off:hover{color:var(--snow);border-color:var(--rule3)}
+.status-sel{
+  flex:1;background:var(--ink3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--snow);padding:10px 11px;
+  font-size:11px;font-family:var(--sans);cursor:pointer;
+  letter-spacing:0.04em;
+}
+.status-sel option{background:var(--ink3)}
+
+/* Info cards */
+.icard{margin-bottom:12px;border:1px solid var(--rule);border-radius:var(--r-md);overflow:hidden}
+.icard-head{
+  padding:8px 13px;background:var(--ink3);
+  font-size:9px;font-weight:500;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.1em;
+  border-bottom:1px solid var(--rule);
+}
+.icard-body{padding:12px 13px;display:flex;flex-direction:column;gap:8px}
+.irow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:12px}
+.irow .lbl{color:var(--faint);min-width:80px;font-size:11px;letter-spacing:0.04em}
+.irow .val{color:var(--snow);text-align:right;word-break:break-all}
+.irow a{color:var(--gold);text-decoration:none}
+.irow a:hover{text-decoration:underline}
+.irow .big{font-family:var(--serif);font-size:18px;font-weight:300}
+
+/* Brand chips */
+.brand-chips{display:flex;flex-wrap:wrap;gap:5px}
+.bchip{
+  display:flex;align-items:center;gap:4px;
+  padding:5px 10px;border-radius:2px;font-size:10px;
+  font-weight:400;letter-spacing:0.06em;text-transform:uppercase;
+  cursor:pointer;border:1px solid;transition:all 0.15s;font-family:var(--sans);
+}
+.bchip-on{background:rgba(74,127,181,0.15);color:var(--blue);border-color:rgba(74,127,181,0.3)}
+.bchip-off{background:transparent;color:var(--faint);border-color:var(--rule)}
+.bchip-off:hover{color:var(--muted);border-color:var(--rule2)}
+.bchip-empty{color:var(--faint);font-size:11px;letter-spacing:0.04em}
+
+/* Meta */
+.dr-meta{font-size:10px;color:var(--faint);letter-spacing:0.06em;margin-top:4px;text-align:right}
+
+/* ---- BRAND MANAGER ---- */
+#bm-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);
+  z-index:900;display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(4px);
+}
+#bm-modal.open{display:flex}
+.bm-box{
+  background:var(--ink2);border:1px solid var(--rule2);
+  border-radius:var(--r-lg);padding:28px;width:100%;max-width:360px;
+  box-shadow:0 32px 80px rgba(0,0,0,0.7);
+}
+.bm-box h3{
+  font-family:var(--serif);font-size:22px;font-weight:300;
+  margin-bottom:18px;letter-spacing:-0.01em;
+}
+.bm-list{display:flex;flex-direction:column;gap:4px;margin-bottom:16px;max-height:260px;overflow-y:auto}
+.bm-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--ink3);border-radius:var(--r);padding:9px 12px;
+  font-size:12px;letter-spacing:0.02em;border:1px solid var(--rule);
+}
+.bm-del{
+  background:none;border:none;color:var(--faint);cursor:pointer;
+  font-size:13px;padding:2px;transition:color 0.15s;
+}
+.bm-del:hover{color:var(--red)}
+.bm-new{display:flex;gap:8px;margin-bottom:12px}
+.bm-new input{
+  flex:1;background:var(--ink3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--snow);padding:9px 12px;font-size:13px;font-family:var(--sans);
+}
+.bm-new input:focus{outline:none;border-color:var(--gold2)}
+.bm-new button{
+  padding:9px 16px;background:var(--gold);color:var(--ink);
+  border:none;border-radius:var(--r);font-size:11px;
+  font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+  cursor:pointer;font-family:var(--sans);white-space:nowrap;
+}
+.bm-close{
+  width:100%;padding:9px;background:transparent;
+  border:1px solid var(--rule2);color:var(--muted);border-radius:var(--r);
+  cursor:pointer;font-size:11px;font-family:var(--sans);letter-spacing:0.06em;
+  text-transform:uppercase;transition:all 0.15s;
+}
+.bm-close:hover{color:var(--snow);border-color:var(--rule3)}
+
+/* ---- PDF EXPORT PROGRESS ---- */
+#pdf-overlay{
+  position:fixed;inset:0;background:rgba(11,11,11,0.9);
+  z-index:1000;display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+}
+#pdf-overlay.open{display:flex}
+.pdf-box{text-align:center;padding:40px}
+.pdf-box p{font-family:var(--serif);font-size:22px;font-weight:300;margin-bottom:8px}
+.pdf-box small{color:var(--muted);font-size:12px;letter-spacing:0.04em}
+.pdf-progress{
+  width:200px;height:2px;background:var(--rule2);
+  border-radius:1px;margin:20px auto 0;overflow:hidden;
+}
+.pdf-progress-bar{height:100%;background:var(--gold);width:0;transition:width 0.3s}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--rule2);border-radius:3px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
-<div id="login-screen">
+<!-- LOGIN -->
+<div id="login">
   <div class="login-box">
-    <div style="font-size:32px;margin-bottom:12px">🎬</div>
-    <h2>Casting Board</h2>
-    <p>Inserisci la password per accedere</p>
-    <input type="password" id="login-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <span class="login-logo">Casting Studio</span>
+    <h2>Board</h2>
+    <p>Accesso riservato</p>
+    <input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
     <button onclick="doLogin()">Accedi</button>
-    <div id="login-err">Password errata</div>
+    <div id="login-err">Password non corretta</div>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="app" style="display:none">
+<!-- APP -->
+<div id="app">
 
-  <!-- Top bar -->
+  <!-- Top Bar -->
   <div class="topbar">
-    <div class="topbar-left">
-      <h1 id="app-title">Casting Board</h1>
-      <p id="count-label">Caricamento…</p>
+    <div style="display:flex;align-items:center;gap:0">
+      <div class="topbar-brand" id="app-brand">Casting Board</div>
+      <span class="topbar-count" id="count-lbl"></span>
     </div>
-    <div class="topbar-right">
-      <button class="btn btn-ghost" id="filter-btn" onclick="toggleFilters()">
-        ⚡ Filtri <span id="filter-badge" style="display:none" class="badge-count">0</span>
+    <div class="topbar-actions">
+      <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
+        Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
-      <button class="btn btn-ghost" id="sl-btn" onclick="toggleShortlistView()">★ Shortlist</button>
-      <button class="btn btn-ghost" onclick="window.open('apply.html','_blank')">+ Form ↗</button>
-      <button class="btn btn-ghost" onclick="loadCandidates()" title="Aggiorna">↻</button>
+      <button class="tbtn tbtn-ghost" id="sl-btn" onclick="toggleSL()">★ Shortlist</button>
+      <div class="tbtn-sep"></div>
+      <button class="tbtn tbtn-ghost" onclick="openBrandManager()">🏷 Brand</button>
+      <button class="tbtn tbtn-outline" onclick="startPdfExport()">↓ Book PDF</button>
+      <div class="tbtn-sep"></div>
+      <button class="tbtn tbtn-ghost" onclick="window.open('apply.html','_blank')">+ Form</button>
+      <button class="tbtn tbtn-ghost" onclick="reload()" title="Aggiorna">↻</button>
     </div>
   </div>
 
-  <!-- Search bar -->
+  <!-- Brand Tabs -->
+  <div class="brand-bar" id="brand-bar">
+    <button class="brand-tab active" data-id="All" onclick="selBrand('All')">Tutti</button>
+    <div class="brand-bar-end">
+      <button class="brand-add" onclick="openBrandManager()">+ Nuovo brand</button>
+    </div>
+  </div>
+
+  <!-- Search -->
   <div class="searchbar">
-    <input type="search" id="search-input" placeholder="Cerca per nome o città…" oninput="debouncedLoad()">
+    <input type="search" class="search-input" id="q" placeholder="Cerca nome, cognome, instagram…" oninput="debounce()">
   </div>
 
-  <!-- Filters panel -->
-  <div id="filters-panel">
-    <div class="filter-field">
-      <label>Genere</label>
-      <select id="f-gender" onchange="debouncedLoad()">
-        <option value="All">Tutti</option>
-        <option>Donna</option><option>Uomo</option><option>Non-binary</option><option>Altro</option>
-      </select>
-    </div>
-    <div class="filter-field">
-      <label>Città</label>
-      <input type="text" id="f-city" placeholder="Tutte" oninput="debouncedLoad()">
-    </div>
-    <div class="filter-field">
-      <label>Disponibilità</label>
-      <select id="f-avail" onchange="debouncedLoad()">
+  <!-- Filters -->
+  <div id="filter-panel">
+    <div class="ff">
+      <label>Taglia</label>
+      <select id="f-taglia" onchange="debounce()">
         <option value="All">Tutte</option>
-        <option>Full-time</option><option>Part-time</option>
-        <option>Flessibile</option><option>Solo weekend</option><option>Progetti singoli</option>
+        <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option>
+        <option>40</option><option>42</option><option>44</option><option>46</option><option>48</option>
       </select>
     </div>
-    <div class="filter-field">
+    <div class="ff">
       <label>Status</label>
-      <select id="f-status" onchange="debouncedLoad()">
+      <select id="f-status" onchange="debounce()">
         <option value="All">Tutti</option>
         <option value="pending">In attesa</option>
         <option value="shortlisted">Shortlist</option>
@@ -195,307 +582,725 @@ html,body{background:var(--bg);color:var(--text);font-family:-apple-system,Blink
         <option value="rejected">Rifiutato</option>
       </select>
     </div>
-    <div class="filter-field">
+    <div class="ff">
       <label>Altezza min (cm)</label>
-      <input type="number" id="f-min-h" placeholder="es. 165" oninput="debouncedLoad()">
+      <input type="number" id="f-minh" placeholder="160" oninput="debounce()">
     </div>
-    <div class="filter-field">
+    <div class="ff">
       <label>Altezza max (cm)</label>
-      <input type="number" id="f-max-h" placeholder="es. 185" oninput="debouncedLoad()">
+      <input type="number" id="f-maxh" placeholder="185" oninput="debounce()">
     </div>
-    <button class="clear-btn" onclick="clearFilters()">✕ Azzera</button>
+    <button style="padding:7px 12px;background:transparent;border:1px solid var(--rule2);color:var(--muted);border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);letter-spacing:0.08em;text-transform:uppercase;align-self:flex-end;transition:all 0.15s" onmouseover="this.style.color='var(--snow)'" onmouseout="this.style.color='var(--muted)'" onclick="clearFilters()">✕ Azzera</button>
   </div>
 
   <!-- Gallery -->
   <div id="gallery">
-    <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div> Caricamento candidati…</div>
+    <div class="state"><span class="spinner"></span> Caricamento…</div>
   </div>
 
 </div>
 
 <!-- LIGHTBOX -->
-<div id="lightbox">
-  <button id="lb-prev" onclick="lbNav(-1)">‹</button>
-  <img id="lb-img" src="" alt="">
-  <button id="lb-next" onclick="lbNav(1)">›</button>
-  <button id="lb-close" onclick="closeLightbox()">×</button>
+<div id="lb" onclick="if(event.target===this)closeLB()">
+  <button class="lb-nav" id="lb-prev" onclick="lbNav(-1)">‹</button>
+  <img id="lb-img" src="" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22><rect fill=%22%231e1e1e%22 width=%22400%22 height=%22500%22/><text x=%22200%22 y=%22250%22 text-anchor=%22middle%22 fill=%22%236b6866%22 font-size=%2214%22>Immagine non disponibile</text></svg>'">
+  <button class="lb-nav" id="lb-next" onclick="lbNav(1)">›</button>
+  <button id="lb-close" onclick="closeLB()">×</button>
   <div id="lb-counter"></div>
 </div>
 
-<!-- PROFILE DRAWER -->
-<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<!-- DRAWER OVERLAY -->
+<div id="ov" onclick="closeDrawer()"></div>
+
+<!-- DRAWER -->
 <div id="drawer">
-  <div class="drawer-header">
-    <h2 id="drawer-name">—</h2>
-    <button class="close-btn" onclick="closeDrawer()">×</button>
+  <div class="dr-head">
+    <div class="dr-head-inner">
+      <h2 id="dr-name">—</h2>
+      <p id="dr-sub">—</p>
+    </div>
+    <button class="dr-close" onclick="closeDrawer()">×</button>
   </div>
-  <div id="drawer-content"></div>
+  <div id="dr-content"></div>
+</div>
+
+<!-- BRAND MANAGER -->
+<div id="bm-modal" onclick="if(event.target===this)closeBM()">
+  <div class="bm-box">
+    <h3>Brand</h3>
+    <div class="bm-list" id="bm-list"></div>
+    <div class="bm-new">
+      <input type="text" id="bm-inp" placeholder="Nome brand…" onkeydown="if(event.key==='Enter')createBrand()">
+      <button onclick="createBrand()">Aggiungi</button>
+    </div>
+    <button class="bm-close" onclick="closeBM()">Chiudi</button>
+  </div>
+</div>
+
+<!-- PDF PROGRESS -->
+<div id="pdf-overlay">
+  <div class="pdf-box">
+    <p>Generazione Book PDF</p>
+    <small id="pdf-status">Preparazione…</small>
+    <div class="pdf-progress"><div class="pdf-progress-bar" id="pdf-bar"></div></div>
+  </div>
 </div>
 
 <script>
-// ---- State ----
-let candidates = [];
-let currentCandidate = null;
-let showShortlistOnly = false;
+// ============================================================
+// STATE
+// ============================================================
+let candidates  = [];
+let brands      = [];
+let curBrand    = 'All';
+let showSLOnly  = false;
+let curC        = null;
 let filtersOpen = false;
-let debounceTimer;
+let debTimer;
+let lbPhotos=[], lbIdx=0;
+let lbActive=0; // active thumbnail in drawer
 
-// ---- Lightbox ----
-let lbPhotos = [];
-let lbIdx = 0;
-function openLightbox(photos, idx) {
-  lbPhotos = photos; lbIdx = idx;
-  document.getElementById('lb-img').src = photos[idx];
-  document.getElementById('lb-counter').textContent = `${idx+1} / ${photos.length}`;
-  document.getElementById('lightbox').classList.add('open');
-}
-function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
-function lbNav(dir) {
-  lbIdx = (lbIdx + dir + lbPhotos.length) % lbPhotos.length;
-  document.getElementById('lb-img').src = lbPhotos[lbIdx];
-  document.getElementById('lb-counter').textContent = `${lbIdx+1} / ${lbPhotos.length}`;
-}
-document.getElementById('lightbox').addEventListener('click', e => {
-  if (e.target === document.getElementById('lightbox')) closeLightbox();
-});
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('lightbox').classList.contains('open')) return;
-  if (e.key === 'ArrowLeft') lbNav(-1);
-  if (e.key === 'ArrowRight') lbNav(1);
-  if (e.key === 'Escape') closeLightbox();
-});
-
-// ---- Login ----
-function doLogin() {
-  const pwd = document.getElementById('login-pwd').value;
-  const expected = window.CONFIG?.GALLERY_PASSWORD || '';
-  if (!expected || pwd === expected) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('app-title').textContent = CONFIG.AGENCY_NAME || 'Casting Board';
-    loadCandidates();
+// ============================================================
+// LOGIN
+// ============================================================
+function doLogin(){
+  const pwd = document.getElementById('pwd').value;
+  if (!CONFIG.GALLERY_PASSWORD || pwd===CONFIG.GALLERY_PASSWORD){
+    document.getElementById('login').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('app-brand').textContent = CONFIG.AGENCY_NAME||'Casting Board';
+    init();
   } else {
-    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('login-err').style.display='block';
   }
 }
 
-// ---- Load ----
-async function loadCandidates() {
-  document.getElementById('gallery').innerHTML = '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div> Caricamento…</div>';
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+  await loadBrands();
+  await loadCandidates();
+}
 
-  const params = new URLSearchParams({
-    action:      'getCandidates',
-    token:       CONFIG.TOKEN,
-    search:      document.getElementById('search-input').value.trim(),
-    gender:      document.getElementById('f-gender').value,
-    city:        document.getElementById('f-city').value.trim(),
-    availability:document.getElementById('f-avail').value,
-    status:      document.getElementById('f-status').value,
-    minHeight:   document.getElementById('f-min-h').value,
-    maxHeight:   document.getElementById('f-max-h').value,
-    shortlisted: showShortlistOnly ? 'true' : 'false',
+// ============================================================
+// BRANDS
+// ============================================================
+async function loadBrands(){
+  const d = await apiGet({action:'getBrands'});
+  if (!d.ok) return;
+  brands = d.brands||[];
+  renderBrandBar();
+  renderBMList();
+}
+
+function renderBrandBar(){
+  const bar = document.getElementById('brand-bar');
+  const end = bar.querySelector('.brand-bar-end');
+  [...bar.querySelectorAll('.brand-tab:not([data-id="All"])')].forEach(el=>el.remove());
+  brands.forEach(b=>{
+    const btn = document.createElement('button');
+    btn.className = `brand-tab${curBrand===b.id?' active':''}`;
+    btn.dataset.id = b.id;
+    btn.textContent = b.nome;
+    btn.onclick = ()=>selBrand(b.id);
+    bar.insertBefore(btn, end);
   });
-
-  try {
-    const res  = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${params}`);
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error);
-    candidates = data.candidates || [];
-    renderGallery(candidates);
-    document.getElementById('count-label').textContent =
-      `${data.total} candidati${showShortlistOnly ? ' · Solo shortlist' : ''}`;
-  } catch (err) {
-    document.getElementById('gallery').innerHTML =
-      `<div class="empty" style="grid-column:1/-1"><h3>Errore di caricamento</h3><p>${err.message}</p></div>`;
-  }
+  bar.querySelector('.brand-tab[data-id="All"]').classList.toggle('active', curBrand==='All');
 }
 
-function debouncedLoad() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(loadCandidates, 300);
-}
+function selBrand(id){ curBrand=id; renderBrandBar(); loadCandidates(); }
 
-// ---- Render gallery ----
-function renderGallery(list) {
-  if (list.length === 0) {
-    document.getElementById('gallery').innerHTML =
-      '<div class="empty" style="grid-column:1/-1"><h3>Nessun candidato trovato</h3><p>Prova a modificare i filtri.</p></div>';
+function openBrandManager(){ renderBMList(); document.getElementById('bm-modal').classList.add('open'); }
+function closeBM(){ document.getElementById('bm-modal').classList.remove('open'); }
+
+function renderBMList(){
+  const list = document.getElementById('bm-list');
+  if (!brands.length){
+    list.innerHTML='<div style="color:var(--faint);font-size:11px;padding:8px 0;letter-spacing:0.04em">Nessun brand ancora</div>';
     return;
   }
-  document.getElementById('gallery').innerHTML = list.map(c => cardHTML(c)).join('');
+  list.innerHTML = brands.map(b=>`
+    <div class="bm-item">
+      <span>${esc(b.nome)}</span>
+      <button class="bm-del" onclick="deleteBrand('${b.id}','${esc(b.nome)}')" title="Elimina">×</button>
+    </div>`).join('');
 }
 
-function cardHTML(c) {
-  const cover = c.photo_urls?.[0] || '';
-  const statusClass = `s-${c.status || 'pending'}`;
-  const statusLabel = { pending:'In attesa', shortlisted:'Shortlist', booked:'Confermato', rejected:'Rifiutato' }[c.status] || c.status;
-  const sl = c.is_shortlisted === true || c.is_shortlisted === 'TRUE';
+async function createBrand(){
+  const inp = document.getElementById('bm-inp');
+  const nome = inp.value.trim(); if(!nome) return;
+  inp.value='';
+  const d = await apiPost({action:'createBrand',nome});
+  if(d.ok){ brands.push({id:d.id,nome}); renderBrandBar(); renderBMList(); }
+}
+
+async function deleteBrand(id,nome){
+  if(!confirm(`Eliminare "${nome}"?`)) return;
+  await apiPost({action:'deleteBrand',brandId:id});
+  brands = brands.filter(b=>b.id!==id);
+  if(curBrand===id) curBrand='All';
+  candidates = candidates.map(c=>({...c,brand_ids:(c.brand_ids||[]).filter(bid=>bid!==id)}));
+  renderBrandBar(); renderBMList(); renderGallery(candidates);
+}
+
+// ============================================================
+// CANDIDATES
+// ============================================================
+async function loadCandidates(){
+  document.getElementById('gallery').innerHTML='<div class="state"><span class="spinner"></span> Caricamento…</div>';
+  const d = await apiGet({
+    action:'getCandidates',
+    search: document.getElementById('q').value.trim(),
+    taglia: document.getElementById('f-taglia').value,
+    status: document.getElementById('f-status').value,
+    brand:  curBrand,
+    minH:   document.getElementById('f-minh').value,
+    maxH:   document.getElementById('f-maxh').value,
+    shortlisted: showSLOnly?'true':'false',
+  });
+  if(!d.ok){
+    document.getElementById('gallery').innerHTML=`<div class="state"><h3>Errore</h3><p>${esc(d.error||'')}</p></div>`;
+    return;
+  }
+  candidates = d.candidates||[];
+  const brandName = curBrand!=='All' ? (' — '+(brands.find(b=>b.id===curBrand)?.nome||'')) : '';
+  document.getElementById('count-lbl').textContent =
+    ` ${d.total} model${d.total!==1?'s':''}${brandName}${showSLOnly?' · shortlist':''}`;
+  renderGallery(candidates);
+}
+
+function debounce(){ clearTimeout(debTimer); debTimer=setTimeout(loadCandidates,300); }
+function reload(){ loadCandidates(); }
+
+// ============================================================
+// GALLERY RENDER
+// ============================================================
+function renderGallery(list){
+  if(!list.length){
+    document.getElementById('gallery').innerHTML='<div class="state"><h3>Nessun candidato</h3><p>Prova a modificare i filtri.</p></div>';
+    return;
+  }
+  document.getElementById('gallery').innerHTML = list.map(cardHTML).join('');
+}
+
+function cardHTML(c){
+  const cover = c.cover_url || (c.photo_urls&&c.photo_urls[0]) || '';
+  const sl    = c.is_shortlisted;
+  const sLbl  = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[c.status]||c.status;
+  const cBrands = (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
 
   return `
-  <div class="card ${sl ? 'sl' : ''}" onclick="openDrawer('${c.id}')">
+  <div class="card${sl?' sl':''}" onclick="openDrawer('${c.id}')">
     <div class="card-photo">
       ${cover
-        ? `<img src="${cover}" alt="${c.first_name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-photo>👤</div>'">`
-        : '<div class="no-photo">👤</div>'
+        ? `<img src="${cover}" loading="lazy" alt="${esc(c.nome)}" onerror="this.parentElement.innerHTML='<div class=no-ph>Foto non disponibile</div>'">`
+        : '<div class="no-ph">Nessuna foto</div>'
       }
-      <button class="star-btn ${sl ? 'on' : ''}" onclick="event.stopPropagation();toggleSL('${c.id}',${sl})" title="${sl ? 'Rimuovi shortlist' : 'Aggiungi shortlist'}">★</button>
-      <span class="status-badge ${statusClass}">${statusLabel}</span>
+      <div class="card-overlay"></div>
+      ${cBrands.length?`<div class="card-brand-pills">${cBrands.slice(0,2).map(n=>`<span class="card-brand-pill">${esc(n)}</span>`).join('')}</div>`:''}
+      <button class="star-btn${sl?' on':''}" onclick="event.stopPropagation();toggleSL_card('${c.id}',${sl})" title="Shortlist">★</button>
+      <span class="status-badge s-${c.status||'pending'}">${sLbl}</span>
     </div>
     <div class="card-info">
-      <div class="name">${c.first_name} ${c.last_name}</div>
-      <div class="sub">${[c.city, c.age ? c.age + 'a' : ''].filter(Boolean).join(' · ')}</div>
-      <div class="meas">${[c.height_cm ? c.height_cm + 'cm' : '', c.gender].filter(Boolean).join(' · ')}</div>
+      <div class="card-name">${esc(c.nome)} ${esc(c.cognome)}</div>
+      <div class="card-sub">${[c.instagram?esc(c.instagram):'',c.eta?c.eta+'a':'',c.altezza_cm?c.altezza_cm+'cm':'',c.taglia?'T.'+c.taglia:''].filter(Boolean).join(' · ')}</div>
     </div>
   </div>`;
 }
 
-// ---- Shortlist toggle ----
-async function toggleSL(id, current) {
-  const newVal = !current;
-  // Ottimistic UI
-  candidates = candidates.map(c => c.id === id ? { ...c, is_shortlisted: newVal } : c);
+// ============================================================
+// SHORTLIST
+// ============================================================
+async function toggleSL_card(id, cur){
+  const nv=!cur;
+  candidates=candidates.map(c=>c.id===id?{...c,is_shortlisted:nv}:c);
   renderGallery(candidates);
-  // Aggiorna drawer se aperto
-  if (currentCandidate?.id === id) {
-    currentCandidate.is_shortlisted = newVal;
-    updateDrawerSL(newVal);
+  if(curC?.id===id){ curC.is_shortlisted=nv; updateDrawerSLBtn(nv); }
+  await apiPost({action:'toggleShortlist',candidateId:id,value:nv});
+}
+function updateDrawerSLBtn(v){
+  const btn=document.getElementById('dr-sl-btn');
+  if(!btn)return;
+  btn.className=`sl-btn ${v?'sl-on':'sl-off'}`;
+  btn.textContent=v?'★ In shortlist':'☆ Shortlist';
+}
+
+async function updateStatus(id,status){
+  candidates=candidates.map(c=>c.id===id?{...c,status}:c);
+  renderGallery(candidates);
+  await apiPost({action:'updateStatus',candidateId:id,status});
+}
+
+function toggleSL(){
+  showSLOnly=!showSLOnly;
+  document.getElementById('sl-btn').className=`tbtn ${showSLOnly?'tbtn-active':'tbtn-ghost'}`;
+  loadCandidates();
+}
+
+// ============================================================
+// BRAND ASSIGN
+// ============================================================
+async function toggleBrandAssign(cid,bid,assigned){
+  const assign=!assigned;
+  candidates=candidates.map(c=>{
+    if(c.id!==cid)return c;
+    const ids=c.brand_ids||[];
+    return{...c,brand_ids:assign?[...ids,bid]:ids.filter(id=>id!==bid)};
+  });
+  if(curC?.id===cid){
+    const ids=curC.brand_ids||[];
+    curC.brand_ids=assign?[...ids,bid]:ids.filter(id=>id!==bid);
+    renderBrandChips(cid);
   }
-  await appsScriptPost({ action: 'toggleShortlist', candidateId: id, value: newVal });
-}
-
-// ---- Status update ----
-async function updateStatus(id, newStatus) {
-  candidates = candidates.map(c => c.id === id ? { ...c, status: newStatus } : c);
   renderGallery(candidates);
-  await appsScriptPost({ action: 'updateStatus', candidateId: id, status: newStatus });
+  await apiPost({action:'assignBrand',candidateId:cid,brandId:bid,assign});
 }
 
-// ---- Drawer ----
-function openDrawer(id) {
-  const c = candidates.find(x => x.id === id);
-  if (!c) return;
-  currentCandidate = c;
+function renderBrandChips(cid){
+  const c=candidates.find(x=>x.id===cid);
+  const el=document.getElementById('brand-chips');
+  if(!c||!el)return;
+  if(!brands.length){
+    el.innerHTML='<span class="bchip-empty">Nessun brand creato. Usa 🏷 Brand.</span>';
+    return;
+  }
+  el.innerHTML=brands.map(b=>{
+    const on=(c.brand_ids||[]).includes(b.id);
+    return`<button class="bchip ${on?'bchip-on':'bchip-off'}" onclick="toggleBrandAssign('${cid}','${b.id}',${on})">${on?'✓':'+'}  ${esc(b.nome)}</button>`;
+  }).join('');
+}
 
-  document.getElementById('drawer-name').textContent = `${c.first_name} ${c.last_name}`;
-  const sl = c.is_shortlisted === true || c.is_shortlisted === 'TRUE';
+// ============================================================
+// DRAWER
+// ============================================================
+function openDrawer(id){
+  const c=candidates.find(x=>x.id===id);
+  if(!c)return;
+  curC=c;
+  lbActive=0;
+  document.getElementById('dr-name').textContent=`${c.nome} ${c.cognome}`;
+  document.getElementById('dr-sub').textContent=[
+    c.instagram||'',
+    c.eta?c.eta+' anni':'',
+    c.altezza_cm?c.altezza_cm+' cm':'',
+    c.taglia?'T. '+c.taglia:'',
+  ].filter(Boolean).join(' · ');
 
-  const photos = Array.isArray(c.photo_urls) ? c.photo_urls : [];
-  const heroClick = photos.length > 0 ? `onclick="openLightbox(${JSON.stringify(photos)},0)"` : '';
-  const stripThumbs = photos.slice(1,5).map((url,i) =>
-    `<div class="thumb" onclick="openLightbox(${JSON.stringify(photos)},${i+1})"><img src="${url}" loading="lazy"></div>`
-  ).join('');
+  const photos=c.photo_urls||[];
+  const sl=c.is_shortlisted;
+  const ig=c.instagram?.replace('@','')||null;
 
-  document.getElementById('drawer-content').innerHTML = `
-    <div class="drawer-photos">
-      <div class="drawer-hero" ${heroClick}>
-        ${photos[0] ? `<img src="${photos[0]}" alt="">` : '<div style="height:280px;display:flex;align-items:center;justify-content:center;font-size:40px;color:#333">👤</div>'}
-      </div>
-      ${photos.length > 1 ? `<div class="drawer-strip">${stripThumbs}</div>` : ''}
+  document.getElementById('dr-content').innerHTML=`
+    <div class="dr-hero" onclick="openLB(${JSON.stringify(photos)},0)">
+      ${photos[0]
+        ?`<img id="dr-hero-img" src="${photos[0]}" alt="">`
+        :'<div style="height:300px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--faint)"><span style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Nessuna foto</span></div>'}
+      ${photos.length>1?`<div class="dr-hero-badge">Tap per aprire · ${photos.length} foto</div>`:''}
     </div>
-    <div class="drawer-body">
-      <button class="btn-sl-toggle ${sl ? 'btn-sl-on' : 'btn-sl-off'}" id="drawer-sl-btn" onclick="toggleSL('${c.id}',${sl})">
-        ★ ${sl ? 'In shortlist' : 'Aggiungi a shortlist'}
+    ${photos.length>1?`
+    <div class="dr-strip" id="dr-strip">
+      ${photos.map((u,i)=>`
+        <div class="dr-thumb${i===0?' active-t':''}" id="dt-${i}" onclick="switchPhoto(${i})">
+          <img src="${u}" loading="lazy">
+        </div>`).join('')}
+    </div>`:''}
+    <div class="dr-body">
+      <div class="dr-actions">
+        <button class="sl-btn ${sl?'sl-on':'sl-off'}" id="dr-sl-btn" onclick="toggleSL_card('${c.id}',${sl})">
+          ${sl?'★ In shortlist':'☆ Shortlist'}
+        </button>
+        <select class="status-sel" onchange="updateStatus('${c.id}',this.value)">
+          ${['pending','shortlisted','booked','rejected'].map(s=>`<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[s]}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="icard">
+        <div class="icard-head">Misure</div>
+        <div class="icard-body">
+          ${c.altezza_cm?`<div class="irow"><span class="lbl">Altezza</span><span class="val big">${c.altezza_cm} cm</span></div>`:''}
+          ${c.taglia?`<div class="irow"><span class="lbl">Taglia</span><span class="val big">${esc(c.taglia)}</span></div>`:''}
+          ${c.eta?`<div class="irow"><span class="lbl">Età</span><span class="val">${c.eta} anni</span></div>`:''}
+        </div>
+      </div>
+
+      <div class="icard">
+        <div class="icard-head">Contatti</div>
+        <div class="icard-body">
+          ${c.instagram?`<div class="irow"><span class="lbl">Instagram</span><span class="val"><a href="https://instagram.com/${ig}" target="_blank">${esc(c.instagram)}</a></span></div>`:''}
+        </div>
+      </div>
+
+      ${c.note_particolari?`
+      <div class="icard">
+        <div class="icard-head">Note particolari</div>
+        <div class="icard-body"><p style="font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-wrap">${esc(c.note_particolari)}</p></div>
+      </div>`:''}
+
+      <div class="icard">
+        <div class="icard-head">Brand assegnati</div>
+        <div class="icard-body"><div class="brand-chips" id="brand-chips"></div></div>
+      </div>
+
+      <button onclick="startPdfExport([candidates.find(x=>x.id==='${c.id}')])" style="width:100%;margin-top:8px;padding:10px;background:transparent;border:1px solid var(--rule2);color:var(--muted);border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);letter-spacing:0.1em;text-transform:uppercase;transition:all 0.15s" onmouseover="this.style.color='var(--snow)';this.style.borderColor='var(--rule3)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--rule2)'">
+        ↓ Esporta scheda PDF
       </button>
-      <select class="status-select" onchange="updateStatus('${c.id}',this.value)">
-        ${['pending','shortlisted','booked','rejected'].map(s =>
-          `<option value="${s}" ${c.status===s?'selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[s]}</option>`
-        ).join('')}
-      </select>
 
-      <div class="info-card">
-        <div class="info-card-title">Contatti</div>
-        <div class="info-card-body">
-          <div class="info-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${c.email}">${c.email}</a></span></div>
-          ${c.phone ? `<div class="info-row"><span class="lbl">Telefono</span><span class="val"><a href="tel:${c.phone}">${c.phone}</a></span></div>` : ''}
-          ${c.city ? `<div class="info-row"><span class="lbl">Città</span><span class="val">${c.city}</span></div>` : ''}
-          ${c.availability ? `<div class="info-row"><span class="lbl">Disponibilità</span><span class="val">${c.availability}</span></div>` : ''}
-          ${c.instagram ? `<div class="info-row"><span class="lbl">Instagram</span><span class="val"><a href="https://instagram.com/${c.instagram.replace('@','')}" target="_blank">${c.instagram}</a></span></div>` : ''}
-        </div>
-      </div>
+      <div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>
+    </div>`;
 
-      <div class="info-card">
-        <div class="info-card-title">Misure</div>
-        <div class="info-card-body">
-          ${c.height_cm ? `<div class="info-row"><span class="lbl">Altezza</span><span class="val">${c.height_cm} cm</span></div>` : ''}
-          ${c.chest_cm  ? `<div class="info-row"><span class="lbl">Torace</span><span class="val">${c.chest_cm} cm</span></div>` : ''}
-          ${c.waist_cm  ? `<div class="info-row"><span class="lbl">Vita</span><span class="val">${c.waist_cm} cm</span></div>` : ''}
-          ${c.hips_cm   ? `<div class="info-row"><span class="lbl">Fianchi</span><span class="val">${c.hips_cm} cm</span></div>` : ''}
-          ${c.shoe_size ? `<div class="info-row"><span class="lbl">Scarpa</span><span class="val">EU ${c.shoe_size}</span></div>` : ''}
-          ${c.hair_color ? `<div class="info-row"><span class="lbl">Capelli</span><span class="val">${c.hair_color}</span></div>` : ''}
-          ${c.eye_color  ? `<div class="info-row"><span class="lbl">Occhi</span><span class="val">${c.eye_color}</span></div>` : ''}
-        </div>
-      </div>
-
-      ${c.experience ? `<div class="info-card"><div class="info-card-title">Esperienza</div><div class="info-card-body"><p style="font-size:12px;color:#888;line-height:1.6;white-space:pre-wrap">${escHtml(c.experience)}</p></div></div>` : ''}
-      ${c.notes ? `<div class="info-card"><div class="info-card-title">Note</div><div class="info-card-body"><p style="font-size:12px;color:#888;line-height:1.6;white-space:pre-wrap">${escHtml(c.notes)}</p></div></div>` : ''}
-
-      <div style="color:#333;font-size:11px;margin-top:8px">
-        Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}
-      </div>
-    </div>
-  `;
-
+  renderBrandChips(c.id);
   document.getElementById('drawer').classList.add('open');
-  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('ov').classList.add('open');
 }
 
-function closeDrawer() {
+function switchPhoto(idx){
+  const c=curC;
+  if(!c)return;
+  const photos=c.photo_urls||[];
+  const heroImg=document.getElementById('dr-hero-img');
+  if(heroImg) heroImg.src=photos[idx];
+  // update active thumb
+  document.querySelectorAll('[id^="dt-"]').forEach((el,i)=>{
+    el.classList.toggle('active-t',i===idx);
+  });
+  lbActive=idx;
+}
+
+function closeDrawer(){
   document.getElementById('drawer').classList.remove('open');
-  document.getElementById('drawer-overlay').classList.remove('open');
-  currentCandidate = null;
+  document.getElementById('ov').classList.remove('open');
+  curC=null;
 }
 
-function updateDrawerSL(newVal) {
-  const btn = document.getElementById('drawer-sl-btn');
-  if (!btn) return;
-  btn.className = `btn-sl-toggle ${newVal ? 'btn-sl-on' : 'btn-sl-off'}`;
-  btn.textContent = `★ ${newVal ? 'In shortlist' : 'Aggiungi a shortlist'}`;
+// ============================================================
+// LIGHTBOX
+// ============================================================
+function openLB(photos,idx){
+  lbPhotos=photos; lbIdx=idx;
+  document.getElementById('lb-img').src=photos[idx];
+  document.getElementById('lb-counter').textContent=`${idx+1} / ${photos.length}`;
+  document.getElementById('lb').classList.add('open');
 }
-
-// ---- UI controls ----
-function toggleFilters() {
-  filtersOpen = !filtersOpen;
-  document.getElementById('filters-panel').classList.toggle('open', filtersOpen);
+function closeLB(){ document.getElementById('lb').classList.remove('open'); }
+function lbNav(d){
+  lbIdx=(lbIdx+d+lbPhotos.length)%lbPhotos.length;
+  document.getElementById('lb-img').src=lbPhotos[lbIdx];
+  document.getElementById('lb-counter').textContent=`${lbIdx+1} / ${lbPhotos.length}`;
 }
-function toggleShortlistView() {
-  showShortlistOnly = !showShortlistOnly;
-  document.getElementById('sl-btn').className = `btn ${showShortlistOnly ? 'btn-active' : 'btn-ghost'}`;
-  loadCandidates();
-}
-function clearFilters() {
-  ['f-gender','f-avail','f-status'].forEach(id => document.getElementById(id).value = id === 'f-gender' ? 'All' : id === 'f-avail' ? 'All' : 'All');
-  ['f-city','f-min-h','f-max-h'].forEach(id => document.getElementById(id).value = '');
-  updateFilterBadge();
-  loadCandidates();
-}
-function updateFilterBadge() {
-  const n = [
-    document.getElementById('f-gender').value !== 'All',
-    document.getElementById('f-city').value !== '',
-    document.getElementById('f-avail').value !== 'All',
-    document.getElementById('f-status').value !== 'All',
-    document.getElementById('f-min-h').value !== '',
-    document.getElementById('f-max-h').value !== '',
-  ].filter(Boolean).length;
-  const badge = document.getElementById('filter-badge');
-  badge.style.display = n > 0 ? 'inline-flex' : 'none';
-  badge.textContent = n;
-}
-['f-gender','f-city','f-avail','f-status','f-min-h','f-max-h'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', updateFilterBadge);
-  document.getElementById(id)?.addEventListener('change', updateFilterBadge);
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('lb').classList.contains('open')){
+    if(e.key==='ArrowLeft')lbNav(-1);
+    if(e.key==='ArrowRight')lbNav(1);
+    if(e.key==='Escape')closeLB();
+  } else if(e.key==='Escape') closeDrawer();
 });
 
-// ---- Utils ----
-async function appsScriptPost(payload) {
-  await fetch(CONFIG.APPS_SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify({ ...payload, token: CONFIG.TOKEN }),
-    headers: { 'Content-Type': 'text/plain' }
+// ============================================================
+// FILTERS
+// ============================================================
+function toggleFilters(){
+  filtersOpen=!filtersOpen;
+  document.getElementById('filter-panel').classList.toggle('open',filtersOpen);
+  document.getElementById('filter-btn').className=`tbtn ${filtersOpen?'tbtn-active':'tbtn-ghost'}`;
+  updateFBadge();
+}
+function updateFBadge(){
+  const n=[
+    document.getElementById('f-taglia').value!=='All',
+    document.getElementById('f-status').value!=='All',
+    !!document.getElementById('f-minh').value,
+    !!document.getElementById('f-maxh').value,
+  ].filter(Boolean).length;
+  const b=document.getElementById('fbadge');
+  b.style.display=n?'inline-flex':'none';
+  b.textContent=n;
+}
+function clearFilters(){
+  document.getElementById('f-taglia').value='All';
+  document.getElementById('f-status').value='All';
+  document.getElementById('f-minh').value='';
+  document.getElementById('f-maxh').value='';
+  updateFBadge(); loadCandidates();
+}
+['f-taglia','f-status','f-minh','f-maxh'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change',updateFBadge);
+  document.getElementById(id)?.addEventListener('input',updateFBadge);
+});
+
+// ============================================================
+// PDF BOOK EXPORT
+// ============================================================
+async function startPdfExport(list){
+  const toExport = list||candidates;
+  if(!toExport.length){ alert('Nessun candidato da esportare.'); return; }
+
+  const overlay=document.getElementById('pdf-overlay');
+  const bar=document.getElementById('pdf-bar');
+  const status=document.getElementById('pdf-status');
+  overlay.classList.add('open');
+  setPdfProgress(0,'Inizializzazione…');
+
+  try {
+    const { jsPDF } = window.jspdf;
+    // A4 portrait
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const W=210, H=297;
+
+    for(let i=0;i<toExport.length;i++){
+      const c=toExport[i];
+      setPdfProgress(Math.round(i/toExport.length*90), `Scheda ${i+1} di ${toExport.length}: ${c.nome} ${c.cognome}`);
+
+      if(i>0) pdf.addPage();
+
+      // ---- Background ----
+      pdf.setFillColor(11,11,11);
+      pdf.rect(0,0,W,H,'F');
+
+      // ---- Gold rule top ----
+      pdf.setDrawColor(201,169,110);
+      pdf.setLineWidth(0.3);
+      pdf.line(12,12,W-12,12);
+      pdf.line(12,14,W-12,14);
+
+      // ---- Agency name ----
+      pdf.setFont('helvetica','normal');
+      pdf.setFontSize(6.5);
+      pdf.setTextColor(201,169,110);
+      pdf.setCharSpace(2);
+      const agency=(CONFIG.AGENCY_NAME||'CASTING STUDIO').toUpperCase();
+      pdf.text(agency,W/2,9,{align:'center'});
+      pdf.setCharSpace(0);
+
+      // ---- Photo (left column) ----
+      const photoX=12, photoY=20, photoW=88, photoH=117; // ~3:4 ratio
+      const photoUrl=c.cover_url||(c.photo_urls&&c.photo_urls[0])||'';
+
+      pdf.setFillColor(30,30,30);
+      pdf.rect(photoX,photoY,photoW,photoH,'F');
+
+      if(photoUrl){
+        try {
+          const imgData = await loadImgAsBase64(photoUrl);
+          pdf.addImage(imgData,'JPEG',photoX,photoY,photoW,photoH,'','FAST');
+        } catch(e) {
+          // placeholder se foto fallisce
+          pdf.setFillColor(40,40,40);
+          pdf.rect(photoX,photoY,photoW,photoH,'F');
+          pdf.setFontSize(7);pdf.setTextColor(80,80,80);
+          pdf.text('Foto non disponibile',photoX+photoW/2,photoY+photoH/2,{align:'center'});
+        }
+      }
+
+      // Thin gold border around photo
+      pdf.setDrawColor(201,169,110);
+      pdf.setLineWidth(0.2);
+      pdf.rect(photoX,photoY,photoW,photoH,'S');
+
+      // ---- RIGHT COLUMN ----
+      const rx=108, ry=20, rw=90;
+
+      // Name
+      pdf.setFont('times','italic');
+      pdf.setFontSize(24);
+      pdf.setTextColor(245,242,238);
+      pdf.text(c.nome||'',rx,ry+10);
+
+      pdf.setFont('times','normal');
+      pdf.setFontSize(20);
+      pdf.setTextColor(200,198,195);
+      pdf.text((c.cognome||'').toUpperCase(),rx,ry+19);
+
+      // Divider
+      pdf.setDrawColor(60,58,54);
+      pdf.setLineWidth(0.3);
+      pdf.line(rx,ry+24,rx+rw,ry+24);
+
+      // Instagram
+      if(c.instagram){
+        pdf.setFont('helvetica','normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(201,169,110);
+        pdf.setCharSpace(0.5);
+        pdf.text(c.instagram,rx,ry+31);
+        pdf.setCharSpace(0);
+      }
+
+      // Measurements block
+      let my=ry+44;
+      const fields=[
+        {lbl:'ETÀ',val:c.eta?c.eta+' anni':'—'},
+        {lbl:'ALTEZZA',val:c.altezza_cm?c.altezza_cm+' cm':'—'},
+        {lbl:'TAGLIA',val:c.taglia||'—'},
+      ];
+
+      fields.forEach(f=>{
+        // Label
+        pdf.setFont('helvetica','normal');
+        pdf.setFontSize(6.5);
+        pdf.setTextColor(107,104,102);
+        pdf.setCharSpace(1.5);
+        pdf.text(f.lbl,rx,my);
+        pdf.setCharSpace(0);
+        // Value
+        pdf.setFont('times','normal');
+        pdf.setFontSize(15);
+        pdf.setTextColor(245,242,238);
+        pdf.text(String(f.val),rx,my+7);
+        // Mini rule
+        pdf.setDrawColor(40,40,40);
+        pdf.setLineWidth(0.2);
+        pdf.line(rx,my+11,rx+rw,my+11);
+        my+=19;
+      });
+
+      // Notes
+      if(c.note_particolari){
+        my+=4;
+        pdf.setFont('helvetica','normal');
+        pdf.setFontSize(6.5);
+        pdf.setTextColor(107,104,102);
+        pdf.setCharSpace(1.5);
+        pdf.text('NOTE PARTICOLARI',rx,my);
+        pdf.setCharSpace(0);
+        my+=5;
+        pdf.setFont('helvetica','normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(180,178,175);
+        const noteLines=pdf.splitTextToSize(c.note_particolari,rw);
+        noteLines.slice(0,4).forEach(line=>{ pdf.text(line,rx,my); my+=4.5; });
+      }
+
+      // Brands
+      const cBrands=(c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
+      if(cBrands.length){
+        my=Math.max(my, ry+115);
+        pdf.setFont('helvetica','normal');
+        pdf.setFontSize(6.5);
+        pdf.setTextColor(107,104,102);
+        pdf.setCharSpace(1.5);
+        pdf.text('BRAND',rx,my);
+        pdf.setCharSpace(0);
+        my+=5;
+        cBrands.forEach(bn=>{
+          pdf.setFillColor(30,45,60);
+          pdf.setDrawColor(74,127,181);
+          pdf.setLineWidth(0.2);
+          pdf.roundedRect(rx,my-3.5,pdf.getTextWidth(bn)+6,6,1,1,'FD');
+          pdf.setFont('helvetica','normal');
+          pdf.setFontSize(7);
+          pdf.setTextColor(91,156,246);
+          pdf.text(bn,rx+3,my+0.8);
+          my+=8;
+        });
+      }
+
+      // ---- ADDITIONAL PHOTOS (below main photo, strip) ----
+      if(c.photo_urls&&c.photo_urls.length>1){
+        const stripY=photoY+photoH+4;
+        const stripH=32;
+        const stripW=(photoW/Math.min(c.photo_urls.length-1,4))-2;
+        for(let j=1;j<Math.min(c.photo_urls.length,5);j++){
+          const sx=photoX+(j-1)*(stripW+2);
+          pdf.setFillColor(30,30,30);
+          pdf.rect(sx,stripY,stripW,stripH,'F');
+          try {
+            const imgD=await loadImgAsBase64(c.photo_urls[j]);
+            pdf.addImage(imgD,'JPEG',sx,stripY,stripW,stripH,'','FAST');
+          } catch(e){ /* skip */ }
+          pdf.setDrawColor(40,40,40);
+          pdf.setLineWidth(0.15);
+          pdf.rect(sx,stripY,stripW,stripH,'S');
+        }
+      }
+
+      // ---- STATUS badge ----
+      const statusColor={
+        pending:[60,58,54],
+        shortlisted:[80,60,20],
+        booked:[20,60,40],
+        rejected:[70,30,30],
+      }[c.status]||[60,58,54];
+      const statusLabel={pending:'IN ATTESA',shortlisted:'SHORTLIST',booked:'CONFERMATO',rejected:'RIFIUTATO'}[c.status]||'—';
+      pdf.setFillColor(...statusColor);
+      const slw=pdf.getTextWidth(statusLabel)+8;
+      pdf.roundedRect(W-12-slw,H-22,slw,6,1,1,'F');
+      pdf.setFont('helvetica','bold');
+      pdf.setFontSize(6);
+      pdf.setTextColor(...(c.status==='shortlisted'?[201,169,110]:c.status==='booked'?[77,158,122]:c.status==='rejected'?[176,85,85]:[150,148,146]));
+      pdf.setCharSpace(1);
+      pdf.text(statusLabel,W-12-slw+4,H-17.5);
+      pdf.setCharSpace(0);
+
+      // ---- Page number ----
+      pdf.setFont('helvetica','normal');
+      pdf.setFontSize(7);
+      pdf.setTextColor(60,58,54);
+      pdf.text(`${i+1} / ${toExport.length}`,W/2,H-6,{align:'center'});
+
+      // ---- Gold rule bottom ----
+      pdf.setDrawColor(201,169,110);
+      pdf.setLineWidth(0.3);
+      pdf.line(12,H-12,W-12,H-12);
+      pdf.line(12,H-14,W-12,H-14);
+    }
+
+    setPdfProgress(98,'Salvataggio…');
+    const dateStr=new Date().toISOString().slice(0,10);
+    pdf.save(`casting-book-${dateStr}.pdf`);
+    setPdfProgress(100,'Completato!');
+    setTimeout(()=>overlay.classList.remove('open'),1200);
+
+  } catch(err){
+    console.error(err);
+    overlay.classList.remove('open');
+    alert('Errore generazione PDF: '+err.message);
+  }
+}
+
+function setPdfProgress(pct, msg){
+  document.getElementById('pdf-bar').style.width=pct+'%';
+  document.getElementById('pdf-status').textContent=msg;
+}
+
+// Carica immagine come base64 tramite canvas (bypassa CORS dove possibile)
+function loadImgAsBase64(url){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      try {
+        const cv=document.createElement('canvas');
+        cv.width=img.naturalWidth||img.width;
+        cv.height=img.naturalHeight||img.height;
+        cv.getContext('2d').drawImage(img,0,0);
+        resolve(cv.toDataURL('image/jpeg',0.85));
+      } catch(e){ reject(e); }
+    };
+    img.onerror=()=>reject(new Error('img load failed: '+url));
+    // Aggiungi cache-busting minimo
+    img.src=url+(url.includes('?')?'&':'?')+'_cb='+Date.now();
   });
 }
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ============================================================
+// API
+// ============================================================
+async function apiPost(payload){
+  const r=await fetch(CONFIG.APPS_SCRIPT_URL,{
+    method:'POST',
+    body:JSON.stringify({...payload,token:CONFIG.TOKEN}),
+    headers:{'Content-Type':'text/plain'}
+  });
+  return r.json();
+}
+async function apiGet(params){
+  const qs=new URLSearchParams({...params,token:CONFIG.TOKEN}).toString();
+  const r=await fetch(`${CONFIG.APPS_SCRIPT_URL}?${qs}`);
+  return r.json();
+}
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
