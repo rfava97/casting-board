@@ -11,5 +11,4 @@ const CONFIG = {
   // NOTA: non è sicurezza vera — serve solo per non esporre la gallery pubblicamente
   GALLERY_PASSWORD: 'Admin0123',
 };
-};
 window.CONFIG = CONFIG;
