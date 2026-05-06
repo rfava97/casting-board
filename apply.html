@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidatura Modello</title>
+<script src="config.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--bg2:#141414;--bg3:#1e1e1e;
+  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+  --text:#f0f0f0;--text2:#999;--text3:#555;
+  --gold:#e8c97a;--gold2:#b89d57;--green:#4caf7d;--red:#e05c5c;
+  --r:8px;--r-sm:6px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;line-height:1.6;min-height:100vh}
+a{color:var(--gold)}
+
+/* Header */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:18px 20px;text-align:center;position:sticky;top:0;z-index:50}
+.header h1{font-size:19px;font-weight:600;letter-spacing:-0.3px}
+.header p{font-size:13px;color:var(--text2);margin-top:3px}
+
+/* Progress bar */
+#progress-bar{height:3px;background:var(--gold);width:0;transition:width 0.4s;position:fixed;top:0;left:0;z-index:100}
+
+/* Form */
+.form-wrap{max-width:600px;margin:0 auto;padding:28px 18px 80px}
+.section{margin-bottom:28px}
+.section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:480px){.grid-2,.grid-3{grid-template-columns:1fr 1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px}
+.field input,.field select,.field textarea{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);
+  color:var(--text);padding:11px 13px;font-size:15px;font-family:inherit;
+  transition:border-color 0.15s;-webkit-appearance:none;appearance:none
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold2);outline:none}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
+.field select option{background:var(--bg3)}
+.field textarea{resize:vertical;min-height:90px}
+.field .err{color:var(--red);font-size:11px;margin-top:2px;display:none}
+.field.has-error input,.field.has-error select,.field.has-error textarea{border-color:var(--red)}
+.field.has-error .err{display:block}
+
+/* Photo upload */
+.drop-zone{
+  border:2px dashed var(--border2);border-radius:var(--r);
+  padding:28px 20px;text-align:center;cursor:pointer;
+  background:var(--bg3);transition:border-color 0.2s;user-select:none
+}
+.drop-zone.drag-over{border-color:var(--gold)}
+.drop-zone.has-error{border-color:var(--red)}
+.drop-zone-icon{font-size:32px;margin-bottom:8px}
+.drop-zone p{color:var(--text);font-weight:500;font-size:15px}
+.drop-zone small{color:var(--text3);font-size:12px;margin-top:4px;display:block}
+#photo-count{color:var(--text2);font-size:13px;margin-top:6px}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:12px}
+.photo-thumb{position:relative;aspect-ratio:2/3;border-radius:var(--r-sm);overflow:hidden;background:var(--bg3)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb .cover-badge{position:absolute;top:4px;left:4px;background:rgba(232,201,122,0.9);color:#1a1400;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.3px}
+.photo-thumb .remove-btn{
+  position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);
+  color:#fff;border:none;border-radius:50%;width:22px;height:22px;
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  line-height:1
+}
+#photos-err{color:var(--red);font-size:12px;margin-top:6px;display:none}
+
+/* Submit */
+.submit-area{margin-top:28px}
+.btn-submit{
+  width:100%;padding:15px;background:var(--gold);color:#1a1400;
+  border:none;border-radius:var(--r);font-size:16px;font-weight:600;
+  cursor:pointer;transition:opacity 0.15s;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+.btn-submit:hover{opacity:0.9}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed}
+.legal{text-align:center;font-size:11px;color:var(--text3);margin-top:12px}
+
+/* States */
+.state-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+.state-icon{font-size:52px;margin-bottom:16px}
+.state-title{font-size:22px;font-weight:600;margin-bottom:8px}
+.state-sub{font-size:14px;color:var(--text2);line-height:1.6}
+.spinner{width:18px;height:18px;border:2px solid rgba(26,20,0,0.3);border-top-color:#1a1400;border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Upload progress */
+#upload-detail{font-size:13px;color:var(--text2);margin-top:6px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div id="progress-bar"></div>
+
+<!-- SUCCESS STATE -->
+<div id="state-success" class="state-page" style="display:none">
+  <div>
+    <div class="state-icon">✓</div>
+    <div class="state-title" style="color:var(--green)">Candidatura inviata!</div>
+    <div class="state-sub">Grazie per aver inviato il tuo profilo.<br>Ti contatteremo per comunicarti l'esito.</div>
+  </div>
+</div>
+
+<!-- ERROR STATE -->
+<div id="state-error" class="state-page" style="display:none">
+  <div>
+    <div class="state-icon">⚠</div>
+    <div class="state-title" style="color:var(--red)">Invio fallito</div>
+    <div class="state-sub" id="error-msg">Si è verificato un errore. Riprova.</div>
+    <button onclick="showForm()" style="margin-top:20px;padding:10px 24px;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;font-size:14px">← Riprova</button>
+  </div>
+</div>
+
+<!-- MAIN FORM -->
+<div id="main-form">
+
+  <div class="header">
+    <h1 id="agency-name">Casting Board</h1>
+    <p>Compila il modulo e carica le tue foto</p>
+  </div>
+
+  <div class="form-wrap">
+
+    <!-- DATI PERSONALI -->
+    <div class="section">
+      <div class="section-title">Dati personali</div>
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="field" id="f-first_name">
+          <label>Nome *</label>
+          <input type="text" id="first_name" placeholder="Sofia">
+          <span class="err">Campo obbligatorio</span>
+        </div>
+        <div class="field" id="f-last_name">
+          <label>Cognome *</label>
+          <input type="text" id="last_name" placeholder="Rossi">
+          <span class="err">Campo obbligatorio</span>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="field" id="f-email">
+          <label>Email *</label>
+          <input type="email" id="email" placeholder="sofia@esempio.com">
+          <span class="err">Email non valida</span>
+        </div>
+        <div class="field" id="f-phone">
+          <label>Telefono *</label>
+          <input type="tel" id="phone" placeholder="+39 333 0001234">
+          <span class="err">Campo obbligatorio</span>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="field" id="f-city">
+          <label>Città *</label>
+          <input type="text" id="city" placeholder="Milano">
+          <span class="err">Campo obbligatorio</span>
+        </div>
+        <div class="field" id="f-age">
+          <label>Età *</label>
+          <input type="number" id="age" placeholder="24" min="16" max="80">
+          <span class="err">16–80 anni</span>
+        </div>
+        <div class="field" id="f-gender">
+          <label>Genere *</label>
+          <select id="gender">
+            <option value="">Seleziona…</option>
+            <option>Donna</option>
+            <option>Uomo</option>
+            <option>Non-binary</option>
+            <option>Altro</option>
+            <option>Preferisco non specificare</option>
+          </select>
+          <span class="err">Campo obbligatorio</span>
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label>Disponibilità</label>
+        <select id="availability">
+          <option>Full-time</option>
+          <option>Part-time</option>
+          <option selected>Flessibile</option>
+          <option>Solo weekend</option>
+          <option>Progetti singoli</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- MISURE -->
+    <div class="section">
+      <div class="section-title">Misure</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Tutte in centimetri (cm), tranne la scarpa (numero EU)</p>
+      <div class="grid-3" style="margin-bottom:14px">
+        <div class="field" id="f-height_cm">
+          <label>Altezza (cm) *</label>
+          <input type="number" id="height_cm" placeholder="175">
+          <span class="err">Campo obbligatorio</span>
+        </div>
+        <div class="field">
+          <label>Torace (cm)</label>
+          <input type="number" id="chest_cm" placeholder="86">
+        </div>
+        <div class="field">
+          <label>Vita (cm)</label>
+          <input type="number" id="waist_cm" placeholder="62">
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Fianchi (cm)</label>
+          <input type="number" id="hips_cm" placeholder="89">
+        </div>
+        <div class="field">
+          <label>Scarpa (EU)</label>
+          <input type="number" id="shoe_size" placeholder="38">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:14px">
+        <div class="field">
+          <label>Colore capelli</label>
+          <select id="hair_color">
+            <option value="">Seleziona…</option>
+            <option>Neri</option><option>Castani</option><option>Castano scuro</option>
+            <option>Biondi</option><option>Biondo chiaro</option><option>Rossi</option>
+            <option>Ramati</option><option>Grigi</option><option>Bianchi</option><option>Altro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Colore occhi</label>
+          <select id="eye_color">
+            <option value="">Seleziona…</option>
+            <option>Marroni</option><option>Verdi</option><option>Blu</option>
+            <option>Grigi</option><option>Nocciola</option><option>Ambra</option><option>Altro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESPERIENZA -->
+    <div class="section">
+      <div class="section-title">Esperienza e link</div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Esperienza lavorativa</label>
+        <textarea id="experience" placeholder="Descrivi la tua esperienza, campagne, brand con cui hai lavorato…"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Instagram</label>
+        <input type="text" id="instagram" placeholder="@sofiarossi">
+      </div>
+      <div class="field">
+        <label>Note aggiuntive</label>
+        <textarea id="notes" placeholder="Qualsiasi informazione utile…" style="min-height:70px"></textarea>
+      </div>
+    </div>
+
+    <!-- FOTO -->
+    <div class="section">
+      <div class="section-title">Foto</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px">
+        Carica fino a 10 foto. La prima diventerà la tua foto di copertina. JPG, PNG o WebP, max 8 MB ciascuna.
+      </p>
+
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('photo-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div class="drop-zone-icon">📷</div>
+        <p>Tocca o trascina per caricare le foto</p>
+        <small>Fino a 10 foto · JPG, PNG, WebP</small>
+        <div id="photo-count"></div>
+      </div>
+      <input type="file" id="photo-input" multiple accept="image/*" style="display:none" onchange="handleFileSelect(this.files)">
+      <div id="photos-err">Carica almeno una foto</div>
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="submit-area">
+      <div id="form-errors" style="color:var(--red);font-size:13px;margin-bottom:12px;display:none">
+        Correggi gli errori evidenziati prima di procedere.
+      </div>
+      <button class="btn-submit" id="submit-btn" onclick="handleSubmit()">
+        Invia candidatura
+      </button>
+      <div id="upload-detail"></div>
+      <p class="legal">I tuoi dati verranno utilizzati esclusivamente per scopi di casting e non saranno condivisi con terze parti.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ---- State ----
+let photos = []; // { file, preview }
+
+// ---- Init ----
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.CONFIG) {
+    document.getElementById('agency-name').textContent = CONFIG.AGENCY_NAME || 'Casting Board';
+  }
+});
+
+// ---- Photo handling ----
+function handleFileSelect(files) {
+  addPhotos(Array.from(files));
+}
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  document.getElementById('drop-zone').classList.remove('drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  addPhotos(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+}
+function addPhotos(files) {
+  const remaining = 10 - photos.length;
+  const toAdd = files.slice(0, remaining);
+  toAdd.forEach(file => {
+    photos.push({ file, preview: URL.createObjectURL(file) });
+  });
+  renderPhotoGrid();
+  document.getElementById('photos-err').style.display = 'none';
+  document.getElementById('drop-zone').classList.remove('has-error');
+}
+function removePhoto(idx) {
+  URL.revokeObjectURL(photos[idx].preview);
+  photos.splice(idx, 1);
+  renderPhotoGrid();
+}
+function renderPhotoGrid() {
+  const grid = document.getElementById('photo-grid');
+  const countEl = document.getElementById('photo-count');
+  countEl.textContent = photos.length > 0 ? `${photos.length}/10 foto aggiunte` : '';
+  grid.innerHTML = photos.map((p, i) => `
+    <div class="photo-thumb">
+      <img src="${p.preview}" alt="foto ${i+1}">
+      ${i === 0 ? '<span class="cover-badge">COVER</span>' : ''}
+      <button class="remove-btn" onclick="removePhoto(${i})" type="button">×</button>
+    </div>
+  `).join('');
+}
+
+// ---- Validation ----
+function getVal(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function setError(fieldId, msg) {
+  const wrap = document.getElementById('f-' + fieldId);
+  if (!wrap) return;
+  wrap.classList.add('has-error');
+  if (msg) wrap.querySelector('.err').textContent = msg;
+}
+function clearError(fieldId) {
+  const wrap = document.getElementById('f-' + fieldId);
+  if (wrap) wrap.classList.remove('has-error');
+}
+function validate() {
+  let ok = true;
+  const required = ['first_name','last_name','email','phone','city','age','gender','height_cm'];
+  required.forEach(f => {
+    clearError(f);
+    if (!getVal(f)) { setError(f); ok = false; }
+  });
+  const email = getVal('email');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setError('email', 'Email non valida'); ok = false;
+  }
+  const age = parseInt(getVal('age'));
+  if (getVal('age') && (isNaN(age) || age < 16 || age > 80)) {
+    setError('age', 'Età: 16–80 anni'); ok = false;
+  }
+  if (photos.length === 0) {
+    document.getElementById('photos-err').style.display = 'block';
+    document.getElementById('drop-zone').classList.add('has-error');
+    ok = false;
+  }
+  return ok;
+}
+
+// ---- Submit ----
+async function handleSubmit() {
+  document.getElementById('form-errors').style.display = 'none';
+  if (!validate()) {
+    document.getElementById('form-errors').style.display = 'block';
+    document.querySelector('.field.has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Invio in corso…';
+  setProgress(10);
+
+  const data = {
+    first_name:   getVal('first_name'),
+    last_name:    getVal('last_name'),
+    email:        getVal('email'),
+    phone:        getVal('phone'),
+    city:         getVal('city'),
+    age:          parseInt(getVal('age')) || '',
+    gender:       getVal('gender'),
+    availability: getVal('availability'),
+    height_cm:    parseFloat(getVal('height_cm')) || '',
+    chest_cm:     parseFloat(getVal('chest_cm')) || '',
+    waist_cm:     parseFloat(getVal('waist_cm')) || '',
+    hips_cm:      parseFloat(getVal('hips_cm')) || '',
+    shoe_size:    parseFloat(getVal('shoe_size')) || '',
+    hair_color:   getVal('hair_color'),
+    eye_color:    getVal('eye_color'),
+    experience:   getVal('experience'),
+    instagram:    getVal('instagram'),
+    notes:        getVal('notes'),
+  };
+
+  try {
+    // 1. Crea il record candidato
+    setDetail('Salvataggio dati…');
+    const res = await appsScriptPost({ action: 'submit', data });
+    if (!res.ok) throw new Error(res.error || 'Errore salvataggio dati');
+    const candidateId = res.id;
+    setProgress(20);
+
+    // 2. Carica le foto una alla volta
+    for (let i = 0; i < photos.length; i++) {
+      setDetail(`Caricamento foto ${i + 1} di ${photos.length}…`);
+      btn.innerHTML = `<div class="spinner"></div> Foto ${i+1}/${photos.length}…`;
+      await uploadPhoto(candidateId, photos[i].file, i);
+      setProgress(20 + Math.round((i + 1) / photos.length * 75));
+    }
+
+    setProgress(100);
+    showSuccess();
+
+  } catch (err) {
+    console.error(err);
+    showError(err.message);
+    btn.disabled = false;
+    btn.innerHTML = 'Invia candidatura';
+    setProgress(0);
+  }
+}
+
+// ---- Apps Script calls ----
+async function appsScriptPost(payload) {
+  const url = CONFIG.APPS_SCRIPT_URL;
+  const body = JSON.stringify({ ...payload, token: CONFIG.TOKEN });
+  const res = await fetch(url, {
+    method: 'POST',
+    body,
+    // Apps Script non accetta Content-Type: application/json per CORS
+    // Usiamo text/plain e facciamo il parse lato AS
+    headers: { 'Content-Type': 'text/plain' }
+  });
+  const text = await res.text();
+  return JSON.parse(text);
+}
+
+async function uploadPhoto(candidateId, file, index) {
+  const base64 = await fileToBase64(file);
+  const fileName = `${Date.now()}-${index}.${file.name.split('.').pop()}`;
+  return appsScriptPost({
+    action: 'uploadPhoto',
+    candidateId,
+    fileName,
+    mimeType: file.type,
+    base64Data: base64,
+  });
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    // Comprimi prima se troppo grande
+    if (file.size > 2 * 1024 * 1024) {
+      compressImage(file, 0.75, 1200).then(blob => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+function compressImage(file, quality, maxWidth) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ratio = Math.min(1, maxWidth / img.width);
+      canvas.width  = img.width  * ratio;
+      canvas.height = img.height * ratio;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(resolve, file.type, quality);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ---- UI helpers ----
+function setProgress(pct) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+function setDetail(msg) {
+  document.getElementById('upload-detail').textContent = msg;
+}
+function showSuccess() {
+  document.getElementById('main-form').style.display = 'none';
+  document.getElementById('state-success').style.display = 'flex';
+}
+function showError(msg) {
+  document.getElementById('main-form').style.display = 'none';
+  document.getElementById('state-error').style.display = 'flex';
+  document.getElementById('error-msg').textContent = msg || 'Si è verificato un errore. Riprova.';
+}
+function showForm() {
+  document.getElementById('main-form').style.display = 'block';
+  document.getElementById('state-error').style.display = 'none';
+}
+</script>
+</body>
+</html>

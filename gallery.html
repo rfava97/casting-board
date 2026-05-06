@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casting Board — Gallery</title>
+<script src="config.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);
+  --text:#f0f0f0;--text2:#888;--text3:#444;
+  --gold:#e8c97a;--gold2:#b89d57;--green:#4caf7d;--red:#e05c5c;--blue:#5b9cf6;
+  --r:10px;--r-sm:6px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+
+/* Login overlay */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;padding:24px}
+.login-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:32px 28px;width:100%;max-width:320px;text-align:center}
+.login-box h2{font-size:18px;font-weight:600;margin-bottom:6px}
+.login-box p{color:var(--text2);font-size:13px;margin-bottom:20px}
+.login-box input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);padding:11px 13px;font-size:15px;margin-bottom:12px;text-align:center}
+.login-box button{width:100%;padding:11px;background:var(--gold);color:#1a1400;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:600;cursor:pointer}
+#login-err{color:var(--red);font-size:12px;margin-top:8px;display:none}
+
+/* Layout */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:12px}
+.topbar-left h1{font-size:16px;font-weight:600;letter-spacing:-0.2px}
+.topbar-left p{font-size:11px;color:var(--text2);margin-top:1px}
+.topbar-right{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r-sm);font-size:12px;font-weight:500;cursor:pointer;border:none;transition:opacity 0.15s}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{color:var(--text);border-color:var(--text2)}
+.btn-gold{background:var(--gold);color:#1a1400}
+.btn-gold:hover{opacity:0.9}
+.btn-active{background:rgba(232,201,122,0.15);color:var(--gold);border:1px solid rgba(232,201,122,0.3)}
+
+/* Search */
+.searchbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;gap:8px;align-items:center}
+.searchbar input{flex:1;max-width:380px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);padding:8px 12px;font-size:13px}
+.searchbar input:focus{outline:none;border-color:var(--gold2)}
+
+/* Filters panel */
+#filters-panel{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:none;flex-wrap:wrap;gap:10px}
+#filters-panel.open{display:flex}
+.filter-field{display:flex;flex-direction:column;gap:4px;min-width:130px}
+.filter-field label{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px}
+.filter-field input,.filter-field select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);padding:6px 9px;font-size:12px}
+.filter-field input:focus,.filter-field select:focus{outline:none;border-color:var(--gold2)}
+.filter-field select option{background:var(--bg3)}
+.clear-btn{align-self:flex-end;padding:6px 10px;background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:var(--r-sm);cursor:pointer;font-size:11px}
+.clear-btn:hover{color:var(--text2)}
+
+/* Filter badge */
+.badge-count{background:var(--gold);color:#1a1400;border-radius:50%;width:15px;height:15px;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+
+/* Gallery grid */
+#gallery{padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
+@media(max-width:600px){#gallery{grid-template-columns:repeat(2,1fr);gap:8px;padding:10px}}
+
+/* Card */
+.card{background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,0.45)}
+.card.sl{border-color:rgba(232,201,122,0.35)}
+.card-photo{position:relative;aspect-ratio:3/4;background:var(--bg4);overflow:hidden}
+.card-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.3s}
+.card:hover .card-photo img{transform:scale(1.03)}
+.card-photo .no-photo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:28px}
+.star-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:background 0.15s,color 0.15s}
+.star-btn.on{background:var(--gold);color:#1a1400}
+.status-badge{position:absolute;bottom:6px;left:6px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:0.3px;text-transform:uppercase}
+.s-pending{background:rgba(255,255,255,0.08);color:#777}
+.s-shortlisted{background:rgba(232,201,122,0.18);color:var(--gold)}
+.s-booked{background:rgba(76,175,125,0.18);color:var(--green)}
+.s-rejected{background:rgba(224,92,92,0.15);color:var(--red)}
+.card-info{padding:8px 10px 10px}
+.card-info .name{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-info .sub{font-size:11px;color:var(--text2);margin-top:2px}
+.card-info .meas{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* States */
+.loading-state{display:flex;align-items:center;justify-content:center;min-height:300px;color:var(--text3);gap:10px;font-size:13px}
+.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:60px 24px;color:var(--text3)}
+.empty h3{color:var(--text2);margin-bottom:6px;font-size:15px}
+
+/* Lightbox */
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:500;display:none;align-items:center;justify-content:center}
+#lightbox.open{display:flex}
+#lightbox img{max-height:90vh;max-width:90vw;object-fit:contain;border-radius:4px}
+#lb-prev,#lb-next{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:50%;width:42px;height:42px;font-size:20px;cursor:pointer}
+#lb-prev{left:14px}
+#lb-next{right:14px}
+#lb-close{position:fixed;top:14px;right:14px;background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer}
+#lb-counter{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.45);font-size:12px}
+
+/* Profile drawer */
+#drawer{position:fixed;top:0;right:-100%;width:min(460px,100%);height:100%;background:var(--bg2);border-left:1px solid var(--border2);z-index:400;overflow-y:auto;transition:right 0.25s cubic-bezier(0.4,0,0.2,1)}
+#drawer.open{right:0}
+#drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:399;display:none}
+#drawer-overlay.open{display:block}
+.drawer-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:10}
+.drawer-header h2{font-size:16px;font-weight:600}
+.drawer-header .close-btn{background:transparent;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px}
+.drawer-photos{display:grid;grid-template-columns:1fr;gap:0}
+.drawer-hero{aspect-ratio:4/5;background:var(--bg3);overflow:hidden;cursor:pointer}
+.drawer-hero img{width:100%;height:100%;object-fit:cover;display:block}
+.drawer-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px}
+.drawer-strip .thumb{aspect-ratio:1/1;background:var(--bg3);overflow:hidden;cursor:pointer;border-radius:4px}
+.drawer-strip .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.drawer-body{padding:16px}
+.info-card{background:var(--bg3);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px}
+.info-card-title{padding:8px 12px;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+.info-card-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.info-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-size:12px}
+.info-row .lbl{color:var(--text3);flex-shrink:0;min-width:90px}
+.info-row .val{color:var(--text);text-align:right;word-break:break-word}
+.info-row a{color:var(--gold)}
+.status-select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;width:100%;margin-bottom:8px}
+.status-select option{background:var(--bg3)}
+.btn-sl-toggle{width:100%;padding:9px;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:12px;transition:opacity 0.15s}
+.btn-sl-on{background:var(--gold);color:#1a1400}
+.btn-sl-off{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border2)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div style="font-size:32px;margin-bottom:12px">🎬</div>
+    <h2>Casting Board</h2>
+    <p>Inserisci la password per accedere</p>
+    <input type="password" id="login-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Accedi</button>
+    <div id="login-err">Password errata</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="app-title">Casting Board</h1>
+      <p id="count-label">Caricamento…</p>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" id="filter-btn" onclick="toggleFilters()">
+        ⚡ Filtri <span id="filter-badge" style="display:none" class="badge-count">0</span>
+      </button>
+      <button class="btn btn-ghost" id="sl-btn" onclick="toggleShortlistView()">★ Shortlist</button>
+      <button class="btn btn-ghost" onclick="window.open('apply.html','_blank')">+ Form ↗</button>
+      <button class="btn btn-ghost" onclick="loadCandidates()" title="Aggiorna">↻</button>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="searchbar">
+    <input type="search" id="search-input" placeholder="Cerca per nome o città…" oninput="debouncedLoad()">
+  </div>
+
+  <!-- Filters panel -->
+  <div id="filters-panel">
+    <div class="filter-field">
+      <label>Genere</label>
+      <select id="f-gender" onchange="debouncedLoad()">
+        <option value="All">Tutti</option>
+        <option>Donna</option><option>Uomo</option><option>Non-binary</option><option>Altro</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label>Città</label>
+      <input type="text" id="f-city" placeholder="Tutte" oninput="debouncedLoad()">
+    </div>
+    <div class="filter-field">
+      <label>Disponibilità</label>
+      <select id="f-avail" onchange="debouncedLoad()">
+        <option value="All">Tutte</option>
+        <option>Full-time</option><option>Part-time</option>
+        <option>Flessibile</option><option>Solo weekend</option><option>Progetti singoli</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label>Status</label>
+      <select id="f-status" onchange="debouncedLoad()">
+        <option value="All">Tutti</option>
+        <option value="pending">In attesa</option>
+        <option value="shortlisted">Shortlist</option>
+        <option value="booked">Confermato</option>
+        <option value="rejected">Rifiutato</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label>Altezza min (cm)</label>
+      <input type="number" id="f-min-h" placeholder="es. 165" oninput="debouncedLoad()">
+    </div>
+    <div class="filter-field">
+      <label>Altezza max (cm)</label>
+      <input type="number" id="f-max-h" placeholder="es. 185" oninput="debouncedLoad()">
+    </div>
+    <button class="clear-btn" onclick="clearFilters()">✕ Azzera</button>
+  </div>
+
+  <!-- Gallery -->
+  <div id="gallery">
+    <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div> Caricamento candidati…</div>
+  </div>
+
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <button id="lb-prev" onclick="lbNav(-1)">‹</button>
+  <img id="lb-img" src="" alt="">
+  <button id="lb-next" onclick="lbNav(1)">›</button>
+  <button id="lb-close" onclick="closeLightbox()">×</button>
+  <div id="lb-counter"></div>
+</div>
+
+<!-- PROFILE DRAWER -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawer-name">—</h2>
+    <button class="close-btn" onclick="closeDrawer()">×</button>
+  </div>
+  <div id="drawer-content"></div>
+</div>
+
+<script>
+// ---- State ----
+let candidates = [];
+let currentCandidate = null;
+let showShortlistOnly = false;
+let filtersOpen = false;
+let debounceTimer;
+
+// ---- Lightbox ----
+let lbPhotos = [];
+let lbIdx = 0;
+function openLightbox(photos, idx) {
+  lbPhotos = photos; lbIdx = idx;
+  document.getElementById('lb-img').src = photos[idx];
+  document.getElementById('lb-counter').textContent = `${idx+1} / ${photos.length}`;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+function lbNav(dir) {
+  lbIdx = (lbIdx + dir + lbPhotos.length) % lbPhotos.length;
+  document.getElementById('lb-img').src = lbPhotos[lbIdx];
+  document.getElementById('lb-counter').textContent = `${lbIdx+1} / ${lbPhotos.length}`;
+}
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox')) closeLightbox();
+});
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft') lbNav(-1);
+  if (e.key === 'ArrowRight') lbNav(1);
+  if (e.key === 'Escape') closeLightbox();
+});
+
+// ---- Login ----
+function doLogin() {
+  const pwd = document.getElementById('login-pwd').value;
+  const expected = window.CONFIG?.GALLERY_PASSWORD || '';
+  if (!expected || pwd === expected) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('app-title').textContent = CONFIG.AGENCY_NAME || 'Casting Board';
+    loadCandidates();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+// ---- Load ----
+async function loadCandidates() {
+  document.getElementById('gallery').innerHTML = '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div> Caricamento…</div>';
+
+  const params = new URLSearchParams({
+    action:      'getCandidates',
+    token:       CONFIG.TOKEN,
+    search:      document.getElementById('search-input').value.trim(),
+    gender:      document.getElementById('f-gender').value,
+    city:        document.getElementById('f-city').value.trim(),
+    availability:document.getElementById('f-avail').value,
+    status:      document.getElementById('f-status').value,
+    minHeight:   document.getElementById('f-min-h').value,
+    maxHeight:   document.getElementById('f-max-h').value,
+    shortlisted: showShortlistOnly ? 'true' : 'false',
+  });
+
+  try {
+    const res  = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${params}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    candidates = data.candidates || [];
+    renderGallery(candidates);
+    document.getElementById('count-label').textContent =
+      `${data.total} candidati${showShortlistOnly ? ' · Solo shortlist' : ''}`;
+  } catch (err) {
+    document.getElementById('gallery').innerHTML =
+      `<div class="empty" style="grid-column:1/-1"><h3>Errore di caricamento</h3><p>${err.message}</p></div>`;
+  }
+}
+
+function debouncedLoad() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(loadCandidates, 300);
+}
+
+// ---- Render gallery ----
+function renderGallery(list) {
+  if (list.length === 0) {
+    document.getElementById('gallery').innerHTML =
+      '<div class="empty" style="grid-column:1/-1"><h3>Nessun candidato trovato</h3><p>Prova a modificare i filtri.</p></div>';
+    return;
+  }
+  document.getElementById('gallery').innerHTML = list.map(c => cardHTML(c)).join('');
+}
+
+function cardHTML(c) {
+  const cover = c.photo_urls?.[0] || '';
+  const statusClass = `s-${c.status || 'pending'}`;
+  const statusLabel = { pending:'In attesa', shortlisted:'Shortlist', booked:'Confermato', rejected:'Rifiutato' }[c.status] || c.status;
+  const sl = c.is_shortlisted === true || c.is_shortlisted === 'TRUE';
+
+  return `
+  <div class="card ${sl ? 'sl' : ''}" onclick="openDrawer('${c.id}')">
+    <div class="card-photo">
+      ${cover
+        ? `<img src="${cover}" alt="${c.first_name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-photo>👤</div>'">`
+        : '<div class="no-photo">👤</div>'
+      }
+      <button class="star-btn ${sl ? 'on' : ''}" onclick="event.stopPropagation();toggleSL('${c.id}',${sl})" title="${sl ? 'Rimuovi shortlist' : 'Aggiungi shortlist'}">★</button>
+      <span class="status-badge ${statusClass}">${statusLabel}</span>
+    </div>
+    <div class="card-info">
+      <div class="name">${c.first_name} ${c.last_name}</div>
+      <div class="sub">${[c.city, c.age ? c.age + 'a' : ''].filter(Boolean).join(' · ')}</div>
+      <div class="meas">${[c.height_cm ? c.height_cm + 'cm' : '', c.gender].filter(Boolean).join(' · ')}</div>
+    </div>
+  </div>`;
+}
+
+// ---- Shortlist toggle ----
+async function toggleSL(id, current) {
+  const newVal = !current;
+  // Ottimistic UI
+  candidates = candidates.map(c => c.id === id ? { ...c, is_shortlisted: newVal } : c);
+  renderGallery(candidates);
+  // Aggiorna drawer se aperto
+  if (currentCandidate?.id === id) {
+    currentCandidate.is_shortlisted = newVal;
+    updateDrawerSL(newVal);
+  }
+  await appsScriptPost({ action: 'toggleShortlist', candidateId: id, value: newVal });
+}
+
+// ---- Status update ----
+async function updateStatus(id, newStatus) {
+  candidates = candidates.map(c => c.id === id ? { ...c, status: newStatus } : c);
+  renderGallery(candidates);
+  await appsScriptPost({ action: 'updateStatus', candidateId: id, status: newStatus });
+}
+
+// ---- Drawer ----
+function openDrawer(id) {
+  const c = candidates.find(x => x.id === id);
+  if (!c) return;
+  currentCandidate = c;
+
+  document.getElementById('drawer-name').textContent = `${c.first_name} ${c.last_name}`;
+  const sl = c.is_shortlisted === true || c.is_shortlisted === 'TRUE';
+
+  const photos = Array.isArray(c.photo_urls) ? c.photo_urls : [];
+  const heroClick = photos.length > 0 ? `onclick="openLightbox(${JSON.stringify(photos)},0)"` : '';
+  const stripThumbs = photos.slice(1,5).map((url,i) =>
+    `<div class="thumb" onclick="openLightbox(${JSON.stringify(photos)},${i+1})"><img src="${url}" loading="lazy"></div>`
+  ).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-photos">
+      <div class="drawer-hero" ${heroClick}>
+        ${photos[0] ? `<img src="${photos[0]}" alt="">` : '<div style="height:280px;display:flex;align-items:center;justify-content:center;font-size:40px;color:#333">👤</div>'}
+      </div>
+      ${photos.length > 1 ? `<div class="drawer-strip">${stripThumbs}</div>` : ''}
+    </div>
+    <div class="drawer-body">
+      <button class="btn-sl-toggle ${sl ? 'btn-sl-on' : 'btn-sl-off'}" id="drawer-sl-btn" onclick="toggleSL('${c.id}',${sl})">
+        ★ ${sl ? 'In shortlist' : 'Aggiungi a shortlist'}
+      </button>
+      <select class="status-select" onchange="updateStatus('${c.id}',this.value)">
+        ${['pending','shortlisted','booked','rejected'].map(s =>
+          `<option value="${s}" ${c.status===s?'selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[s]}</option>`
+        ).join('')}
+      </select>
+
+      <div class="info-card">
+        <div class="info-card-title">Contatti</div>
+        <div class="info-card-body">
+          <div class="info-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${c.email}">${c.email}</a></span></div>
+          ${c.phone ? `<div class="info-row"><span class="lbl">Telefono</span><span class="val"><a href="tel:${c.phone}">${c.phone}</a></span></div>` : ''}
+          ${c.city ? `<div class="info-row"><span class="lbl">Città</span><span class="val">${c.city}</span></div>` : ''}
+          ${c.availability ? `<div class="info-row"><span class="lbl">Disponibilità</span><span class="val">${c.availability}</span></div>` : ''}
+          ${c.instagram ? `<div class="info-row"><span class="lbl">Instagram</span><span class="val"><a href="https://instagram.com/${c.instagram.replace('@','')}" target="_blank">${c.instagram}</a></span></div>` : ''}
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-title">Misure</div>
+        <div class="info-card-body">
+          ${c.height_cm ? `<div class="info-row"><span class="lbl">Altezza</span><span class="val">${c.height_cm} cm</span></div>` : ''}
+          ${c.chest_cm  ? `<div class="info-row"><span class="lbl">Torace</span><span class="val">${c.chest_cm} cm</span></div>` : ''}
+          ${c.waist_cm  ? `<div class="info-row"><span class="lbl">Vita</span><span class="val">${c.waist_cm} cm</span></div>` : ''}
+          ${c.hips_cm   ? `<div class="info-row"><span class="lbl">Fianchi</span><span class="val">${c.hips_cm} cm</span></div>` : ''}
+          ${c.shoe_size ? `<div class="info-row"><span class="lbl">Scarpa</span><span class="val">EU ${c.shoe_size}</span></div>` : ''}
+          ${c.hair_color ? `<div class="info-row"><span class="lbl">Capelli</span><span class="val">${c.hair_color}</span></div>` : ''}
+          ${c.eye_color  ? `<div class="info-row"><span class="lbl">Occhi</span><span class="val">${c.eye_color}</span></div>` : ''}
+        </div>
+      </div>
+
+      ${c.experience ? `<div class="info-card"><div class="info-card-title">Esperienza</div><div class="info-card-body"><p style="font-size:12px;color:#888;line-height:1.6;white-space:pre-wrap">${escHtml(c.experience)}</p></div></div>` : ''}
+      ${c.notes ? `<div class="info-card"><div class="info-card-title">Note</div><div class="info-card-body"><p style="font-size:12px;color:#888;line-height:1.6;white-space:pre-wrap">${escHtml(c.notes)}</p></div></div>` : ''}
+
+      <div style="color:#333;font-size:11px;margin-top:8px">
+        Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  currentCandidate = null;
+}
+
+function updateDrawerSL(newVal) {
+  const btn = document.getElementById('drawer-sl-btn');
+  if (!btn) return;
+  btn.className = `btn-sl-toggle ${newVal ? 'btn-sl-on' : 'btn-sl-off'}`;
+  btn.textContent = `★ ${newVal ? 'In shortlist' : 'Aggiungi a shortlist'}`;
+}
+
+// ---- UI controls ----
+function toggleFilters() {
+  filtersOpen = !filtersOpen;
+  document.getElementById('filters-panel').classList.toggle('open', filtersOpen);
+}
+function toggleShortlistView() {
+  showShortlistOnly = !showShortlistOnly;
+  document.getElementById('sl-btn').className = `btn ${showShortlistOnly ? 'btn-active' : 'btn-ghost'}`;
+  loadCandidates();
+}
+function clearFilters() {
+  ['f-gender','f-avail','f-status'].forEach(id => document.getElementById(id).value = id === 'f-gender' ? 'All' : id === 'f-avail' ? 'All' : 'All');
+  ['f-city','f-min-h','f-max-h'].forEach(id => document.getElementById(id).value = '');
+  updateFilterBadge();
+  loadCandidates();
+}
+function updateFilterBadge() {
+  const n = [
+    document.getElementById('f-gender').value !== 'All',
+    document.getElementById('f-city').value !== '',
+    document.getElementById('f-avail').value !== 'All',
+    document.getElementById('f-status').value !== 'All',
+    document.getElementById('f-min-h').value !== '',
+    document.getElementById('f-max-h').value !== '',
+  ].filter(Boolean).length;
+  const badge = document.getElementById('filter-badge');
+  badge.style.display = n > 0 ? 'inline-flex' : 'none';
+  badge.textContent = n;
+}
+['f-gender','f-city','f-avail','f-status','f-min-h','f-max-h'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', updateFilterBadge);
+  document.getElementById(id)?.addEventListener('change', updateFilterBadge);
+});
+
+// ---- Utils ----
+async function appsScriptPost(payload) {
+  await fetch(CONFIG.APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ ...payload, token: CONFIG.TOKEN }),
+    headers: { 'Content-Type': 'text/plain' }
+  });
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
