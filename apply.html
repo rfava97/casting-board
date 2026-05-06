@@ -4,156 +4,188 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Candidatura</title>
-
-<!-- ============================================================
-     CONFIG — modifica solo questo blocco
-     ============================================================ -->
 <script>
+// ── CONFIG ─────────────────────────────────────────────────
 const CONFIG = {
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz7YjkcflYr9KXoYZmLVrKTIcnP9HHo9u5FBKIlrQCIP4gNJWKRlQqmL3pIPZHjt-hS/exec',
   TOKEN: 'CastingModelsFDS',
   AGENCY_NAME: 'Casting Board',
 };
-</script>
+// ───────────────────────────────────────────────────────────
 
+// Guida taglie — mostrata inline al passaggio del mouse
+const SIZE_INFO = {
+  XS:  { donna: 'It. 38/40 · seno 80–85 · vita 64–69 · fianchi 87–91 cm',  uomo: 'Non disponibile' },
+  S:   { donna: 'It. 40/42 · seno 85–90 · vita 70–75 · fianchi 92–97 cm',  uomo: 'It. 46 · torace 80–88 · vita 75–79 cm' },
+  M:   { donna: 'It. 44 · seno 90–95 · vita 74–79 · fianchi 97–100 cm',    uomo: 'It. 48 · torace 89–96 · vita 80–84 cm' },
+  L:   { donna: 'It. 46/48 · seno 95–100 · vita 80–84 · fianchi 101–107 cm', uomo: 'It. 50 · torace 97–104 · vita 85–90 cm' },
+  XL:  { donna: 'It. 48/50 · seno 100–105 · vita 85–90 · fianchi 107–110 cm', uomo: 'It. 52 · torace 105–115 · vita 90–94 cm' },
+  XXL: { donna: 'Non disponibile',                                           uomo: 'It. 54/56 · torace 115–120 · vita 95–100 cm' },
+};
+const SIZES = ['XS','S','M','L','XL','XXL'];
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --ink:#0b0b0b;--ink2:#141414;--ink3:#1e1e1e;--ink4:#252525;
-  --rule:rgba(255,255,255,0.07);--rule2:rgba(255,255,255,0.14);--rule3:rgba(255,255,255,0.22);
-  --snow:#f5f2ee;--muted:#6b6866;--faint:#3a3836;
-  --gold:#c9a96e;--gold2:#a8884d;--gold3:rgba(201,169,110,0.1);
-  --green:#4d9e7a;--red:#b05555;--blue:#4a7fb5;
-  --r:3px;--r-sm:4px;--r-lg:8px;
+  --bg:   #f7f5f2;
+  --bg2:  #ffffff;
+  --bg3:  #f0ede9;
+  --bg4:  #e8e4df;
+  --rule: rgba(0,0,0,0.08);
+  --rule2:rgba(0,0,0,0.14);
+  --rule3:rgba(0,0,0,0.24);
+  --ink:  #1a1814;
+  --ink2: #4a4744;
+  --ink3: #8a8785;
+  --gold: #9a7b4f;
+  --gold2:#7d6240;
+  --gold3:rgba(154,123,79,0.1);
+  --green:#3d8a62;
+  --red:  #a04040;
+  --amber:#b07830;
+  --r:4px; --r-lg:10px;
   --serif:'Cormorant Garamond',Georgia,serif;
-  --sans:'DM Sans',-apple-system,sans-serif;
+  --sans: 'DM Sans',-apple-system,sans-serif;
+  --sh:   0 1px 3px rgba(0,0,0,0.08);
+  --sh-md:0 4px 16px rgba(0,0,0,0.10);
 }
-html,body{background:var(--ink);color:var(--snow);font-family:var(--sans);font-size:15px;min-height:100vh;-webkit-font-smoothing:antialiased}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;min-height:100vh;-webkit-font-smoothing:antialiased}
 
-#pbar{height:2px;background:var(--gold);width:0;position:fixed;top:0;left:0;z-index:100;transition:width 0.4s;border-radius:0 1px 1px 0}
+/* ── Progress bar ── */
+#pbar{height:2px;background:var(--gold);width:0;position:fixed;top:0;left:0;z-index:100;transition:width 0.4s}
 
-/* ---- Header ---- */
-.hdr{background:var(--ink2);border-bottom:1px solid var(--rule);padding:24px 20px;text-align:center;position:sticky;top:0;z-index:50;backdrop-filter:blur(10px)}
-.hdr-agency{font-family:var(--sans);font-size:9px;font-weight:400;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:10px}
-.hdr h1{font-family:var(--serif);font-size:26px;font-weight:300;letter-spacing:-0.01em;color:var(--snow);margin-bottom:4px}
-.hdr p{font-size:12px;color:var(--muted);letter-spacing:0.03em}
+/* ── Header ── */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--rule);padding:22px 20px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:var(--sh)}
+.hdr-agency{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:10px}
+.hdr h1{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.hdr p{font-size:12px;color:var(--ink3)}
 
-/* ---- Wrap ---- */
-.wrap{max-width:540px;margin:0 auto;padding:32px 18px 80px}
+/* ── Layout ── */
+.wrap{max-width:540px;margin:0 auto;padding:28px 18px 80px}
+.sec{margin-bottom:32px}
+.sec-title{font-size:9px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.18em;padding-bottom:9px;border-bottom:1px solid var(--rule);margin-bottom:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:400px){.grid-2{grid-template-columns:1fr}}
 
-/* ---- Section ---- */
-.sec{margin-bottom:36px}
-.sec-title{font-size:9px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.18em;padding-bottom:10px;border-bottom:1px solid var(--rule);margin-bottom:20px}
-
-/* ---- Fields ---- */
-.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+/* ── Fields ── */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
 .field:last-child{margin-bottom:0}
-.field label{font-size:10px;font-weight:500;color:var(--faint);text-transform:uppercase;letter-spacing:0.12em}
-.field input,.field select,.field textarea{background:var(--ink3);border:1px solid var(--rule);border-radius:var(--r);color:var(--snow);padding:12px 14px;font-size:15px;font-family:var(--sans);-webkit-appearance:none;width:100%;transition:border-color 0.2s}
+.field label{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.12em}
+.field input,.field select,.field textarea{
+  background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r);
+  color:var(--ink);padding:12px 14px;font-size:15px;font-family:var(--sans);
+  -webkit-appearance:none;width:100%;transition:border-color 0.2s;
+}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold2)}
-.field input::placeholder,.field textarea::placeholder{color:var(--faint)}
-.field select option{background:var(--ink3)}
-.field textarea{resize:vertical;min-height:90px;line-height:1.65}
-.field .hint{font-size:10px;color:var(--faint);letter-spacing:0.03em;line-height:1.5}
-.field .err{color:var(--red);font-size:10px;display:none;letter-spacing:0.03em}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink3)}
+.field select option{background:var(--bg2);color:var(--ink)}
+.field textarea{resize:vertical;min-height:88px;line-height:1.65}
+.field .hint{font-size:10px;color:var(--ink3);line-height:1.5}
+.field .err{color:var(--red);font-size:10px;display:none}
 .field.has-error input,.field.has-error select,.field.has-error textarea{border-color:var(--red)}
 .field.has-error .err{display:block}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-/* ---- Età + badge maggiorenne ---- */
-#eta-badge{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:3px 9px;border-radius:2px;font-size:9px;font-weight:500;
-  letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;
-  transition:all 0.2s;opacity:0;
-}
-#eta-badge.show{opacity:1}
-#eta-badge.maggiorenne{background:rgba(77,158,122,0.15);color:var(--green)}
-#eta-badge.minorenne{background:rgba(201,169,110,0.15);color:var(--gold)}
+/* ── Età badge ── */
+#eta-badge{display:none;margin-top:4px;padding:4px 10px;border-radius:var(--r);font-size:10px;font-weight:500;letter-spacing:0.06em;width:fit-content}
+#eta-badge.over{background:rgba(61,138,98,0.1);color:var(--green);display:inline-block}
+#eta-badge.under{background:rgba(176,120,48,0.1);color:var(--amber);display:inline-block}
 
-/* ---- Consenso genitori (appare solo per minorenni) ---- */
-#consenso-wrap{
-  background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.2);
-  border-radius:var(--r-lg);padding:16px;margin-top:4px;
-  display:none;
-}
-#consenso-wrap.show{display:block}
-#consenso-wrap p{font-size:12px;color:var(--gold);line-height:1.6;margin-bottom:12px;letter-spacing:0.02em}
-.checkbox-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
-.checkbox-row input[type=checkbox]{
-  width:16px;height:16px;min-width:16px;margin-top:2px;
-  accent-color:var(--gold);cursor:pointer;
-}
-.checkbox-row span{font-size:12px;color:var(--muted);line-height:1.5;letter-spacing:0.02em}
+/* ── Consenso minorenni ── */
+#consenso-box{display:none;background:rgba(154,123,79,0.07);border:1px solid rgba(154,123,79,0.22);border-radius:var(--r-lg);padding:16px;margin-top:8px}
+#consenso-box.show{display:block}
+#consenso-box p{font-size:12px;color:var(--gold2);line-height:1.65;margin-bottom:12px}
+.cbox-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.cbox-row input[type=checkbox]{width:16px;height:16px;min-width:16px;margin-top:2px;accent-color:var(--gold);cursor:pointer}
+.cbox-row span{font-size:12px;color:var(--ink2);line-height:1.55}
 #consenso-err{color:var(--red);font-size:10px;margin-top:6px;display:none}
 #consenso-err.show{display:block}
 
-/* ---- Taglie ---- */
-.taglia-group{margin-bottom:18px}
-.taglia-group-title{
-  font-size:10px;font-weight:500;color:var(--muted);
-  letter-spacing:0.1em;text-transform:uppercase;
-  margin-bottom:8px;display:flex;align-items:center;gap:8px;
-}
-.taglia-group-title::after{content:'';flex:1;height:1px;background:var(--rule)}
-.taglia-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px;margin-bottom:8px}
-.topt{position:relative}
-.topt input[type=radio]{position:absolute;opacity:0;width:0;height:0}
-.topt label{
-  display:flex;align-items:center;justify-content:center;
-  padding:10px 4px;background:var(--ink3);border:1px solid var(--rule);
+/* ── Taglie ── */
+.size-group{margin-bottom:20px}
+.size-group-label{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.size-group-label::after{content:'';flex:1;height:1px;background:var(--rule)}
+.size-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+@media(max-width:400px){.size-grid{grid-template-columns:repeat(3,1fr)}}
+
+/* Radio nascosto + label button */
+.sopt{position:relative}
+.sopt input[type=radio]{position:absolute;opacity:0;width:0;height:0}
+.sopt label{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 4px 8px;background:var(--bg3);border:1px solid var(--rule);
   border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:400;
-  transition:all 0.15s;color:var(--muted);text-align:center;
+  transition:all 0.15s;color:var(--ink2);text-align:center;
+  position:relative;user-select:none;
 }
-.topt input[type=radio]:checked+label{border-color:var(--gold2);background:var(--gold3);color:var(--gold)}
-.topt label:hover{color:var(--snow);border-color:var(--rule2)}
-
-/* Campo libero taglia — appare quando si clicca "Altro" */
-.taglia-custom{
-  display:flex;align-items:center;gap:8px;margin-top:4px;
-  overflow:hidden;max-height:0;transition:max-height 0.25s ease,opacity 0.2s;opacity:0;
+.sopt input[type=radio]:checked + label{
+  border-color:var(--gold2);background:var(--gold3);color:var(--gold2);font-weight:500;
 }
-.taglia-custom.show{max-height:60px;opacity:1}
-.taglia-custom label{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap}
-.taglia-custom input{flex:1;background:var(--ink3);border:1px solid var(--rule2);border-radius:var(--r);color:var(--snow);padding:9px 12px;font-size:14px;font-family:var(--sans)}
-.taglia-custom input:focus{outline:none;border-color:var(--gold2)}
-.taglia-custom input::placeholder{color:var(--faint)}
+.sopt label:hover{border-color:var(--rule3);background:var(--bg4)}
 
-.taglia-err-msg{color:var(--red);font-size:10px;display:none;letter-spacing:0.04em;margin-top:2px}
-.taglia-err-msg.show{display:block}
+/* Tooltip misure — appare al hover/tap */
+.sopt label .tip{
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--bg2);
+  font-size:10px;font-weight:400;line-height:1.55;letter-spacing:0.01em;
+  padding:8px 11px;border-radius:var(--r);white-space:nowrap;
+  pointer-events:none;opacity:0;transition:opacity 0.15s;
+  box-shadow:0 4px 16px rgba(0,0,0,0.18);z-index:20;
+  max-width:240px;white-space:normal;text-align:left;min-width:180px;
+}
+.sopt label .tip::after{
+  content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--ink);
+}
+.sopt label:hover .tip,
+.sopt input[type=radio]:checked + label .tip{opacity:1}
 
-/* ---- Photo zone ---- */
-.dropzone{border:1px solid var(--rule2);border-radius:var(--r-lg);padding:36px 20px;text-align:center;cursor:pointer;background:var(--ink3);transition:border-color 0.2s,background 0.2s}
-.dropzone:hover,.dropzone.drag-over{border-color:var(--gold2);background:rgba(201,169,110,0.04)}
+/* Su mobile il tooltip si apre in basso se ci sono sopt nel primo row */
+@media(hover:none){
+  .sopt label .tip{
+    bottom:auto;top:calc(100% + 8px);
+  }
+  .sopt label .tip::after{
+    top:auto;bottom:100%;
+    border-top-color:transparent;border-bottom-color:var(--ink);
+  }
+}
+
+.size-err{color:var(--red);font-size:10px;margin-top:4px;display:none}
+.size-err.show{display:block}
+
+/* ── Dropzone foto ── */
+.dropzone{border:1px solid var(--rule2);border-radius:var(--r-lg);padding:32px 20px;text-align:center;cursor:pointer;background:var(--bg3);transition:border-color 0.2s,background 0.2s}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--gold);background:rgba(154,123,79,0.04)}
 .dropzone.has-error{border-color:var(--red)}
-.dz-icon{font-size:28px;margin-bottom:12px;opacity:0.5}
-.dz-main{font-family:var(--serif);font-size:18px;font-weight:300;color:var(--snow);margin-bottom:4px}
-.dz-sub{font-size:11px;color:var(--muted);letter-spacing:0.04em}
-.dz-count{font-size:11px;color:var(--faint);margin-top:8px;letter-spacing:0.04em}
-#ph-err{color:var(--red);font-size:11px;margin-top:6px;display:none;letter-spacing:0.03em}
-.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:12px}
-.thumb{position:relative;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:var(--ink3)}
+.dz-icon{font-size:26px;opacity:0.35;margin-bottom:10px}
+.dz-title{font-family:var(--serif);font-size:18px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.dz-sub{font-size:11px;color:var(--ink3)}
+.dz-count{font-size:11px;color:var(--ink3);margin-top:6px}
+#ph-err{color:var(--red);font-size:11px;margin-top:5px;display:none}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:10px}
+.thumb{position:relative;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:var(--bg4)}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.thumb .cover-badge{position:absolute;top:4px;left:4px;background:rgba(201,169,110,0.9);color:var(--ink);font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;letter-spacing:0.1em;text-transform:uppercase}
-.thumb .rm{position:absolute;top:4px;right:4px;background:rgba(11,11,11,0.7);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.thumb .cbadge{position:absolute;top:4px;left:4px;background:rgba(154,123,79,0.9);color:#fff;font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase}
+.thumb .rm{position:absolute;top:4px;right:4px;background:rgba(26,24,20,0.55);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
-/* ---- Submit ---- */
-.btn-submit{width:100%;padding:16px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r);font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity 0.15s;margin-top:28px}
-.btn-submit:disabled{opacity:0.45;cursor:not-allowed}
-.spinner{width:16px;height:16px;border:1.5px solid rgba(11,11,11,0.3);border-top-color:var(--ink);border-radius:50%;animation:spin 0.7s linear infinite}
+/* ── Submit ── */
+.btn-send{width:100%;padding:15px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:10px;transition:background 0.15s;margin-top:26px}
+.btn-send:hover{background:var(--gold2)}
+.btn-send:disabled{opacity:0.45;cursor:not-allowed}
+.spinner{width:15px;height:15px;border:1.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.legal{text-align:center;font-size:10px;color:var(--faint);margin-top:14px;letter-spacing:0.03em;line-height:1.7}
-#up-status{text-align:center;font-size:11px;color:var(--muted);margin-top:8px;min-height:16px;letter-spacing:0.04em}
-#form-err{color:var(--red);font-size:12px;margin-top:12px;display:none;text-align:center;letter-spacing:0.03em}
+.legal{text-align:center;font-size:10px;color:var(--ink3);margin-top:12px;line-height:1.7}
+#up-status{text-align:center;font-size:11px;color:var(--ink3);margin-top:6px;min-height:16px}
+#form-err{color:var(--red);font-size:12px;margin-top:10px;display:none;text-align:center}
 
-/* ---- States ---- */
+/* ── States ── */
 .state{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center}
-.state-icon{font-size:40px;margin-bottom:20px;opacity:0.7}
-.state-title{font-family:var(--serif);font-size:28px;font-weight:300;margin-bottom:8px}
-.state-sub{font-size:13px;color:var(--muted);line-height:1.8;letter-spacing:0.02em}
-.btn-retry{margin-top:22px;padding:11px 24px;background:transparent;color:var(--snow);border:1px solid var(--rule2);border-radius:var(--r);cursor:pointer;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--sans);transition:all 0.15s}
+.state-icon{font-size:38px;opacity:0.55;margin-bottom:18px}
+.state-title{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:8px}
+.state-sub{font-size:13px;color:var(--ink3);line-height:1.8}
+.btn-retry{margin-top:20px;padding:10px 24px;background:transparent;color:var(--ink);border:1px solid var(--rule2);border-radius:var(--r);cursor:pointer;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--sans);transition:border-color 0.15s}
 .btn-retry:hover{border-color:var(--rule3)}
 </style>
 </head>
@@ -175,7 +207,7 @@ html,body{background:var(--ink);color:var(--snow);font-family:var(--sans);font-s
     <div class="state-icon">—</div>
     <div class="state-title" style="color:var(--red)">Invio non riuscito</div>
     <div class="state-sub" id="err-msg">Si è verificato un errore. Riprova.</div>
-    <button class="btn-retry" onclick="resetState()">← Riprova</button>
+    <button class="btn-retry" onclick="resetForm()">← Riprova</button>
   </div>
 </div>
 
@@ -193,7 +225,7 @@ html,body{background:var(--ink);color:var(--snow);font-family:var(--sans);font-s
     <div class="sec">
       <div class="sec-title">Dati personali</div>
 
-      <div class="grid-2" style="margin-bottom:14px">
+      <div class="grid-2" style="margin-bottom:13px">
         <div class="field" id="f-nome">
           <label>Nome *</label>
           <input id="nome" type="text" placeholder="Sofia" autocomplete="given-name">
@@ -206,20 +238,19 @@ html,body{background:var(--ink);color:var(--snow);font-family:var(--sans);font-s
         </div>
       </div>
 
-      <div class="field" id="f-instagram" style="margin-bottom:14px">
+      <div class="field" id="f-instagram" style="margin-bottom:13px">
         <label>@ Instagram *</label>
-        <input id="instagram" type="text" placeholder="@sofiarossi" autocomplete="off" inputmode="url">
+        <input id="instagram" type="text" placeholder="@sofiarossi" autocomplete="off">
         <span class="hint">Con o senza @</span>
         <span class="err">Obbligatorio</span>
       </div>
 
       <div class="grid-2">
-        <!-- ETÀ con rilevamento automatico maggiorenne/minorenne -->
         <div class="field" id="f-eta">
           <label>Età *</label>
-          <input id="eta" type="number" placeholder="21" min="14" max="70" inputmode="numeric" oninput="onEtaChange(this.value)">
+          <input id="eta" type="number" placeholder="21" min="14" max="70" inputmode="numeric" oninput="onEta(this.value)">
           <div id="eta-badge"></div>
-          <span class="err">Età: 14–70 anni</span>
+          <span class="err">Età: 14–70</span>
         </div>
         <div class="field" id="f-altezza_cm">
           <label>Altezza (cm) *</label>
@@ -228,77 +259,45 @@ html,body{background:var(--ink);color:var(--snow);font-family:var(--sans);font-s
         </div>
       </div>
 
-      <!-- Consenso genitori — visibile solo per minorenni (<18) -->
-      <div id="consenso-wrap">
-        <p>⚠ Hai meno di 18 anni. È necessario il consenso scritto di un genitore o tutore legale per partecipare al casting.</p>
-        <label class="checkbox-row">
+      <!-- Consenso genitori — solo per minorenni -->
+      <div id="consenso-box">
+        <p>⚠ Hai meno di 18 anni. È necessario il consenso di un genitore o tutore legale.</p>
+        <label class="cbox-row">
           <input type="checkbox" id="consenso-check">
-          <span>Confermo di aver ottenuto il consenso di un genitore o tutore legale e che un adulto responsabile è a conoscenza di questa candidatura.</span>
+          <span>Confermo di avere il consenso di un genitore o tutore legale, consapevole di questa candidatura.</span>
         </label>
-        <div id="consenso-err">Devi confermare il consenso del genitore/tutore per procedere.</div>
+        <div id="consenso-err">Devi confermare il consenso per procedere.</div>
       </div>
     </div>
 
-    <!-- MISURE ABBIGLIAMENTO -->
+    <!-- MISURE -->
     <div class="sec">
       <div class="sec-title">Misure abbigliamento *</div>
-      <p style="font-size:11px;color:var(--muted);margin-bottom:18px;letter-spacing:0.03em;line-height:1.6">
-        Seleziona la taglia o inseriscila manualmente se non è nella lista.
+      <p style="font-size:11px;color:var(--ink3);margin-bottom:16px;line-height:1.6">
+        Passa il dito (o il mouse) sulla taglia per vedere le misure corrispondenti.
       </p>
 
-      <!-- PARTE SUPERIORE -->
-      <div class="taglia-group">
-        <div class="taglia-group-title">Parte superiore</div>
-        <div class="taglia-wrap">
-          <div class="topt"><input type="radio" name="ts" id="ts-xs" value="XS"><label for="ts-xs">XS</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-s"  value="S"> <label for="ts-s">S</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-m"  value="M"> <label for="ts-m">M</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-l"  value="L"> <label for="ts-l">L</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-xl" value="XL"><label for="ts-xl">XL</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-38" value="38"><label for="ts-38">38</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-40" value="40"><label for="ts-40">40</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-42" value="42"><label for="ts-42">42</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-44" value="44"><label for="ts-44">44</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-46" value="46"><label for="ts-46">46</label></div>
-          <div class="topt"><input type="radio" name="ts" id="ts-altro" value="altro" onclick="toggleCustom('sup')"><label for="ts-altro">Altro</label></div>
-        </div>
-        <div class="taglia-custom" id="custom-sup">
-          <label>Inserisci:</label>
-          <input type="text" id="taglia-sup-custom" placeholder="es. 36, XXL, S/M…" maxlength="10">
-        </div>
-        <div class="taglia-err-msg" id="err-ts">Seleziona o inserisci la taglia superiore</div>
+      <!-- Parte superiore -->
+      <div class="size-group">
+        <div class="size-group-label">Parte superiore</div>
+        <div class="size-grid" id="grid-sup"></div>
+        <div class="size-err" id="err-sup">Seleziona la taglia superiore</div>
       </div>
 
-      <!-- PARTE INFERIORE -->
-      <div class="taglia-group">
-        <div class="taglia-group-title">Parte inferiore</div>
-        <div class="taglia-wrap">
-          <div class="topt"><input type="radio" name="ti" id="ti-xs" value="XS"><label for="ti-xs">XS</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-s"  value="S"> <label for="ti-s">S</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-m"  value="M"> <label for="ti-m">M</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-l"  value="L"> <label for="ti-l">L</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-xl" value="XL"><label for="ti-xl">XL</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-38" value="38"><label for="ti-38">38</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-40" value="40"><label for="ti-40">40</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-42" value="42"><label for="ti-42">42</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-44" value="44"><label for="ti-44">44</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-46" value="46"><label for="ti-46">46</label></div>
-          <div class="topt"><input type="radio" name="ti" id="ti-altro" value="altro" onclick="toggleCustom('inf')"><label for="ti-altro">Altro</label></div>
-        </div>
-        <div class="taglia-custom" id="custom-inf">
-          <label>Inserisci:</label>
-          <input type="text" id="taglia-inf-custom" placeholder="es. 36, 30/32, S/M…" maxlength="10">
-        </div>
-        <div class="taglia-err-msg" id="err-ti">Seleziona o inserisci la taglia inferiore</div>
+      <!-- Parte inferiore -->
+      <div class="size-group">
+        <div class="size-group-label">Parte inferiore</div>
+        <div class="size-grid" id="grid-inf"></div>
+        <div class="size-err" id="err-inf">Seleziona la taglia inferiore</div>
       </div>
     </div>
 
-    <!-- NOTE PARTICOLARI -->
+    <!-- NOTE -->
     <div class="sec">
       <div class="sec-title">Note particolari</div>
       <div class="field">
         <label>Note (facoltativo)</label>
-        <textarea id="note_particolari" placeholder="Es. allergia al trucco, disagi, tatuaggi, piercing…"></textarea>
+        <textarea id="note_particolari" placeholder="Es. allergia al trucco, tatuaggi, piercing, disagi…"></textarea>
         <span class="hint">Inserisci qualsiasi informazione utile al casting</span>
       </div>
     </div>
@@ -306,15 +305,15 @@ html,body{background:var(--ink);color:var(--snow);font-family:var(--sans);font-s
     <!-- FOTO -->
     <div class="sec">
       <div class="sec-title">Foto primo piano viso *</div>
-      <p style="font-size:11px;color:var(--muted);margin-bottom:14px;letter-spacing:0.03em;line-height:1.7">
-        Foto al naturale, senza filtri e senza trucco.<br>
-        La prima foto sarà la copertina del profilo · Max 5 foto · JPG o PNG
+      <p style="font-size:11px;color:var(--ink3);margin-bottom:13px;line-height:1.65">
+        Foto al naturale, senza filtri. La prima sarà la copertina del profilo.<br>
+        Max 5 foto · JPG o PNG
       </p>
       <div class="dropzone" id="dz"
         onclick="document.getElementById('phi').click()"
         ondragover="onDO(event)" ondragleave="onDL(event)" ondrop="onDP(event)">
         <div class="dz-icon">↑</div>
-        <div class="dz-main">Carica le tue foto</div>
+        <div class="dz-title">Carica le tue foto</div>
         <div class="dz-sub">Al naturale · Senza filtri</div>
         <div class="dz-count" id="dz-count"></div>
       </div>
@@ -323,178 +322,113 @@ html,body{background:var(--ink);color:var(--snow);font-family:var(--sans);font-s
       <div class="photo-grid" id="ph-grid"></div>
     </div>
 
-    <!-- SUBMIT -->
-    <button class="btn-submit" id="btn-send" onclick="doSubmit()">
-      Invia candidatura
-    </button>
+    <button class="btn-send" id="btn-send" onclick="doSubmit()">Invia candidatura</button>
     <div id="up-status"></div>
     <div id="form-err">Correggi i campi evidenziati prima di procedere.</div>
-    <p class="legal">
-      I tuoi dati sono trattati in modo riservato e utilizzati esclusivamente per finalità di casting.<br>
-      Non vengono condivisi con terze parti.
-    </p>
+    <p class="legal">I tuoi dati sono trattati in modo riservato e usati esclusivamente per il casting.<br>Non vengono condivisi con terze parti.</p>
 
   </div>
 </div>
 
 <script>
-// ============================================================
-// INIT
-// ============================================================
+// ── Build taglia grids ────────────────────────────────────
 let photos = [];
 
+function buildSizeGrid(containerId, groupName) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = SIZES.map(sz => {
+    const info = SIZE_INFO[sz];
+    const tip  = `<span class="tip"><strong>Donna:</strong> ${info.donna}<br><strong>Uomo:</strong> ${info.uomo}</span>`;
+    return `
+    <div class="sopt">
+      <input type="radio" name="${groupName}" id="${groupName}-${sz}" value="${sz}">
+      <label for="${groupName}-${sz}">
+        ${sz}
+        ${tip}
+      </label>
+    </div>`;
+  }).join('');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  buildSizeGrid('grid-sup', 'ts');
+  buildSizeGrid('grid-inf', 'ti');
   document.getElementById('hdr-agency').textContent =
     (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
 });
 
-// ============================================================
-// ETÀ — badge e consenso minorenni
-// ============================================================
-function onEtaChange(val) {
-  const n   = parseInt(val);
+// ── Età ──────────────────────────────────────────────────
+function onEta(val) {
+  const n     = parseInt(val);
   const badge = document.getElementById('eta-badge');
-  const cWrap = document.getElementById('consenso-wrap');
-
-  if (!val || isNaN(n) || n < 14 || n > 70) {
-    badge.className = 'eta-badge';
-    cWrap.classList.remove('show');
-    return;
-  }
-
+  const cbox  = document.getElementById('consenso-box');
+  if (!val || isNaN(n)) { badge.className = ''; cbox.classList.remove('show'); return; }
   if (n >= 18) {
-    badge.textContent = '✓ Maggiorenne';
-    badge.className = 'show maggiorenne';
-    badge.id = 'eta-badge';
-    cWrap.classList.remove('show');
+    badge.textContent = '✓ Maggiorenne'; badge.className = 'over';
+    cbox.classList.remove('show');
   } else {
-    badge.textContent = '⚠ Minorenne';
-    badge.className = 'show minorenne';
-    badge.id = 'eta-badge';
-    cWrap.classList.add('show');
+    badge.textContent = '⚠ Minorenne'; badge.className = 'under';
+    cbox.classList.add('show');
   }
 }
 
-// ============================================================
-// TAGLIE — campo libero
-// ============================================================
-function toggleCustom(tipo) {
-  const id   = tipo === 'sup' ? 'custom-sup' : 'custom-inf';
-  const wrap = document.getElementById(id);
-  wrap.classList.add('show');
-  const inp = wrap.querySelector('input');
-  setTimeout(() => inp.focus(), 50);
-}
-
-// Quando si cambia radio (non "Altro"), nasconde il campo libero e lo svuota
-document.querySelectorAll('input[name="ts"], input[name="ti"]').forEach(radio => {
-  radio.addEventListener('change', () => {
-    const isTs = radio.name === 'ts';
-    const id   = isTs ? 'custom-sup' : 'custom-inf';
-    const inp  = isTs ? 'taglia-sup-custom' : 'taglia-inf-custom';
-    if (radio.value !== 'altro') {
-      document.getElementById(id).classList.remove('show');
-      document.getElementById(inp).value = '';
-    }
-  });
-});
-
-function getTagliaSup() {
-  const sel = document.querySelector('input[name="ts"]:checked');
-  if (!sel) return '';
-  if (sel.value === 'altro') return document.getElementById('taglia-sup-custom').value.trim();
-  return sel.value;
-}
-function getTagliaInf() {
-  const sel = document.querySelector('input[name="ti"]:checked');
-  if (!sel) return '';
-  if (sel.value === 'altro') return document.getElementById('taglia-inf-custom').value.trim();
-  return sel.value;
-}
-
-// ============================================================
-// FOTO
-// ============================================================
+// ── Foto ─────────────────────────────────────────────────
 function onDO(e) { e.preventDefault(); document.getElementById('dz').classList.add('drag-over'); }
-function onDL(e) { document.getElementById('dz').classList.remove('drag-over'); }
+function onDL()  { document.getElementById('dz').classList.remove('drag-over'); }
 function onDP(e) {
-  e.preventDefault();
-  document.getElementById('dz').classList.remove('drag-over');
+  e.preventDefault(); onDL();
   addPhotos([...e.dataTransfer.files].filter(f => f.type.startsWith('image/')));
 }
 function addPhotos(files) {
-  files.slice(0, 5 - photos.length).forEach(f => {
-    photos.push({ file: f, preview: URL.createObjectURL(f) });
-  });
+  files.slice(0, 5 - photos.length).forEach(f => photos.push({ file: f, preview: URL.createObjectURL(f) }));
   renderPhotos();
   document.getElementById('ph-err').style.display = 'none';
   document.getElementById('dz').classList.remove('has-error');
 }
-function removePhoto(i) {
-  URL.revokeObjectURL(photos[i].preview);
-  photos.splice(i, 1);
-  renderPhotos();
-}
+function removePhoto(i) { URL.revokeObjectURL(photos[i].preview); photos.splice(i, 1); renderPhotos(); }
 function renderPhotos() {
-  document.getElementById('dz-count').textContent = photos.length ? `${photos.length}/5 foto aggiunte` : '';
+  document.getElementById('dz-count').textContent = photos.length ? `${photos.length}/5 foto` : '';
   document.getElementById('ph-grid').innerHTML = photos.map((p, i) => `
     <div class="thumb">
-      <img src="${p.preview}" alt="foto ${i+1}">
-      ${i === 0 ? '<span class="cover-badge">Cover</span>' : ''}
+      <img src="${p.preview}">
+      ${i === 0 ? '<span class="cbadge">Cover</span>' : ''}
       <button class="rm" onclick="removePhoto(${i})" type="button">×</button>
     </div>`).join('');
 }
 
-// ============================================================
-// VALIDAZIONE
-// ============================================================
+// ── Helpers ───────────────────────────────────────────────
 function g(id) { return (document.getElementById(id)?.value || '').trim(); }
 function setE(id, msg) {
   const w = document.getElementById('f-' + id);
-  if (!w) return;
-  w.classList.add('has-error');
-  if (msg) { const e = w.querySelector('.err'); if (e) e.textContent = msg; }
+  if (!w) return; w.classList.add('has-error');
+  const e = w.querySelector('.err'); if (e && msg) e.textContent = msg;
 }
 function clrE(id) { document.getElementById('f-' + id)?.classList.remove('has-error'); }
+function getSup() { return document.querySelector('input[name="ts"]:checked')?.value || ''; }
+function getInf() { return document.querySelector('input[name="ti"]:checked')?.value || ''; }
 
+// ── Validazione ──────────────────────────────────────────
 function validate() {
   let ok = true;
-
-  // Campi base
-  ['nome', 'cognome', 'instagram', 'eta', 'altezza_cm'].forEach(f => {
-    clrE(f);
-    if (!g(f)) { setE(f, 'Obbligatorio'); ok = false; }
+  ['nome','cognome','instagram','eta','altezza_cm'].forEach(f => {
+    clrE(f); if (!g(f)) { setE(f, 'Obbligatorio'); ok = false; }
   });
-
-  // Età range
   const eta = parseInt(g('eta'));
-  if (g('eta') && (isNaN(eta) || eta < 14 || eta > 70)) {
-    setE('eta', 'Età: 14–70 anni'); ok = false;
-  }
+  if (g('eta') && (isNaN(eta) || eta < 14 || eta > 70)) { setE('eta', 'Età: 14–70'); ok = false; }
 
   // Consenso minorenni
   if (!isNaN(eta) && eta < 18) {
     const check = document.getElementById('consenso-check');
-    const errEl = document.getElementById('consenso-err');
-    if (!check.checked) {
-      errEl.classList.add('show');
-      ok = false;
-    } else {
-      errEl.classList.remove('show');
-    }
+    const err   = document.getElementById('consenso-err');
+    if (!check.checked) { err.classList.add('show'); ok = false; }
+    else err.classList.remove('show');
   }
 
-  // Taglia superiore
-  const ts = getTagliaSup();
-  const tsErr = document.getElementById('err-ts');
-  if (!ts) { tsErr.classList.add('show'); ok = false; }
-  else tsErr.classList.remove('show');
-
-  // Taglia inferiore
-  const ti = getTagliaInf();
-  const tiErr = document.getElementById('err-ti');
-  if (!ti) { tiErr.classList.add('show'); ok = false; }
-  else tiErr.classList.remove('show');
+  // Taglie
+  const supErr = document.getElementById('err-sup');
+  const infErr = document.getElementById('err-inf');
+  if (!getSup()) { supErr.classList.add('show'); ok = false; } else supErr.classList.remove('show');
+  if (!getInf()) { infErr.classList.add('show'); ok = false; } else infErr.classList.remove('show');
 
   // Foto
   if (!photos.length) {
@@ -502,27 +436,24 @@ function validate() {
     document.getElementById('dz').classList.add('has-error');
     ok = false;
   }
-
   return ok;
 }
 
-// ============================================================
-// SUBMIT
-// ============================================================
+// ── Submit ────────────────────────────────────────────────
 async function doSubmit() {
   document.getElementById('form-err').style.display = 'none';
-
   if (!validate()) {
     document.getElementById('form-err').style.display = 'block';
-    // Scrolla al primo errore
-    const first = document.querySelector('.has-error, .taglia-err-msg.show, #consenso-err.show, #ph-err[style*="block"]');
-    first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Scrolla al primo problema
+    (document.querySelector('.has-error') ||
+     document.querySelector('.size-err.show') ||
+     document.querySelector('#consenso-err.show'))
+    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
   const btn = document.getElementById('btn-send');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Invio…';
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Invio…';
   setBar(10);
 
   const eta = parseInt(g('eta'));
@@ -533,15 +464,15 @@ async function doSubmit() {
     eta,
     maggiorenne:     eta >= 18,
     altezza_cm:      parseFloat(g('altezza_cm')),
-    taglia_sup:      getTagliaSup(),
-    taglia_inf:      getTagliaInf(),
+    taglia_sup:      getSup(),
+    taglia_inf:      getInf(),
     note_particolari:g('note_particolari'),
   };
 
   try {
     setStatus('Salvataggio dati…');
     const r = await post({ action: 'submit', data });
-    if (!r.ok) throw new Error(r.error || 'Errore salvataggio');
+    if (!r.ok) throw new Error(r.error || 'Errore salvataggio dati');
     const cid = r.id;
     setBar(20);
 
@@ -550,13 +481,12 @@ async function doSubmit() {
       btn.innerHTML = `<div class="spinner"></div> Foto ${i+1}/${photos.length}…`;
       const b64 = await toB64(photos[i].file);
       const ext = photos[i].file.name.split('.').pop() || 'jpg';
-      await post({
-        action: 'uploadPhoto',
-        candidateId: cid,
+      const res = await post({
+        action: 'uploadPhoto', candidateId: cid,
         fileName: `${Date.now()}-${i}.${ext}`,
-        mimeType: photos[i].file.type,
-        base64Data: b64,
+        mimeType: photos[i].file.type, base64Data: b64,
       });
+      if (!res.ok) throw new Error(res.error || 'Errore upload foto');
       setBar(20 + Math.round((i + 1) / photos.length * 75));
     }
 
@@ -565,16 +495,13 @@ async function doSubmit() {
     document.getElementById('state-ok').style.display = 'flex';
 
   } catch (err) {
-    console.error('ERRORE SUBMIT:', err);
+    console.error('SUBMIT ERROR:', err);
     document.getElementById('main').style.display = 'none';
     document.getElementById('err-msg').textContent = err.message || 'Errore imprevisto. Riprova.';
     document.getElementById('state-err').style.display = 'flex';
   }
 }
 
-// ============================================================
-// UTILS
-// ============================================================
 async function post(payload) {
   const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
     method: 'POST',
@@ -582,7 +509,9 @@ async function post(payload) {
     headers: { 'Content-Type': 'text/plain' },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch (e) { throw new Error('Risposta non valida: ' + text.slice(0, 100)); }
 }
 
 function toB64(file) {
@@ -591,34 +520,30 @@ function toB64(file) {
       const img = new Image();
       img.onload = () => {
         const cv = document.createElement('canvas');
-        const ratio = Math.min(1, 1200 / Math.max(img.width, img.height));
-        cv.width  = img.width  * ratio;
-        cv.height = img.height * ratio;
+        const r  = Math.min(1, 1200 / Math.max(img.width, img.height));
+        cv.width = img.width * r; cv.height = img.height * r;
         cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
         cv.toBlob(b => {
-          const r = new FileReader();
-          r.onload = () => resolve(r.result.split(',')[1]);
-          r.readAsDataURL(b);
-        }, file.type, 0.8);
+          const fr = new FileReader(); fr.onload = () => resolve(fr.result.split(',')[1]);
+          fr.readAsDataURL(b);
+        }, file.type, 0.82);
       };
       img.src = URL.createObjectURL(file);
     } else {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result.split(',')[1]);
-      r.readAsDataURL(file);
+      const fr = new FileReader(); fr.onload = () => resolve(fr.result.split(',')[1]);
+      fr.readAsDataURL(file);
     }
   });
 }
 
 function setBar(p) { document.getElementById('pbar').style.width = p + '%'; }
 function setStatus(m) { document.getElementById('up-status').textContent = m; }
-function resetState() {
+function resetForm() {
   document.getElementById('state-err').style.display = 'none';
   document.getElementById('main').style.display = 'block';
   document.getElementById('btn-send').disabled = false;
   document.getElementById('btn-send').innerHTML = 'Invia candidatura';
-  setBar(0);
-  setStatus('');
+  setBar(0); setStatus('');
 }
 </script>
 </body>
