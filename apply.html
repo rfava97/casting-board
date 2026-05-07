@@ -11,45 +11,33 @@ const CONFIG = {
   TOKEN: 'CastingModelsFDS',
   AGENCY_NAME: 'Casting Board',
 };
-// ───────────────────────────────────────────────────────────
 
-// Guida taglie — mostrata inline al passaggio del mouse
 const SIZE_INFO = {
-  XS:  { donna: 'It. 38/40 · seno 80–85 · vita 64–69 · fianchi 87–91 cm',  uomo: 'Non disponibile' },
-  S:   { donna: 'It. 40/42 · seno 85–90 · vita 70–75 · fianchi 92–97 cm',  uomo: 'It. 46 · torace 80–88 · vita 75–79 cm' },
-  M:   { donna: 'It. 44 · seno 90–95 · vita 74–79 · fianchi 97–100 cm',    uomo: 'It. 48 · torace 89–96 · vita 80–84 cm' },
-  L:   { donna: 'It. 46/48 · seno 95–100 · vita 80–84 · fianchi 101–107 cm', uomo: 'It. 50 · torace 97–104 · vita 85–90 cm' },
-  XL:  { donna: 'It. 48/50 · seno 100–105 · vita 85–90 · fianchi 107–110 cm', uomo: 'It. 52 · torace 105–115 · vita 90–94 cm' },
-  XXL: { donna: 'Non disponibile',                                           uomo: 'It. 54/56 · torace 115–120 · vita 95–100 cm' },
+  XS:  { donna:'It. 38/40 · seno 80–85 · vita 64–69 · fianchi 87–91 cm',      uomo:'Non disponibile' },
+  S:   { donna:'It. 40/42 · seno 85–90 · vita 70–75 · fianchi 92–97 cm',      uomo:'It. 46 · torace 80–88 · vita 75–79 cm' },
+  M:   { donna:'It. 44 · seno 90–95 · vita 74–79 · fianchi 97–100 cm',        uomo:'It. 48 · torace 89–96 · vita 80–84 cm' },
+  L:   { donna:'It. 46/48 · seno 95–100 · vita 80–84 · fianchi 101–107 cm',   uomo:'It. 50 · torace 97–104 · vita 85–90 cm' },
+  XL:  { donna:'It. 48/50 · seno 100–105 · vita 85–90 · fianchi 107–110 cm',  uomo:'It. 52 · torace 105–115 · vita 90–94 cm' },
+  XXL: { donna:'Non disponibile',                                               uomo:'It. 54/56 · torace 115–120 · vita 95–100 cm' },
 };
 const SIZES = ['XS','S','M','L','XL','XXL'];
 </script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:   #f7f5f2;
-  --bg2:  #ffffff;
-  --bg3:  #f0ede9;
-  --bg4:  #e8e4df;
-  --rule: rgba(0,0,0,0.08);
-  --rule2:rgba(0,0,0,0.14);
-  --rule3:rgba(0,0,0,0.24);
-  --ink:  #1a1814;
-  --ink2: #4a4744;
-  --ink3: #8a8785;
-  --gold: #9a7b4f;
-  --gold2:#7d6240;
-  --gold3:rgba(154,123,79,0.1);
-  --green:#3d8a62;
-  --red:  #a04040;
-  --amber:#b07830;
+  --bg:#f7f5f2; --bg2:#ffffff; --bg3:#f0ede9; --bg4:#e8e4df;
+  --rule:rgba(0,0,0,0.08); --rule2:rgba(0,0,0,0.14); --rule3:rgba(0,0,0,0.24);
+  --ink:#1a1814; --ink2:#4a4744; --ink3:#8a8785;
+  --gold:#9a7b4f; --gold2:#7d6240; --gold3:rgba(154,123,79,0.1);
+  --green:#3d8a62; --red:#a04040; --amber:#b07830;
   --r:4px; --r-lg:10px;
   --serif:'Cormorant Garamond',Georgia,serif;
-  --sans: 'DM Sans',-apple-system,sans-serif;
-  --sh:   0 1px 3px rgba(0,0,0,0.08);
-  --sh-md:0 4px 16px rgba(0,0,0,0.10);
+  --sans:'DM Sans',-apple-system,sans-serif;
+  --sh:0 1px 3px rgba(0,0,0,0.08);
 }
 html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;min-height:100vh;-webkit-font-smoothing:antialiased}
 
@@ -57,20 +45,20 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 #pbar{height:2px;background:var(--gold);width:0;position:fixed;top:0;left:0;z-index:100;transition:width 0.4s}
 
 /* ── Header ── */
-.hdr{background:var(--bg2);border-bottom:1px solid var(--rule);padding:22px 20px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:var(--sh)}
-.hdr-agency{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:10px}
-.hdr h1{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.hdr{background:var(--bg2);border-bottom:1px solid var(--rule);padding:20px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:var(--sh)}
+.hdr-agency{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:8px}
+.hdr h1{font-family:var(--serif);font-size:24px;font-weight:300;color:var(--ink);margin-bottom:4px}
 .hdr p{font-size:12px;color:var(--ink3)}
 
-/* ── Layout ── */
-.wrap{max-width:540px;margin:0 auto;padding:28px 18px 80px}
-.sec{margin-bottom:32px}
-.sec-title{font-size:9px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.18em;padding-bottom:9px;border-bottom:1px solid var(--rule);margin-bottom:18px}
+/* ── Wrap ── */
+.wrap{max-width:540px;margin:0 auto;padding:26px 18px 80px}
+.sec{margin-bottom:30px}
+.sec-title{font-size:9px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.18em;padding-bottom:8px;border-bottom:1px solid var(--rule);margin-bottom:16px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:400px){.grid-2{grid-template-columns:1fr}}
 
 /* ── Fields ── */
-.field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
 .field:last-child{margin-bottom:0}
 .field label{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.12em}
 .field input,.field select,.field textarea{
@@ -81,7 +69,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold2)}
 .field input::placeholder,.field textarea::placeholder{color:var(--ink3)}
 .field select option{background:var(--bg2);color:var(--ink)}
-.field textarea{resize:vertical;min-height:88px;line-height:1.65}
+.field textarea{resize:vertical;min-height:80px;line-height:1.65}
 .field .hint{font-size:10px;color:var(--ink3);line-height:1.5}
 .field .err{color:var(--red);font-size:10px;display:none}
 .field.has-error input,.field.has-error select,.field.has-error textarea{border-color:var(--red)}
@@ -102,14 +90,39 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 #consenso-err{color:var(--red);font-size:10px;margin-top:6px;display:none}
 #consenso-err.show{display:block}
 
+/* ── Toggle (tatuaggi / piercing) ── */
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r);
+  padding:13px 14px;margin-bottom:10px;cursor:pointer;
+  transition:border-color 0.15s;user-select:none;
+}
+.toggle-row:last-child{margin-bottom:0}
+.toggle-row:hover{border-color:var(--rule2)}
+.toggle-label{font-size:14px;color:var(--ink2)}
+.toggle-switch{
+  position:relative;width:44px;height:24px;flex-shrink:0;
+}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{
+  position:absolute;inset:0;background:var(--bg4);border-radius:12px;
+  border:1px solid var(--rule2);transition:background 0.2s,border-color 0.2s;
+}
+.toggle-thumb{
+  position:absolute;top:3px;left:3px;
+  width:16px;height:16px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.15);
+  transition:transform 0.2s;
+}
+.toggle-switch input:checked ~ .toggle-track{background:var(--gold);border-color:var(--gold2)}
+.toggle-switch input:checked ~ .toggle-thumb{transform:translateX(20px)}
+
 /* ── Taglie ── */
-.size-group{margin-bottom:20px}
+.size-group{margin-bottom:18px}
 .size-group-label{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .size-group-label::after{content:'';flex:1;height:1px;background:var(--rule)}
 .size-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 @media(max-width:400px){.size-grid{grid-template-columns:repeat(3,1fr)}}
-
-/* Radio nascosto + label button */
 .sopt{position:relative}
 .sopt input[type=radio]{position:absolute;opacity:0;width:0;height:0}
 .sopt label{
@@ -119,59 +132,74 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   transition:all 0.15s;color:var(--ink2);text-align:center;
   position:relative;user-select:none;
 }
-.sopt input[type=radio]:checked + label{
-  border-color:var(--gold2);background:var(--gold3);color:var(--gold2);font-weight:500;
-}
+.sopt input[type=radio]:checked + label{border-color:var(--gold2);background:var(--gold3);color:var(--gold2);font-weight:500}
 .sopt label:hover{border-color:var(--rule3);background:var(--bg4)}
-
-/* Tooltip misure — appare al hover/tap */
 .sopt label .tip{
   position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
-  background:var(--ink);color:var(--bg2);
-  font-size:10px;font-weight:400;line-height:1.55;letter-spacing:0.01em;
-  padding:8px 11px;border-radius:var(--r);white-space:nowrap;
+  background:var(--ink);color:#fff;
+  font-size:10px;line-height:1.55;padding:8px 11px;border-radius:var(--r);
   pointer-events:none;opacity:0;transition:opacity 0.15s;
   box-shadow:0 4px 16px rgba(0,0,0,0.18);z-index:20;
-  max-width:240px;white-space:normal;text-align:left;min-width:180px;
+  min-width:180px;max-width:240px;white-space:normal;text-align:left;
 }
-.sopt label .tip::after{
-  content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
-  border:5px solid transparent;border-top-color:var(--ink);
-}
-.sopt label:hover .tip,
-.sopt input[type=radio]:checked + label .tip{opacity:1}
-
-/* Su mobile il tooltip si apre in basso se ci sono sopt nel primo row */
+.sopt label .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink)}
+.sopt label:hover .tip,.sopt input[type=radio]:checked + label .tip{opacity:1}
 @media(hover:none){
-  .sopt label .tip{
-    bottom:auto;top:calc(100% + 8px);
-  }
-  .sopt label .tip::after{
-    top:auto;bottom:100%;
-    border-top-color:transparent;border-bottom-color:var(--ink);
-  }
+  .sopt label .tip{bottom:auto;top:calc(100% + 8px)}
+  .sopt label .tip::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--ink)}
 }
-
 .size-err{color:var(--red);font-size:10px;margin-top:4px;display:none}
 .size-err.show{display:block}
 
-/* ── Dropzone foto ── */
-.dropzone{border:1px solid var(--rule2);border-radius:var(--r-lg);padding:32px 20px;text-align:center;cursor:pointer;background:var(--bg3);transition:border-color 0.2s,background 0.2s}
-.dropzone:hover,.dropzone.drag-over{border-color:var(--gold);background:rgba(154,123,79,0.04)}
-.dropzone.has-error{border-color:var(--red)}
-.dz-icon{font-size:26px;opacity:0.35;margin-bottom:10px}
-.dz-title{font-family:var(--serif);font-size:18px;font-weight:300;color:var(--ink);margin-bottom:4px}
-.dz-sub{font-size:11px;color:var(--ink3)}
-.dz-count{font-size:11px;color:var(--ink3);margin-top:6px}
-#ph-err{color:var(--red);font-size:11px;margin-top:5px;display:none}
-.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:10px}
-.thumb{position:relative;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:var(--bg4)}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.thumb .cbadge{position:absolute;top:4px;left:4px;background:rgba(154,123,79,0.9);color:#fff;font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase}
-.thumb .rm{position:absolute;top:4px;right:4px;background:rgba(26,24,20,0.55);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* ── Foto istruzioni card ── */
+.foto-guide{
+  background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r-lg);
+  padding:16px;margin-bottom:16px;
+}
+.foto-guide-title{
+  font-size:10px;font-weight:500;color:var(--gold2);text-transform:uppercase;
+  letter-spacing:0.12em;margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.foto-guide ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.foto-guide li{
+  display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--ink2);line-height:1.5;
+}
+.foto-guide li::before{
+  content:'';display:block;width:5px;height:5px;border-radius:50%;
+  background:var(--gold);flex-shrink:0;margin-top:5px;
+}
+.foto-slots{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;
+}
+.foto-slot{
+  border:1.5px dashed var(--rule2);border-radius:var(--r-lg);
+  aspect-ratio:3/4;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  cursor:pointer;transition:border-color 0.2s,background 0.2s;
+  background:var(--bg3);overflow:hidden;position:relative;
+}
+.foto-slot:hover,.foto-slot.drag-over{border-color:var(--gold);background:rgba(154,123,79,0.04)}
+.foto-slot.has-photo{border-style:solid;border-color:var(--rule)}
+.foto-slot.has-error{border-color:var(--red)}
+.foto-slot-icon{font-size:24px;opacity:0.3}
+.foto-slot-label{font-size:11px;color:var(--ink3);letter-spacing:0.03em;text-align:center;padding:0 8px}
+.foto-slot-badge{
+  position:absolute;top:6px;left:6px;
+  background:rgba(154,123,79,0.9);color:#fff;
+  font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
+  letter-spacing:0.08em;text-transform:uppercase;
+}
+.foto-slot img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+.foto-slot .rm-photo{
+  position:absolute;top:5px;right:5px;z-index:2;
+  background:rgba(26,24,20,0.65);color:#fff;border:none;border-radius:50%;
+  width:22px;height:22px;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+#ph-err{color:var(--red);font-size:11px;margin-top:4px;display:none}
 
 /* ── Submit ── */
-.btn-send{width:100%;padding:15px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:10px;transition:background 0.15s;margin-top:26px}
+.btn-send{width:100%;padding:15px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:10px;transition:background 0.15s;margin-top:24px}
 .btn-send:hover{background:var(--gold2)}
 .btn-send:disabled{opacity:0.45;cursor:not-allowed}
 .spinner{width:15px;height:15px;border:1.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite}
@@ -185,8 +213,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 .state-icon{font-size:38px;opacity:0.55;margin-bottom:18px}
 .state-title{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:8px}
 .state-sub{font-size:13px;color:var(--ink3);line-height:1.8}
-.btn-retry{margin-top:20px;padding:10px 24px;background:transparent;color:var(--ink);border:1px solid var(--rule2);border-radius:var(--r);cursor:pointer;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--sans);transition:border-color 0.15s}
-.btn-retry:hover{border-color:var(--rule3)}
+.btn-retry{margin-top:20px;padding:10px 24px;background:transparent;color:var(--ink);border:1px solid var(--rule2);border-radius:var(--r);cursor:pointer;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--sans)}
 </style>
 </head>
 <body>
@@ -221,11 +248,11 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 
   <div class="wrap">
 
-    <!-- DATI PERSONALI -->
+    <!-- ── DATI PERSONALI ── -->
     <div class="sec">
       <div class="sec-title">Dati personali</div>
 
-      <div class="grid-2" style="margin-bottom:13px">
+      <div class="grid-2" style="margin-bottom:12px">
         <div class="field" id="f-nome">
           <label>Nome *</label>
           <input id="nome" type="text" placeholder="Sofia" autocomplete="given-name">
@@ -238,10 +265,16 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
         </div>
       </div>
 
-      <div class="field" id="f-instagram" style="margin-bottom:13px">
+      <div class="field" id="f-instagram" style="margin-bottom:12px">
         <label>@ Instagram *</label>
         <input id="instagram" type="text" placeholder="@sofiarossi" autocomplete="off">
         <span class="hint">Con o senza @</span>
+        <span class="err">Obbligatorio</span>
+      </div>
+
+      <div class="field" id="f-telefono" style="margin-bottom:12px">
+        <label>Numero di cellulare *</label>
+        <input id="telefono" type="tel" placeholder="+39 333 0001234" autocomplete="tel" inputmode="tel">
         <span class="err">Obbligatorio</span>
       </div>
 
@@ -270,21 +303,17 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
       </div>
     </div>
 
-    <!-- MISURE -->
+    <!-- ── MISURE ── -->
     <div class="sec">
       <div class="sec-title">Misure abbigliamento *</div>
       <p style="font-size:11px;color:var(--ink3);margin-bottom:16px;line-height:1.6">
-        Passa il dito (o il mouse) sulla taglia per vedere le misure corrispondenti.
+        Tieni premuto (o passa il mouse) sulla taglia per vedere le misure corrispondenti.
       </p>
-
-      <!-- Parte superiore -->
       <div class="size-group">
         <div class="size-group-label">Parte superiore</div>
         <div class="size-grid" id="grid-sup"></div>
         <div class="size-err" id="err-sup">Seleziona la taglia superiore</div>
       </div>
-
-      <!-- Parte inferiore -->
       <div class="size-group">
         <div class="size-group-label">Parte inferiore</div>
         <div class="size-grid" id="grid-inf"></div>
@@ -292,34 +321,88 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
       </div>
     </div>
 
-    <!-- NOTE -->
+    <!-- ── DETTAGLI FISICI ── -->
     <div class="sec">
-      <div class="sec-title">Note particolari</div>
+      <div class="sec-title">Dettagli fisici</div>
+
+      <!-- Toggle tatuaggi -->
+      <label class="toggle-row" onclick="toggleCheck('tatuaggi')">
+        <span class="toggle-label">Ho tatuaggi</span>
+        <div class="toggle-switch">
+          <input type="checkbox" id="tatuaggi">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </div>
+      </label>
+
+      <!-- Toggle piercing -->
+      <label class="toggle-row" onclick="toggleCheck('piercing')">
+        <span class="toggle-label">Ho piercing</span>
+        <div class="toggle-switch">
+          <input type="checkbox" id="piercing">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </div>
+      </label>
+    </div>
+
+    <!-- ── NOTE E DISPONIBILITÀ ── -->
+    <div class="sec">
+      <div class="sec-title">Note e disponibilità</div>
+
+      <div class="field" style="margin-bottom:12px">
+        <label>Orario di arrivo alla sfilata</label>
+        <input id="orario_arrivo" type="time" placeholder="09:00">
+        <span class="hint">Indica l'orario in cui puoi essere presente</span>
+      </div>
+
       <div class="field">
-        <label>Note (facoltativo)</label>
-        <textarea id="note_particolari" placeholder="Es. allergia al trucco, tatuaggi, piercing, disagi…"></textarea>
-        <span class="hint">Inserisci qualsiasi informazione utile al casting</span>
+        <label>Note particolari (facoltativo)</label>
+        <textarea id="note_particolari" placeholder="Eventuali disagi, allergie al trucco, altre informazioni utili al casting…"></textarea>
       </div>
     </div>
 
-    <!-- FOTO -->
+    <!-- ── FOTO ── -->
     <div class="sec">
-      <div class="sec-title">Foto primo piano viso *</div>
-      <p style="font-size:11px;color:var(--ink3);margin-bottom:13px;line-height:1.65">
-        Foto al naturale, senza filtri. La prima sarà la copertina del profilo.<br>
-        Max 5 foto · JPG o PNG
-      </p>
-      <div class="dropzone" id="dz"
-        onclick="document.getElementById('phi').click()"
-        ondragover="onDO(event)" ondragleave="onDL(event)" ondrop="onDP(event)">
-        <div class="dz-icon">↑</div>
-        <div class="dz-title">Carica le tue foto</div>
-        <div class="dz-sub">Al naturale · Senza filtri</div>
-        <div class="dz-count" id="dz-count"></div>
+      <div class="sec-title">Foto *</div>
+
+      <!-- Istruzioni chiare -->
+      <div class="foto-guide">
+        <div class="foto-guide-title">
+          <span>📷</span> Come scattare le foto
+        </div>
+        <ul>
+          <li><strong>2 foto richieste:</strong> un primo piano frontale e una foto di profilo (lato)</li>
+          <li>Entrambe le foto ad <strong>altezza occhi</strong></li>
+          <li>Sfondo neutro o semplice, <strong>luce naturale</strong> preferibilmente</li>
+          <li><strong>Senza filtri</strong> — colori naturali, nessun effetto</li>
+          <li>Trucco base o al naturale — <strong>meglio al naturale</strong></li>
+          <li>Foto <strong>a colori</strong>, in buona risoluzione</li>
+        </ul>
       </div>
-      <input type="file" id="phi" multiple accept="image/*" style="display:none" onchange="addPhotos([...this.files])">
-      <div id="ph-err">Carica almeno una foto</div>
-      <div class="photo-grid" id="ph-grid"></div>
+
+      <!-- Due slot foto fisse -->
+      <div class="foto-slots">
+        <!-- Slot 1: frontale -->
+        <div class="foto-slot" id="slot-0"
+          onclick="document.getElementById('phi-0').click()"
+          ondragover="onSlotDO(event,0)" ondragleave="onSlotDL(0)" ondrop="onSlotDP(event,0)">
+          <div class="foto-slot-icon">👤</div>
+          <div class="foto-slot-label">Primo piano<br><strong>frontale</strong></div>
+        </div>
+        <input type="file" id="phi-0" accept="image/*" capture="user" style="display:none" onchange="setSlotPhoto(0,this.files[0])">
+
+        <!-- Slot 2: profilo -->
+        <div class="foto-slot" id="slot-1"
+          onclick="document.getElementById('phi-1').click()"
+          ondragover="onSlotDO(event,1)" ondragleave="onSlotDL(1)" ondrop="onSlotDP(event,1)">
+          <div class="foto-slot-icon">↙</div>
+          <div class="foto-slot-label">Foto di profilo<br><strong>(lato, occhi)</strong></div>
+        </div>
+        <input type="file" id="phi-1" accept="image/*" capture="user" style="display:none" onchange="setSlotPhoto(1,this.files[0])">
+      </div>
+
+      <div id="ph-err">Carica entrambe le foto richieste</div>
     </div>
 
     <button class="btn-send" id="btn-send" onclick="doSubmit()">Invia candidatura</button>
@@ -331,31 +414,60 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 </div>
 
 <script>
-// ── Build taglia grids ────────────────────────────────────
-let photos = [];
+// ── Foto a 2 slot fissi ───────────────────────────────────
+const photos = [null, null]; // slot 0 = frontale, slot 1 = profilo
 
-function buildSizeGrid(containerId, groupName) {
-  const container = document.getElementById(containerId);
-  container.innerHTML = SIZES.map(sz => {
-    const info = SIZE_INFO[sz];
-    const tip  = `<span class="tip"><strong>Donna:</strong> ${info.donna}<br><strong>Uomo:</strong> ${info.uomo}</span>`;
-    return `
-    <div class="sopt">
-      <input type="radio" name="${groupName}" id="${groupName}-${sz}" value="${sz}">
-      <label for="${groupName}-${sz}">
-        ${sz}
-        ${tip}
-      </label>
-    </div>`;
-  }).join('');
+const SLOT_LABELS = [
+  { icon:'👤', label:'Primo piano<br><strong>frontale</strong>', badge:'Frontale' },
+  { icon:'↙',  label:'Foto di profilo<br><strong>(lato, occhi)</strong>', badge:'Profilo' },
+];
+
+function setSlotPhoto(idx, file) {
+  if (!file) return;
+  if (photos[idx]?.preview) URL.revokeObjectURL(photos[idx].preview);
+  photos[idx] = { file, preview: URL.createObjectURL(file) };
+  renderSlot(idx);
+  document.getElementById('ph-err').style.display = 'none';
+  document.getElementById('slot-' + idx).classList.remove('has-error');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  buildSizeGrid('grid-sup', 'ts');
-  buildSizeGrid('grid-inf', 'ti');
-  document.getElementById('hdr-agency').textContent =
-    (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
-});
+function removeSlotPhoto(idx) {
+  if (photos[idx]?.preview) URL.revokeObjectURL(photos[idx].preview);
+  photos[idx] = null;
+  renderSlot(idx);
+}
+
+function renderSlot(idx) {
+  const slot = document.getElementById('slot-' + idx);
+  const p    = photos[idx];
+  const info = SLOT_LABELS[idx];
+  if (p) {
+    slot.classList.add('has-photo');
+    slot.innerHTML = `
+      <img src="${p.preview}" alt="foto ${idx}">
+      <span class="foto-slot-badge">${info.badge}</span>
+      <button class="rm-photo" onclick="event.stopPropagation();removeSlotPhoto(${idx})" type="button">×</button>`;
+  } else {
+    slot.classList.remove('has-photo');
+    slot.innerHTML = `
+      <div class="foto-slot-icon">${info.icon}</div>
+      <div class="foto-slot-label">${info.label}</div>`;
+  }
+}
+
+function onSlotDO(e, idx) { e.preventDefault(); document.getElementById('slot-' + idx).classList.add('drag-over'); }
+function onSlotDL(idx) { document.getElementById('slot-' + idx).classList.remove('drag-over'); }
+function onSlotDP(e, idx) {
+  e.preventDefault(); onSlotDL(idx);
+  const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
+  if (file) setSlotPhoto(idx, file);
+}
+
+// ── Toggle (tatuaggi / piercing) ─────────────────────────
+function toggleCheck(id) {
+  const cb = document.getElementById(id);
+  cb.checked = !cb.checked;
+}
 
 // ── Età ──────────────────────────────────────────────────
 function onEta(val) {
@@ -363,60 +475,54 @@ function onEta(val) {
   const badge = document.getElementById('eta-badge');
   const cbox  = document.getElementById('consenso-box');
   if (!val || isNaN(n)) { badge.className = ''; cbox.classList.remove('show'); return; }
-  if (n >= 18) {
-    badge.textContent = '✓ Maggiorenne'; badge.className = 'over';
-    cbox.classList.remove('show');
-  } else {
-    badge.textContent = '⚠ Minorenne'; badge.className = 'under';
-    cbox.classList.add('show');
-  }
+  if (n >= 18) { badge.textContent='✓ Maggiorenne'; badge.className='over'; cbox.classList.remove('show'); }
+  else         { badge.textContent='⚠ Minorenne';  badge.className='under'; cbox.classList.add('show'); }
 }
 
-// ── Foto ─────────────────────────────────────────────────
-function onDO(e) { e.preventDefault(); document.getElementById('dz').classList.add('drag-over'); }
-function onDL()  { document.getElementById('dz').classList.remove('drag-over'); }
-function onDP(e) {
-  e.preventDefault(); onDL();
-  addPhotos([...e.dataTransfer.files].filter(f => f.type.startsWith('image/')));
+// ── Taglie ────────────────────────────────────────────────
+function buildSizeGrid(containerId, groupName) {
+  document.getElementById(containerId).innerHTML = SIZES.map(sz => {
+    const info = SIZE_INFO[sz];
+    return `
+    <div class="sopt">
+      <input type="radio" name="${groupName}" id="${groupName}-${sz}" value="${sz}">
+      <label for="${groupName}-${sz}">
+        ${sz}
+        <span class="tip"><strong>Donna:</strong> ${info.donna}<br><strong>Uomo:</strong> ${info.uomo}</span>
+      </label>
+    </div>`;
+  }).join('');
 }
-function addPhotos(files) {
-  files.slice(0, 5 - photos.length).forEach(f => photos.push({ file: f, preview: URL.createObjectURL(f) }));
-  renderPhotos();
-  document.getElementById('ph-err').style.display = 'none';
-  document.getElementById('dz').classList.remove('has-error');
-}
-function removePhoto(i) { URL.revokeObjectURL(photos[i].preview); photos.splice(i, 1); renderPhotos(); }
-function renderPhotos() {
-  document.getElementById('dz-count').textContent = photos.length ? `${photos.length}/5 foto` : '';
-  document.getElementById('ph-grid').innerHTML = photos.map((p, i) => `
-    <div class="thumb">
-      <img src="${p.preview}">
-      ${i === 0 ? '<span class="cbadge">Cover</span>' : ''}
-      <button class="rm" onclick="removePhoto(${i})" type="button">×</button>
-    </div>`).join('');
-}
+
+// ── Init ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildSizeGrid('grid-sup', 'ts');
+  buildSizeGrid('grid-inf', 'ti');
+  document.getElementById('hdr-agency').textContent =
+    (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
+});
 
 // ── Helpers ───────────────────────────────────────────────
 function g(id) { return (document.getElementById(id)?.value || '').trim(); }
 function setE(id, msg) {
-  const w = document.getElementById('f-' + id);
-  if (!w) return; w.classList.add('has-error');
+  const w = document.getElementById('f-' + id); if (!w) return;
+  w.classList.add('has-error');
   const e = w.querySelector('.err'); if (e && msg) e.textContent = msg;
 }
 function clrE(id) { document.getElementById('f-' + id)?.classList.remove('has-error'); }
 function getSup() { return document.querySelector('input[name="ts"]:checked')?.value || ''; }
 function getInf() { return document.querySelector('input[name="ti"]:checked')?.value || ''; }
+function isChecked(id) { return document.getElementById(id)?.checked || false; }
 
-// ── Validazione ──────────────────────────────────────────
+// ── Validazione ───────────────────────────────────────────
 function validate() {
   let ok = true;
-  ['nome','cognome','instagram','eta','altezza_cm'].forEach(f => {
+  ['nome','cognome','instagram','telefono','eta','altezza_cm'].forEach(f => {
     clrE(f); if (!g(f)) { setE(f, 'Obbligatorio'); ok = false; }
   });
   const eta = parseInt(g('eta'));
   if (g('eta') && (isNaN(eta) || eta < 14 || eta > 70)) { setE('eta', 'Età: 14–70'); ok = false; }
 
-  // Consenso minorenni
   if (!isNaN(eta) && eta < 18) {
     const check = document.getElementById('consenso-check');
     const err   = document.getElementById('consenso-err');
@@ -424,16 +530,17 @@ function validate() {
     else err.classList.remove('show');
   }
 
-  // Taglie
   const supErr = document.getElementById('err-sup');
   const infErr = document.getElementById('err-inf');
   if (!getSup()) { supErr.classList.add('show'); ok = false; } else supErr.classList.remove('show');
   if (!getInf()) { infErr.classList.add('show'); ok = false; } else infErr.classList.remove('show');
 
-  // Foto
-  if (!photos.length) {
+  // Entrambe le foto obbligatorie
+  const missingPhoto = photos[0] === null || photos[1] === null;
+  if (missingPhoto) {
     document.getElementById('ph-err').style.display = 'block';
-    document.getElementById('dz').classList.add('has-error');
+    if (!photos[0]) document.getElementById('slot-0').classList.add('has-error');
+    if (!photos[1]) document.getElementById('slot-1').classList.add('has-error');
     ok = false;
   }
   return ok;
@@ -444,11 +551,11 @@ async function doSubmit() {
   document.getElementById('form-err').style.display = 'none';
   if (!validate()) {
     document.getElementById('form-err').style.display = 'block';
-    // Scrolla al primo problema
     (document.querySelector('.has-error') ||
      document.querySelector('.size-err.show') ||
-     document.querySelector('#consenso-err.show'))
-    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+     document.querySelector('#consenso-err.show') ||
+     document.querySelector('.foto-slot.has-error'))
+    ?.scrollIntoView({ behavior:'smooth', block:'center' });
     return;
   }
 
@@ -461,33 +568,40 @@ async function doSubmit() {
     nome:            g('nome'),
     cognome:         g('cognome'),
     instagram:       g('instagram'),
+    telefono:        g('telefono'),
     eta,
     maggiorenne:     eta >= 18,
     altezza_cm:      parseFloat(g('altezza_cm')),
     taglia_sup:      getSup(),
     taglia_inf:      getInf(),
+    tatuaggi:        isChecked('tatuaggi'),
+    piercing:        isChecked('piercing'),
+    orario_arrivo:   g('orario_arrivo'),
     note_particolari:g('note_particolari'),
   };
 
   try {
     setStatus('Salvataggio dati…');
-    const r = await post({ action: 'submit', data });
+    const r = await post({ action:'submit', data });
     if (!r.ok) throw new Error(r.error || 'Errore salvataggio dati');
     const cid = r.id;
     setBar(20);
 
+    // Carica le 2 foto nell'ordine: frontale (0), profilo (1)
     for (let i = 0; i < photos.length; i++) {
-      setStatus(`Caricamento foto ${i+1} di ${photos.length}…`);
-      btn.innerHTML = `<div class="spinner"></div> Foto ${i+1}/${photos.length}…`;
+      if (!photos[i]) continue;
+      const labels = ['frontale', 'profilo'];
+      setStatus(`Caricamento foto ${labels[i]}…`);
+      btn.innerHTML = `<div class="spinner"></div> Foto ${i+1}/2…`;
       const b64 = await toB64(photos[i].file);
       const ext = photos[i].file.name.split('.').pop() || 'jpg';
       const res = await post({
-        action: 'uploadPhoto', candidateId: cid,
-        fileName: `${Date.now()}-${i}.${ext}`,
-        mimeType: photos[i].file.type, base64Data: b64,
+        action:'uploadPhoto', candidateId:cid,
+        fileName:`${labels[i]}-${Date.now()}.${ext}`,
+        mimeType:photos[i].file.type, base64Data:b64,
       });
       if (!res.ok) throw new Error(res.error || 'Errore upload foto');
-      setBar(20 + Math.round((i + 1) / photos.length * 75));
+      setBar(20 + Math.round((i + 1) / 2 * 75));
     }
 
     setBar(100);
@@ -504,9 +618,9 @@ async function doSubmit() {
 
 async function post(payload) {
   const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify({ ...payload, token: CONFIG.TOKEN }),
-    headers: { 'Content-Type': 'text/plain' },
+    method:'POST',
+    body:JSON.stringify({ ...payload, token:CONFIG.TOKEN }),
+    headers:{'Content-Type':'text/plain'},
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const text = await res.text();
@@ -520,13 +634,13 @@ function toB64(file) {
       const img = new Image();
       img.onload = () => {
         const cv = document.createElement('canvas');
-        const r  = Math.min(1, 1200 / Math.max(img.width, img.height));
+        const r  = Math.min(1, 1400 / Math.max(img.width, img.height));
         cv.width = img.width * r; cv.height = img.height * r;
         cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
         cv.toBlob(b => {
           const fr = new FileReader(); fr.onload = () => resolve(fr.result.split(',')[1]);
           fr.readAsDataURL(b);
-        }, file.type, 0.82);
+        }, file.type, 0.85);
       };
       img.src = URL.createObjectURL(file);
     } else {
@@ -536,8 +650,8 @@ function toB64(file) {
   });
 }
 
-function setBar(p) { document.getElementById('pbar').style.width = p + '%'; }
-function setStatus(m) { document.getElementById('up-status').textContent = m; }
+function setBar(p)  { document.getElementById('pbar').style.width = p + '%'; }
+function setStatus(m){ document.getElementById('up-status').textContent = m; }
 function resetForm() {
   document.getElementById('state-err').style.display = 'none';
   document.getElementById('main').style.display = 'block';

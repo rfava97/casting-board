@@ -1086,7 +1086,11 @@ function openDrawer(id){
         <div class="icard-body">
           ${c.eta?`<div class="irow"><span class="lbl">Età</span><span class="val">${c.eta} anni</span></div>`:''}
           ${c.altezza_cm?`<div class="irow"><span class="lbl">Altezza</span><span class="val val-big">${c.altezza_cm} cm</span></div>`:''}
+          ${c.telefono?`<div class="irow"><span class="lbl">Telefono</span><span class="val"><a href="tel:${esc(c.telefono)}">${esc(c.telefono)}</a></span></div>`:''}
           ${c.instagram?`<div class="irow"><span class="lbl">Instagram</span><span class="val"><a href="https://instagram.com/${esc(ig)}" target="_blank">${esc(c.instagram)}</a></span></div>`:''}
+          ${c.orario_arrivo?`<div class="irow"><span class="lbl">Orario arrivo</span><span class="val">${esc(c.orario_arrivo)}</span></div>`:''}
+          <div class="irow"><span class="lbl">Tatuaggi</span><span class="val">${c.tatuaggi?'Sì':'No'}</span></div>
+          <div class="irow"><span class="lbl">Piercing</span><span class="val">${c.piercing?'Sì':'No'}</span></div>
         </div>
       </div>
 
