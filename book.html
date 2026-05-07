@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casting Book</title>
+
+<!-- ── CONFIG ─────────────────────────────────────────────── -->
+<script>
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz7YjkcflYr9KXoYZmLVrKTIcnP9HHo9u5FBKIlrQCIP4gNJWKRlQqmL3pIPZHjt-hS/exec',
+  TOKEN: 'CastingModelsFDS',
+  AGENCY_NAME: 'Casting Board',
+  // PASSWORD opzionale per la pagina book (lascia '' per nessuna protezione)
+  // Stessa o diversa dalla gallery — a tua scelta
+  BOOK_PASSWORD: '',
+};
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   CASTING BOOK — stile stampabile
+   Screen: layout a schede, palette chiara
+   Print:  una scheda per pagina, ottimizzato per A4
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:   #f7f5f2;
+  --bg2:  #ffffff;
+  --bg3:  #f0ede9;
+  --bg4:  #e8e4df;
+  --rule: rgba(0,0,0,0.08);
+  --rule2:rgba(0,0,0,0.15);
+  --ink:  #1a1814;
+  --ink2: #4a4744;
+  --ink3: #8a8785;
+  --gold: #9a7b4f;
+  --gold2:#7d6240;
+  --green:#3d8a62;
+  --red:  #a04040;
+  --blue: #3a6a9a;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans: 'DM Sans',-apple-system,sans-serif;
+}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
+.login-box{background:var(--bg2);border:1px solid var(--rule2);border-radius:12px;padding:40px 32px;width:100%;max-width:300px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.1)}
+.login-logo{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:18px}
+.login-box h2{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:4px}
+.login-box p{color:var(--ink3);font-size:12px;margin-bottom:22px}
+.login-box input{width:100%;background:var(--bg3);border:1px solid var(--rule2);border-radius:4px;color:var(--ink);padding:12px 14px;font-size:15px;text-align:center;font-family:var(--sans);letter-spacing:0.06em;margin-bottom:12px}
+.login-box input:focus{outline:none;border-color:var(--gold2)}
+.login-box button{width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;font-family:var(--sans)}
+.login-box button:hover{background:var(--gold2)}
+#login-err{color:var(--red);font-size:11px;margin-top:8px;display:none}
+
+/* ── CONTROLS BAR (screen only) ── */
+#app{display:none}
+.controls{
+  background:var(--bg2);border-bottom:1px solid var(--rule);
+  padding:10px 20px;display:flex;align-items:center;gap:12px;
+  flex-wrap:wrap;position:sticky;top:0;z-index:100;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+.ctrl-brand{font-family:var(--serif);font-size:16px;font-weight:300;color:var(--ink);letter-spacing:0.02em}
+.ctrl-sep{color:var(--rule2);font-size:16px}
+.ctrl-count{font-size:11px;color:var(--ink3);letter-spacing:0.04em}
+.ctrl-actions{display:flex;gap:6px;margin-left:auto;align-items:center;flex-wrap:wrap}
+.cbtn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:4px;font-size:11px;font-weight:400;letter-spacing:0.06em;cursor:pointer;border:none;font-family:var(--sans);text-transform:uppercase;transition:all 0.15s;white-space:nowrap}
+.cbtn-ghost{background:transparent;color:var(--ink3);border:1px solid var(--rule2)}
+.cbtn-ghost:hover{color:var(--ink);background:var(--bg3);border-color:var(--rule2)}
+.cbtn-gold{background:var(--gold);color:#fff;font-weight:500}
+.cbtn-gold:hover{background:var(--gold2)}
+.brand-sel{background:var(--bg3);border:1px solid var(--rule2);border-radius:4px;color:var(--ink);padding:7px 10px;font-size:12px;font-family:var(--sans);cursor:pointer}
+
+/* ── LOADING / EMPTY ── */
+.loading-state,.empty-state{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;min-height:300px;color:var(--ink3)}
+.loading-state p,.empty-state p{font-size:13px;letter-spacing:0.04em}
+.spinner{width:20px;height:20px;border:1.5px solid var(--rule2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── BOOK PAGES CONTAINER ── */
+#book{padding:20px;display:flex;flex-direction:column;gap:0}
+
+/* ── SINGLE SCHEDA ── */
+.scheda{
+  background:var(--bg2);
+  border:1px solid var(--rule);
+  border-radius:0;
+  margin-bottom:24px;
+  overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  position:relative;
+  page-break-inside:avoid;
+  break-inside:avoid;
+}
+
+/* Header scheda */
+.scheda-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--rule);
+  background:var(--bg3);
+}
+.scheda-agency{
+  font-size:8px;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--gold);font-weight:400;
+}
+.scheda-brand{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
+  padding:4px 10px;border-radius:2px;
+  background:rgba(58,106,154,0.1);color:var(--blue);border:1px solid rgba(58,106,154,0.2);
+}
+.scheda-status{
+  font-size:8px;font-weight:500;padding:3px 8px;border-radius:2px;
+  text-transform:uppercase;letter-spacing:0.1em;
+}
+.s-shortlisted{background:rgba(154,123,79,0.15);color:var(--gold2)}
+.s-booked{background:rgba(61,138,98,0.15);color:var(--green)}
+.s-pending{background:rgba(0,0,0,0.06);color:var(--ink3)}
+.s-rejected{background:rgba(160,64,64,0.12);color:var(--red)}
+
+/* Body scheda — 2 colonne */
+.scheda-body{display:grid;grid-template-columns:200px 1fr;min-height:280px}
+
+/* Foto colonna */
+.scheda-photo{position:relative;background:var(--bg4);overflow:hidden}
+.scheda-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.scheda-photo .no-photo{
+  width:100%;height:100%;min-height:260px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink3);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
+}
+.photo-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--bg4)}
+.photo-strip img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+
+/* Dati colonna */
+.scheda-data{padding:20px 24px;display:flex;flex-direction:column;justify-content:space-between}
+.scheda-name{
+  font-family:var(--serif);font-size:30px;font-weight:300;
+  letter-spacing:-0.02em;line-height:1.1;color:var(--ink);margin-bottom:4px;
+}
+.scheda-name span{font-style:italic}
+.scheda-instagram{font-size:12px;color:var(--gold);margin-bottom:16px;letter-spacing:0.02em}
+.scheda-instagram a{color:inherit;text-decoration:none}
+.scheda-instagram a:hover{text-decoration:underline}
+
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;margin-bottom:16px}
+.data-item{}
+.data-lbl{font-size:8px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px}
+.data-val{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--ink);line-height:1.1}
+.data-val.small{font-family:var(--sans);font-size:13px;font-weight:400;line-height:1.4}
+
+.scheda-note{
+  background:var(--bg3);border-radius:4px;padding:10px 12px;
+  font-size:11px;color:var(--ink2);line-height:1.6;
+  border-left:2px solid var(--gold);
+}
+.scheda-note-lbl{font-size:8px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px}
+
+.minore-badge{
+  display:inline-block;font-size:8px;font-weight:500;
+  padding:2px 7px;border-radius:2px;
+  background:rgba(176,120,48,0.12);color:#b07830;
+  letter-spacing:0.08em;text-transform:uppercase;margin-left:6px;vertical-align:middle;
+}
+
+/* Footer scheda */
+.scheda-footer{
+  padding:8px 20px;border-top:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg3);
+}
+.scheda-date{font-size:10px;color:var(--ink3);letter-spacing:0.04em}
+
+/* ── BRAND SECTION DIVIDER ── */
+.brand-divider{
+  padding:20px 0 12px;margin-bottom:4px;
+  border-bottom:1px solid var(--rule2);
+  display:flex;align-items:baseline;gap:12px;
+}
+.brand-divider h2{
+  font-family:var(--serif);font-size:26px;font-weight:300;
+  color:var(--ink);letter-spacing:-0.01em;
+}
+.brand-divider span{font-size:12px;color:var(--ink3);letter-spacing:0.04em}
+
+/* ── COVER PAGE ── */
+.cover-page{
+  min-height:60px;padding:28px 20px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--gold);margin-bottom:28px;
+}
+.cover-agency{
+  font-family:var(--serif);font-size:28px;font-weight:300;
+  letter-spacing:-0.01em;color:var(--ink);
+}
+.cover-meta{text-align:right;font-size:11px;color:var(--ink3);line-height:1.8;letter-spacing:0.03em}
+
+/* ── PRINT STYLES ── */
+@media print {
+  @page { size:A4 portrait; margin:12mm 10mm; }
+
+  /* Nascondi tutto tranne il book */
+  #login, .controls { display:none !important; }
+  #book { padding:0 !important; }
+  html,body { background:#fff !important; font-size:12px; }
+
+  .scheda{
+    box-shadow:none !important;
+    border:0.5px solid #ccc !important;
+    page-break-after:always;
+    break-after:page;
+    margin-bottom:0 !important;
+    border-radius:0 !important;
+  }
+  .scheda:last-child{ page-break-after:avoid; break-after:avoid; }
+
+  .brand-divider{ page-break-after:avoid; break-after:avoid; }
+  .cover-page{ page-break-after:always; break-after:page; }
+
+  /* Forza stampa immagini di sfondo */
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+
+  .scheda-photo img, .photo-strip img { display:block !important; }
+
+  .scheda-body{grid-template-columns:180px 1fr}
+  .scheda-name{font-size:26px}
+  .data-val{font-size:18px}
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .scheda-body{grid-template-columns:1fr;grid-template-rows:260px auto}
+  .scheda-photo{min-height:260px}
+  .data-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN (opzionale) -->
+<div id="login">
+  <div class="login-box">
+    <span class="login-logo" id="login-agency">Casting Studio</span>
+    <h2>Casting Book</h2>
+    <p>Accesso alla selezione modelli</p>
+    <input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Accedi</button>
+    <div id="login-err">Password non corretta</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- Controls bar -->
+  <div class="controls">
+    <span class="ctrl-brand" id="ctrl-title">Casting Book</span>
+    <span class="ctrl-sep">·</span>
+    <span class="ctrl-count" id="ctrl-count"></span>
+    <div class="ctrl-actions">
+      <select class="brand-sel" id="brand-sel" onchange="filterByBrand(this.value)">
+        <option value="All">Tutti i brand</option>
+      </select>
+      <select class="brand-sel" id="status-sel" onchange="filterByStatus(this.value)">
+        <option value="All">Tutti gli status</option>
+        <option value="shortlisted">Shortlist</option>
+        <option value="booked">Confermati</option>
+        <option value="pending">In attesa</option>
+      </select>
+      <button class="cbtn cbtn-ghost" onclick="window.print()">🖨 Stampa / PDF</button>
+      <button class="cbtn cbtn-ghost" onclick="toggleView()">⊞ Raggruppa per brand</button>
+    </div>
+  </div>
+
+  <!-- Book -->
+  <div id="book">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Caricamento candidati…</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────
+let allCandidates = [];
+let allBrands     = [];
+let curBrand      = 'All';
+let curStatus     = 'All';
+let groupByBrand  = false;
+
+// ── LOGIN ──────────────────────────────────────────────────
+function doLogin() {
+  const pwd = document.getElementById('pwd').value;
+  if (!CONFIG.BOOK_PASSWORD || pwd === CONFIG.BOOK_PASSWORD) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display   = 'block';
+    document.getElementById('login-agency').textContent = (CONFIG.AGENCY_NAME||'Casting Studio').toUpperCase();
+    init();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+// Se non c'è password, avvia direttamente
+window.addEventListener('DOMContentLoaded', () => {
+  if (!CONFIG.BOOK_PASSWORD) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display   = 'block';
+    init();
+  }
+});
+
+// ── INIT ───────────────────────────────────────────────────
+async function init() {
+  try {
+    const [bRes, cRes] = await Promise.all([
+      apiGet({ action: 'getBrands' }),
+      apiGet({ action: 'getCandidates' }),
+    ]);
+    allBrands     = bRes.brands     || [];
+    allCandidates = cRes.candidates || [];
+
+    // Popola il selettore brand
+    const sel = document.getElementById('brand-sel');
+    allBrands.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id; opt.textContent = b.nome;
+      sel.appendChild(opt);
+    });
+
+    render();
+  } catch (err) {
+    document.getElementById('book').innerHTML =
+      `<div class="empty-state"><p>Errore caricamento: ${esc(err.message)}</p></div>`;
+  }
+}
+
+// ── FILTER CONTROLS ─────────────────────────────────────────
+function filterByBrand(val)  { curBrand  = val; render(); }
+function filterByStatus(val) { curStatus = val; render(); }
+function toggleView() {
+  groupByBrand = !groupByBrand;
+  const btn = document.querySelector('[onclick="toggleView()"]');
+  btn.textContent = groupByBrand ? '⊟ Vista lineare' : '⊞ Raggruppa per brand';
+  render();
+}
+
+// ── RENDER ─────────────────────────────────────────────────
+function render() {
+  let list = allCandidates;
+
+  // Filtro brand
+  if (curBrand !== 'All') {
+    list = list.filter(c => (c.brand_ids||[]).includes(curBrand));
+  }
+  // Filtro status
+  if (curStatus !== 'All') {
+    list = list.filter(c => c.status === curStatus);
+  }
+
+  // Aggiorna contatore
+  document.getElementById('ctrl-count').textContent =
+    `${list.length} model${list.length !== 1 ? 's' : ''}`;
+  document.getElementById('ctrl-title').textContent =
+    curBrand !== 'All'
+      ? (allBrands.find(b => b.id === curBrand)?.nome || 'Brand')
+      : (CONFIG.AGENCY_NAME || 'Casting Book');
+
+  const book = document.getElementById('book');
+
+  if (!list.length) {
+    book.innerHTML = `<div class="empty-state"><p>Nessun candidato corrisponde ai filtri selezionati.</p></div>`;
+    return;
+  }
+
+  // Cover page (solo se non filtrato per brand singolo)
+  let html = '';
+  if (curBrand === 'All') {
+    const today = new Date().toLocaleDateString('it-IT', { day:'numeric', month:'long', year:'numeric' });
+    html += `
+    <div class="cover-page">
+      <div>
+        <div style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">${esc(CONFIG.AGENCY_NAME||'Casting Studio')}</div>
+        <div class="cover-agency">Casting Book</div>
+      </div>
+      <div class="cover-meta">
+        ${list.length} model${list.length!==1?'s':''}<br>
+        ${allBrands.length} brand<br>
+        ${today}
+      </div>
+    </div>`;
+  }
+
+  if (groupByBrand && curBrand === 'All') {
+    // ── Vista raggruppata per brand ──
+    const groups = [];
+
+    // Prima i candidati con almeno un brand
+    allBrands.forEach(b => {
+      const inBrand = list.filter(c => (c.brand_ids||[]).includes(b.id));
+      if (inBrand.length) groups.push({ brand: b, candidates: inBrand });
+    });
+
+    // Poi i candidati senza brand
+    const noBrand = list.filter(c => !(c.brand_ids||[]).length);
+    if (noBrand.length) groups.push({ brand: null, candidates: noBrand });
+
+    groups.forEach(g => {
+      html += `
+      <div class="brand-divider">
+        <h2>${esc(g.brand ? g.brand.nome : 'Senza brand')}</h2>
+        <span>${g.candidates.length} model${g.candidates.length!==1?'s':''}</span>
+      </div>`;
+      g.candidates.forEach(c => { html += schedaHTML(c, g.brand); });
+    });
+
+  } else {
+    // ── Vista lineare ──
+    const filterBrand = curBrand !== 'All' ? allBrands.find(b => b.id === curBrand) : null;
+    list.forEach(c => { html += schedaHTML(c, filterBrand); });
+  }
+
+  book.innerHTML = html;
+}
+
+// ── SCHEDA HTML ────────────────────────────────────────────
+function schedaHTML(c, forceBrand) {
+  const photos    = c.photo_urls || [];
+  const coverUrl  = c.cover_url  || photos[0] || '';
+  const isMinor   = c.maggiorenne === false || String(c.maggiorenne).toUpperCase() === 'FALSE';
+  const tagliaSup = c.taglia_sup || c.taglia || '—';
+  const tagliaInf = c.taglia_inf || '—';
+  const ig        = c.instagram ? c.instagram.replace('@', '') : null;
+
+  const sLbl = { pending:'In attesa', shortlisted:'Shortlist', booked:'Confermato', rejected:'Rifiutato' }[c.status] || c.status;
+  const sCls = `s-${c.status || 'pending'}`;
+
+  // Brand da mostrare
+  const cBrands = forceBrand
+    ? [forceBrand]
+    : (c.brand_ids||[]).map(bid => allBrands.find(b => b.id === bid)).filter(Boolean);
+
+  // Strip foto aggiuntive
+  const extraPhotos = photos.slice(1, 5);
+  const stripHTML = extraPhotos.length
+    ? `<div class="photo-strip">${extraPhotos.map(u => `<img src="${esc(u)}" loading="lazy" alt="">`).join('')}</div>`
+    : '';
+
+  return `
+  <div class="scheda">
+    <!-- Header -->
+    <div class="scheda-header">
+      <span class="scheda-agency">${esc(CONFIG.AGENCY_NAME||'Casting Studio')}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${cBrands.map(b => `<span class="scheda-brand">${esc(b.nome)}</span>`).join('')}
+        <span class="scheda-status ${sCls}">${sLbl}</span>
+      </div>
+    </div>
+
+    <!-- Body: foto + dati -->
+    <div class="scheda-body">
+
+      <!-- Foto -->
+      <div class="scheda-photo">
+        ${coverUrl
+          ? `<img src="${esc(coverUrl)}" alt="${esc(c.nome)}" loading="lazy">`
+          : '<div class="no-photo">No foto</div>'
+        }
+      </div>
+
+      <!-- Dati -->
+      <div class="scheda-data">
+        <div>
+          <div class="scheda-name">
+            <span>${esc(c.nome||'')}</span> ${esc(c.cognome||'')}
+            ${isMinor ? '<span class="minore-badge">Minorenne</span>' : ''}
+          </div>
+          ${ig ? `<div class="scheda-instagram"><a href="https://instagram.com/${esc(ig)}" target="_blank">@${esc(ig)}</a></div>` : '<div style="margin-bottom:16px"></div>'}
+
+          <div class="data-grid">
+            ${c.eta ? `
+            <div class="data-item">
+              <div class="data-lbl">Età</div>
+              <div class="data-val">${c.eta} <span style="font-family:var(--sans);font-size:13px;color:var(--ink2)">anni</span></div>
+            </div>` : ''}
+            ${c.altezza_cm ? `
+            <div class="data-item">
+              <div class="data-lbl">Altezza</div>
+              <div class="data-val">${c.altezza_cm} <span style="font-family:var(--sans);font-size:13px;color:var(--ink2)">cm</span></div>
+            </div>` : ''}
+            ${tagliaSup !== '—' ? `
+            <div class="data-item">
+              <div class="data-lbl">Taglia superiore</div>
+              <div class="data-val">${esc(tagliaSup)}</div>
+            </div>` : ''}
+            ${tagliaInf !== '—' ? `
+            <div class="data-item">
+              <div class="data-lbl">Taglia inferiore</div>
+              <div class="data-val">${esc(tagliaInf)}</div>
+            </div>` : ''}
+          </div>
+
+          ${c.note_particolari ? `
+          <div class="scheda-note">
+            <div class="scheda-note-lbl">Note particolari</div>
+            ${esc(c.note_particolari)}
+          </div>` : ''}
+        </div>
+
+        <!-- Foto strip extra in basso -->
+        ${extraPhotos.length ? `
+        <div style="margin-top:14px">
+          <div class="data-lbl" style="margin-bottom:5px">Foto aggiuntive</div>
+          <div style="display:grid;grid-template-columns:repeat(${extraPhotos.length},1fr);gap:4px;max-width:280px">
+            ${extraPhotos.map(u => `<img src="${esc(u)}" loading="lazy" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:2px" alt="">`).join('')}
+          </div>
+        </div>` : ''}
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="scheda-footer">
+      <span class="scheda-date">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</span>
+      ${c.instagram ? `<span style="font-size:10px;color:var(--ink3)">ig: ${esc(c.instagram)}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+// ── API ────────────────────────────────────────────────────
+async function apiGet(params) {
+  const qs  = new URLSearchParams({ ...params, token: CONFIG.TOKEN }).toString();
+  const res = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${qs}`);
+  return res.json();
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

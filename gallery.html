@@ -629,7 +629,7 @@ html,body{
       <button class="tbtn tbtn-ghost" id="sl-btn" onclick="toggleSL()">★ Shortlist</button>
       <div class="tbtn-sep tbtn-hide-sm"></div>
       <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openBrandManager()">🏷 Brand</button>
-      <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="startPdfExport()">↓ PDF</button>
+      <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="window.open('book.html','_blank')">📋 Book</button>
       <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="window.open('apply.html','_blank')">+ Form</button>
       <button class="tbtn tbtn-ghost" onclick="reload()" title="Aggiorna">↻</button>
     </div>
@@ -1124,14 +1124,14 @@ function openDrawer(id){
       </div>
 
       <button
-        onclick="startPdfExport([candidates.find(x=>x.id==='${c.id}')])"
+        onclick="window.open('book.html','_blank')"
         style="width:100%;margin-top:6px;padding:9px;background:transparent;
                border:1px solid var(--rule2);color:var(--ink3);border-radius:var(--r);
                cursor:pointer;font-size:10px;font-family:var(--sans);
                letter-spacing:0.08em;text-transform:uppercase;transition:all 0.15s"
         onmouseover="this.style.color='var(--ink)';this.style.borderColor='var(--rule3)'"
         onmouseout="this.style.color='var(--ink3)';this.style.borderColor='var(--rule2)'">
-        ↓ Esporta scheda PDF
+        📋 Apri Casting Book
       </button>
 
       <div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>
