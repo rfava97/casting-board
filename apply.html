@@ -369,10 +369,11 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
       <!-- Istruzioni chiare -->
       <div class="foto-guide">
         <div class="foto-guide-title">
-          <span>📷</span> Come scattare le foto
+          <span>📷</span> Come caricare le foto
         </div>
         <ul>
-          <li><strong>2 foto richieste:</strong> un primo piano frontale e una foto figura intera </li>
+          <li><strong>2 foto richieste:</strong> un primo piano frontale e una foto di profilo (lato)</li>
+          <li>Puoi <strong>scattare con la fotocamera</strong> o <strong>scegliere dalla galleria</strong></li>
           <li>Entrambe le foto ad <strong>altezza occhi</strong></li>
           <li>Sfondo neutro o semplice, <strong>luce naturale</strong> preferibilmente</li>
           <li><strong>Senza filtri</strong> — colori naturali, nessun effetto</li>
@@ -390,16 +391,16 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
           <div class="foto-slot-icon">👤</div>
           <div class="foto-slot-label">Primo piano<br><strong>frontale</strong></div>
         </div>
-        <input type="file" id="phi-0" accept="image/*" capture="user" style="display:none" onchange="setSlotPhoto(0,this.files[0])">
+        <input type="file" id="phi-0" accept="image/*" style="display:none" onchange="setSlotPhoto(0,this.files[0])">
 
         <!-- Slot 2: profilo -->
         <div class="foto-slot" id="slot-1"
           onclick="document.getElementById('phi-1').click()"
           ondragover="onSlotDO(event,1)" ondragleave="onSlotDL(1)" ondrop="onSlotDP(event,1)">
           <div class="foto-slot-icon">↙</div>
-          <div class="foto-slot-label">Foto figura intera <br><strong>(di fronte)</strong></div>
+          <div class="foto-slot-label">Foto di profilo<br><strong>(lato, occhi)</strong></div>
         </div>
-        <input type="file" id="phi-1" accept="image/*" capture="user" style="display:none" onchange="setSlotPhoto(1,this.files[0])">
+        <input type="file" id="phi-1" accept="image/*" style="display:none" onchange="setSlotPhoto(1,this.files[0])">
       </div>
 
       <div id="ph-err">Carica entrambe le foto richieste</div>
