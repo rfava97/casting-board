@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Candidatura</title>
+<title>Casa Vantini — Candidatura Modelli</title>
 <script>
 // ── CONFIG ─────────────────────────────────────────────────
 const CONFIG = {
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz7YjkcflYr9KXoYZmLVrKTIcnP9HHo9u5FBKIlrQCIP4gNJWKRlQqmL3pIPZHjt-hS/exec',
   TOKEN: 'CastingModelsFDS',
-  AGENCY_NAME: 'Casting Board',
+  AGENCY_NAME: 'Casa Vantini',
 };
 
 const SIZE_INFO = {
@@ -24,7 +24,7 @@ const SIZES = ['XS','S','M','L','XL','XXL'];
 </script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -40,6 +40,177 @@ const SIZES = ['XS','S','M','L','XL','XXL'];
   --sh:0 1px 3px rgba(0,0,0,0.08);
 }
 html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ══════════════════════════════════════════════
+   LANDING SCREEN
+   ══════════════════════════════════════════════ */
+#landing{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  background:var(--ink);
+  color:var(--bg);
+  position:relative;
+  overflow:hidden;
+}
+
+/* Texture grain sottile */
+#landing::before{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+  pointer-events:none;opacity:0.4;
+}
+
+/* Linea oro orizzontale top */
+#landing::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+
+.landing-inner{
+  flex:1;display:flex;flex-direction:column;justify-content:space-between;
+  max-width:600px;margin:0 auto;width:100%;
+  padding:48px 28px 40px;
+  animation:fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Presenters tag */
+.landing-tag{
+  font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
+  color:rgba(154,123,79,0.9);font-weight:400;
+  display:flex;align-items:center;gap:10px;margin-bottom:0;
+}
+.landing-tag::before,.landing-tag::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,rgba(154,123,79,0.4),transparent);
+}
+.landing-tag::after{
+  background:linear-gradient(270deg,rgba(154,123,79,0.4),transparent);
+}
+
+/* Main title block */
+.landing-title-block{
+  margin:32px 0 28px;
+}
+.landing-eyebrow{
+  font-family:var(--sans);font-size:10px;letter-spacing:0.25em;
+  text-transform:uppercase;color:rgba(245,242,238,0.45);
+  margin-bottom:12px;
+}
+.landing-h1{
+  font-family:var(--serif);
+  font-size:clamp(38px,10vw,58px);
+  font-weight:300;line-height:1.0;
+  letter-spacing:-0.02em;
+  color:#f5f2ee;
+  margin-bottom:6px;
+}
+.landing-h1 em{font-style:italic;font-weight:300;color:var(--gold)}
+.landing-h2{
+  font-family:var(--serif);
+  font-size:clamp(15px,4.5vw,22px);
+  font-weight:300;line-height:1.3;
+  letter-spacing:0.04em;
+  color:rgba(245,242,238,0.6);
+  text-transform:uppercase;
+  margin-top:8px;
+}
+
+/* Divider */
+.landing-divider{
+  width:40px;height:1px;
+  background:var(--gold);
+  margin:24px 0;
+  opacity:0.6;
+}
+
+/* Body text */
+.landing-body{
+  display:flex;flex-direction:column;gap:16px;
+  margin-bottom:28px;
+}
+.landing-body p{
+  font-size:14px;line-height:1.75;
+  color:rgba(245,242,238,0.72);
+  font-weight:300;
+  letter-spacing:0.01em;
+}
+.landing-body p strong{
+  color:rgba(245,242,238,0.92);
+  font-weight:500;
+}
+
+/* Event info card */
+.landing-event{
+  background:rgba(245,242,238,0.05);
+  border:1px solid rgba(154,123,79,0.3);
+  border-radius:var(--r-lg);
+  padding:20px 22px;
+  margin-bottom:28px;
+}
+.landing-event-row{
+  display:flex;align-items:baseline;gap:12px;
+  font-size:13px;margin-bottom:10px;
+}
+.landing-event-row:last-child{margin-bottom:0}
+.ev-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.ev-lbl{
+  font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;
+  color:rgba(154,123,79,0.8);min-width:72px;flex-shrink:0;
+}
+.ev-val{color:#f5f2ee;font-weight:300;line-height:1.4}
+.ev-val strong{font-weight:500}
+
+/* Nota arrivo */
+.landing-note{
+  background:rgba(154,123,79,0.1);
+  border-left:2px solid var(--gold);
+  border-radius:0 var(--r) var(--r) 0;
+  padding:12px 16px;
+  font-size:12px;color:rgba(245,242,238,0.75);
+  line-height:1.6;margin-bottom:28px;
+}
+.landing-note strong{color:rgba(245,242,238,0.92)}
+
+/* CTA button */
+.landing-cta{
+  width:100%;padding:18px;
+  background:var(--gold);color:var(--ink);
+  border:none;border-radius:var(--r);
+  font-size:11px;font-weight:500;letter-spacing:0.18em;
+  text-transform:uppercase;cursor:pointer;
+  font-family:var(--sans);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:background 0.2s,transform 0.15s;
+}
+.landing-cta:hover{background:#b08d5f;transform:translateY(-1px)}
+.landing-cta:active{transform:translateY(0)}
+.landing-cta-arrow{font-size:16px;transition:transform 0.2s}
+.landing-cta:hover .landing-cta-arrow{transform:translateX(4px)}
+
+/* Footer landing */
+.landing-footer{
+  text-align:center;padding:20px 28px 28px;
+  font-size:10px;letter-spacing:0.08em;
+  color:rgba(245,242,238,0.2);text-transform:uppercase;
+}
+
+/* Transition out */
+#landing.hiding{
+  animation:fadeOut 0.4s ease forwards;
+}
+@keyframes fadeOut{
+  to{opacity:0;transform:translateY(-12px)}
+}
+
+/* ══════════════════════════════════════════════
+   FORM (nascosto inizialmente)
+   ══════════════════════════════════════════════ */
+#form-wrapper{display:none}
 
 /* ── Progress bar ── */
 #pbar{height:2px;background:var(--gold);width:0;position:fixed;top:0;left:0;z-index:100;transition:width 0.4s}
@@ -219,7 +390,73 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 <body>
 <div id="pbar"></div>
 
-<!-- SUCCESS -->
+<!-- ══════════════════════════════════════════════
+     LANDING SCREEN
+     ══════════════════════════════════════════════ -->
+<div id="landing">
+  <div class="landing-inner">
+
+    <!-- Presenters -->
+    <div class="landing-tag">Casa delle Stelle × Expose mgmt</div>
+
+    <!-- Titolo -->
+    <div class="landing-title-block">
+      <div class="landing-eyebrow">Fashion Show — Brescia 2026</div>
+      <div class="landing-h1"><em>Casa</em> Vantini</div>
+      <div class="landing-h2">Home is where<br>the heart is</div>
+    </div>
+
+    <div class="landing-divider"></div>
+
+    <!-- Testo descrittivo -->
+    <div class="landing-body">
+      <p>
+        In occasione della <strong>Festa della Musica 2026</strong>, Casa delle Stelle in collaborazione con Expose mgmt presenta un <strong>fashion show diffuso lungo Via Vantini</strong>: una sfilata dedicata a brand di artigianato, upcycling, custom e vintage research, ispirata al concetto di <strong>HOUSE</strong> e <strong>HOME</strong> come spazi di identità, relazioni e trasformazione.
+      </p>
+      <p>
+        Il progetto prenderà vita attraverso installazioni, ambienti domestici e performance create in collaborazione con realtà e showroom di Via Vantini, tra cui <strong>Maison Cò</strong> e <strong>39 Vantini</strong>, trasformando la strada in una casa aperta, inclusiva e comunitaria.
+      </p>
+      <p>
+        Essendo una realtà indipendente e autofinanziata, siamo alla ricerca di <strong>volontar* e persone disponibili a partecipare alla sfilata</strong>, anche senza esperienza. Nessun requisito richiesto: l'obiettivo è creare uno spazio accogliente dove tutt* possano sentirsi parte del progetto.
+      </p>
+    </div>
+
+    <!-- Info evento -->
+    <div class="landing-event">
+      <div class="landing-event-row">
+        <span class="ev-icon">📍</span>
+        <span class="ev-lbl">Dove</span>
+        <span class="ev-val">Via Vantini, <strong>Brescia</strong></span>
+      </div>
+      <div class="landing-event-row">
+        <span class="ev-icon">📅</span>
+        <span class="ev-lbl">Quando</span>
+        <span class="ev-val"><strong>Sabato 20 Giugno 2026</strong> — ore 20:00</span>
+      </div>
+    </div>
+
+    <!-- Nota orario arrivo -->
+    <div class="landing-note">
+      Se ti va di sfilare come modell*, ti dovrai presentare a partire dalle <strong>ore 14:00</strong>. Compila il form qui sotto per candidarti.
+    </div>
+
+    <!-- CTA -->
+    <button class="landing-cta" onclick="goToForm()">
+      Candidati ora
+      <span class="landing-cta-arrow">→</span>
+    </button>
+
+  </div>
+
+  <div class="landing-footer">
+    Casa Vantini · Fest della Musica 2026
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FORM WRAPPER (nascosto fino al click su CTA)
+     ══════════════════════════════════════════════ -->
+<div id="form-wrapper">
 <div id="state-ok" class="state" style="display:none">
   <div>
     <div class="state-icon">✓</div>
@@ -413,8 +650,21 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 
   </div>
 </div>
+</div><!-- /form-wrapper -->
 
 <script>
+// ── Landing → Form transition ─────────────────────────────
+function goToForm() {
+  const landing = document.getElementById('landing');
+  const wrapper = document.getElementById('form-wrapper');
+  landing.classList.add('hiding');
+  setTimeout(() => {
+    landing.style.display = 'none';
+    wrapper.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, 380);
+}
+
 // ── Foto a 2 slot fissi ───────────────────────────────────
 const photos = [null, null]; // slot 0 = frontale, slot 1 = profilo
 
