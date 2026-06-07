@@ -626,7 +626,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
           <span>📷</span> Come caricare le foto
         </div>
         <ul>
-          <li><strong>2 foto richieste:</strong> un primo piano frontale e una foto di profilo (lato)</li>
+          <li><strong>2 foto richieste:</strong> un primo piano frontale e una foto mezzo busto di profilo (lato)</li>
           <li>Puoi <strong>scattare con la fotocamera</strong> o <strong>scegliere dalla galleria</strong></li>
           <li>Entrambe le foto ad <strong>altezza occhi</strong></li>
           <li>Sfondo neutro o semplice, <strong>luce naturale</strong> preferibilmente</li>
@@ -652,7 +652,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
           onclick="document.getElementById('phi-1').click()"
           ondragover="onSlotDO(event,1)" ondragleave="onSlotDL(1)" ondrop="onSlotDP(event,1)">
           <div class="foto-slot-icon">↙</div>
-          <div class="foto-slot-label">Foto di profilo<br><strong>(lato, occhi)</strong></div>
+          <div class="foto-slot-label">Foto mezzo busto di profilo<br><strong>(lato, occhi)</strong></div>
         </div>
         <input type="file" id="phi-1" accept="image/*" style="display:none" onchange="setSlotPhoto(1,this.files[0])">
       </div>
@@ -687,7 +687,7 @@ const photos = [null, null]; // slot 0 = frontale, slot 1 = profilo
 
 const SLOT_LABELS = [
   { icon:'👤', label:'Primo piano<br><strong>frontale</strong>', badge:'Frontale' },
-  { icon:'↙',  label:'Foto di profilo<br><strong>(lato, occhi)</strong>', badge:'Profilo' },
+  { icon:'↙',  label:'Foto mezzo busto di profilo<br><strong>(lato, occhi)</strong>', badge:'Profilo' },
 ];
 
 function setSlotPhoto(idx, file) {
