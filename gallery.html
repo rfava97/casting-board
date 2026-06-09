@@ -483,6 +483,41 @@ html,body{
 .bchip-off{background:transparent;color:var(--ink3);border-color:var(--rule2)}
 .bchip-off:hover{color:var(--ink);border-color:var(--rule3)}
 
+/* Brand colors — assegnati dinamicamente via JS per index */
+/* Ogni brand ottiene un colore dalla palette in modo consistente */
+.brand-color-0{--bc:72,122,172; }   /* blu ardesia   */
+.brand-color-1{--bc:154,100,60;  }  /* terracotta    */
+.brand-color-2{--bc:80,140,100;  }  /* salvia        */
+.brand-color-3{--bc:140,80,140;  }  /* malva         */
+.brand-color-4{--bc:180,130,40;  }  /* ambra         */
+.brand-color-5{--bc:60,140,160;  }  /* acqua         */
+.brand-color-6{--bc:160,80,80;   }  /* corallo       */
+.brand-color-7{--bc:100,100,60;  }  /* oliva         */
+
+/* Card brand pill — usa il colore del brand */
+.card-brand-pill{
+  font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
+  letter-spacing:0.06em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:rgba(var(--bc,58,106,154),0.18);
+  color:rgb(var(--bc,58,106,154));
+}
+
+/* Bchip nel drawer — usa il colore del brand quando assegnato */
+.bchip.bchip-on{
+  background:rgba(var(--bc,58,106,154),0.12);
+  color:rgb(var(--bc,58,106,154));
+  border-color:rgba(var(--bc,58,106,154),0.35);
+}
+
+/* Brand tab nella barra superiore — pallino colorato */
+.brand-tab-dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  margin-right:5px;vertical-align:middle;
+  background:rgb(var(--bc,154,123,79));
+  opacity:0.8;flex-shrink:0;
+}
+
 .dr-meta{font-size:10px;color:var(--ink3);letter-spacing:0.04em;margin-top:8px;text-align:right}
 
 /* ============================================================
@@ -629,7 +664,7 @@ html,body{
       <button class="tbtn tbtn-ghost" id="sl-btn" onclick="toggleSL()">★ Shortlist</button>
       <div class="tbtn-sep tbtn-hide-sm"></div>
       <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openBrandManager()">🏷 Brand</button>
-      <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="window.open('book.html','_blank')">📋 Book</button>
+      <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="startPdfExport()">↓ PDF</button>
       <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="window.open('apply.html','_blank')">+ Form</button>
       <button class="tbtn tbtn-ghost" onclick="reload()" title="Aggiorna">↻</button>
     </div>
@@ -666,6 +701,22 @@ html,body{
         <option value="All">Tutti</option>
         <option value="si">Maggiorenni</option>
         <option value="no">Minorenni</option>
+      </select>
+    </div>
+    <div class="ff">
+      <label>Taglia sup.</label>
+      <select id="f-taglia-sup" onchange="applyTagliaFilter()">
+        <option value="All">Tutte</option>
+        <option>XS</option><option>S</option><option>M</option>
+        <option>L</option><option>XL</option><option>XXL</option>
+      </select>
+    </div>
+    <div class="ff">
+      <label>Taglia inf.</label>
+      <select id="f-taglia-inf" onchange="applyTagliaFilter()">
+        <option value="All">Tutte</option>
+        <option>XS</option><option>S</option><option>M</option>
+        <option>L</option><option>XL</option><option>XXL</option>
       </select>
     </div>
     <div class="ff">
@@ -824,6 +875,16 @@ async function init(){
 }
 
 // ============================================================
+// BRAND COLOR HELPER
+// Restituisce la classe CSS brand-color-N in base all'indice
+// del brand nell'array brands[] — consistente su tutta la pagina
+// ============================================================
+function brandColorClass(brandId) {
+  const idx = brands.findIndex(b => b.id === brandId);
+  return idx >= 0 ? `brand-color-${idx % 8}` : '';
+}
+
+// ============================================================
 // BRANDS
 // ============================================================
 async function loadBrands(){
@@ -837,10 +898,12 @@ function renderBrandBar(){
   const bar = document.getElementById('brand-bar');
   const end = bar.querySelector('.brand-bar-end');
   [...bar.querySelectorAll('.brand-tab:not([data-id="All"])')].forEach(el=>el.remove());
-  brands.forEach(b=>{
+  brands.forEach((b, idx)=>{
     const btn=document.createElement('button');
-    btn.className=`brand-tab${curBrand===b.id?' active':''}`;
-    btn.dataset.id=b.id; btn.textContent=b.nome;
+    const cls=`brand-color-${idx%8}`;
+    btn.className=`brand-tab ${cls}${curBrand===b.id?' active':''}`;
+    btn.dataset.id=b.id;
+    btn.innerHTML=`<span class="brand-tab-dot"></span>${esc(b.nome)}`;
     btn.onclick=()=>selBrand(b.id);
     bar.insertBefore(btn,end);
   });
@@ -899,10 +962,22 @@ async function loadCandidates(){
     return;
   }
   candidates = d.candidates||[];
+
+  // Filtro taglia lato client (più veloce, evita round-trip extra)
+  let filtered = candidates;
+  const fSup = document.getElementById('f-taglia-sup').value;
+  const fInf = document.getElementById('f-taglia-inf').value;
+  if(fSup !== 'All') filtered = filtered.filter(c =>
+    (c.taglia_sup||c.taglia||'').toUpperCase() === fSup.toUpperCase()
+  );
+  if(fInf !== 'All') filtered = filtered.filter(c =>
+    (c.taglia_inf||'').toUpperCase() === fInf.toUpperCase()
+  );
+
   const bn = curBrand!=='All'?(' — '+(brands.find(b=>b.id===curBrand)?.nome||'')):'';
   document.getElementById('count-lbl').textContent=
-    ` ${d.total} candidat${d.total===1?'o':'i'}${bn}${showSLOnly?' · shortlist':''}`;
-  renderGallery(candidates);
+    ` ${filtered.length} candidat${filtered.length===1?'o':'i'}${bn}${showSLOnly?' · shortlist':''}`;
+  renderGallery(filtered);
 }
 function debounce(){ clearTimeout(debTimer); debTimer=setTimeout(loadCandidates,300); }
 function reload(){ loadCandidates(); }
@@ -948,8 +1023,13 @@ function cardHTML(c){
         : '<div class="no-ph">Nessuna foto</div>'
       }
       <div class="card-overlay"></div>
-      ${cBrands.length
-        ? `<div class="card-brand-pills">${cBrands.slice(0,2).map(n=>`<span class="card-brand-pill">${esc(n)}</span>`).join('')}</div>`
+      ${(c.brand_ids||[]).length
+        ? `<div class="card-brand-pills">${(c.brand_ids||[]).slice(0,2).map(bid=>{
+            const b=brands.find(x=>x.id===bid);
+            if(!b)return'';
+            const cls=brandColorClass(bid);
+            return`<span class="card-brand-pill ${cls}">${esc(b.nome)}</span>`;
+          }).join('')}</div>`
         : ''}
       <button class="star-btn${sl?' on':''}"
         onclick="event.stopPropagation();toggleSL_card('${c.id}',${sl})"
@@ -1019,7 +1099,8 @@ function renderBrandChips(cid){
   }
   el.innerHTML=brands.map(b=>{
     const on=(c.brand_ids||[]).includes(b.id);
-    return`<button class="bchip ${on?'bchip-on':'bchip-off'}"
+    const cls=brandColorClass(b.id);
+    return`<button class="bchip ${cls} ${on?'bchip-on':'bchip-off'}"
       onclick="toggleBrandAssign('${cid}','${b.id}',${on})">
       ${on?'✓':'+'}  ${esc(b.nome)}
     </button>`;
@@ -1086,11 +1167,7 @@ function openDrawer(id){
         <div class="icard-body">
           ${c.eta?`<div class="irow"><span class="lbl">Età</span><span class="val">${c.eta} anni</span></div>`:''}
           ${c.altezza_cm?`<div class="irow"><span class="lbl">Altezza</span><span class="val val-big">${c.altezza_cm} cm</span></div>`:''}
-          ${c.telefono?`<div class="irow"><span class="lbl">Telefono</span><span class="val"><a href="tel:${esc(c.telefono)}">${esc(c.telefono)}</a></span></div>`:''}
           ${c.instagram?`<div class="irow"><span class="lbl">Instagram</span><span class="val"><a href="https://instagram.com/${esc(ig)}" target="_blank">${esc(c.instagram)}</a></span></div>`:''}
-          ${c.orario_arrivo?`<div class="irow"><span class="lbl">Orario arrivo</span><span class="val">${esc(c.orario_arrivo)}</span></div>`:''}
-          <div class="irow"><span class="lbl">Tatuaggi</span><span class="val">${c.tatuaggi?'Sì':'No'}</span></div>
-          <div class="irow"><span class="lbl">Piercing</span><span class="val">${c.piercing?'Sì':'No'}</span></div>
         </div>
       </div>
 
@@ -1128,14 +1205,14 @@ function openDrawer(id){
       </div>
 
       <button
-        onclick="window.open('book.html','_blank')"
+        onclick="startPdfExport([candidates.find(x=>x.id==='${c.id}')])"
         style="width:100%;margin-top:6px;padding:9px;background:transparent;
                border:1px solid var(--rule2);color:var(--ink3);border-radius:var(--r);
                cursor:pointer;font-size:10px;font-family:var(--sans);
                letter-spacing:0.08em;text-transform:uppercase;transition:all 0.15s"
         onmouseover="this.style.color='var(--ink)';this.style.borderColor='var(--rule3)'"
         onmouseout="this.style.color='var(--ink3)';this.style.borderColor='var(--rule2)'">
-        📋 Apri Casting Book
+        ↓ Esporta scheda PDF
       </button>
 
       <div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>
@@ -1203,6 +1280,8 @@ function updateFBadge(){
   const n=[
     document.getElementById('f-status').value!=='All',
     document.getElementById('f-maggiorenne').value!=='All',
+    document.getElementById('f-taglia-sup').value!=='All',
+    document.getElementById('f-taglia-inf').value!=='All',
     !!document.getElementById('f-minh').value,
     !!document.getElementById('f-maxh').value,
   ].filter(Boolean).length;
@@ -1213,14 +1292,33 @@ function updateFBadge(){
 function clearFilters(){
   document.getElementById('f-status').value='All';
   document.getElementById('f-maggiorenne').value='All';
+  document.getElementById('f-taglia-sup').value='All';
+  document.getElementById('f-taglia-inf').value='All';
   document.getElementById('f-minh').value='';
   document.getElementById('f-maxh').value='';
   updateFBadge(); loadCandidates();
 }
-['f-status','f-maggiorenne','f-minh','f-maxh'].forEach(id=>{
+['f-status','f-maggiorenne','f-taglia-sup','f-taglia-inf','f-minh','f-maxh'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change',updateFBadge);
   document.getElementById(id)?.addEventListener('input',updateFBadge);
 });
+
+// Filtro taglia: riapplica in tempo reale senza nuovo fetch
+function applyTagliaFilter(){
+  updateFBadge();
+  let filtered = candidates;
+  const fSup = document.getElementById('f-taglia-sup').value;
+  const fInf = document.getElementById('f-taglia-inf').value;
+  if(fSup !== 'All') filtered = filtered.filter(c =>
+    (c.taglia_sup||c.taglia||'').toUpperCase() === fSup.toUpperCase()
+  );
+  if(fInf !== 'All') filtered = filtered.filter(c =>
+    (c.taglia_inf||'').toUpperCase() === fInf.toUpperCase()
+  );
+  document.getElementById('count-lbl').textContent =
+    ` ${filtered.length} candidat${filtered.length===1?'o':'i'}`;
+  renderGallery(filtered);
+}
 
 // ============================================================
 // PDF BOOK EXPORT
