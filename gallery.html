@@ -254,6 +254,7 @@ html,body{
   transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;
   box-shadow:var(--sh-sm);
 }
+.card.archived-card{opacity:0.45;filter:grayscale(0.4)}
 .card:hover{transform:translateY(-3px);box-shadow:var(--sh-lg);border-color:var(--rule2)}
 .card.sl{border-color:rgba(154,123,79,0.4);box-shadow:0 0 0 1px rgba(154,123,79,0.2),var(--sh-sm)}
 .card-photo{position:relative;aspect-ratio:3/4;background:var(--bg4);overflow:hidden}
@@ -291,6 +292,7 @@ html,body{
 .s-shortlisted{background:rgba(154,123,79,0.9);color:#fff}
 .s-booked{background:rgba(61,138,98,0.9);color:#fff}
 .s-rejected{background:rgba(160,64,64,0.85);color:#fff}
+.s-archived{background:rgba(100,100,100,0.7);color:#ddd}
 .card-brand-pills{
   position:absolute;top:7px;left:7px;display:flex;flex-direction:column;gap:3px;
   max-width:calc(100% - 44px);
@@ -483,41 +485,6 @@ html,body{
 .bchip-off{background:transparent;color:var(--ink3);border-color:var(--rule2)}
 .bchip-off:hover{color:var(--ink);border-color:var(--rule3)}
 
-/* Brand colors — assegnati dinamicamente via JS per index */
-/* Ogni brand ottiene un colore dalla palette in modo consistente */
-.brand-color-0{--bc:72,122,172; }   /* blu ardesia   */
-.brand-color-1{--bc:154,100,60;  }  /* terracotta    */
-.brand-color-2{--bc:80,140,100;  }  /* salvia        */
-.brand-color-3{--bc:140,80,140;  }  /* malva         */
-.brand-color-4{--bc:180,130,40;  }  /* ambra         */
-.brand-color-5{--bc:60,140,160;  }  /* acqua         */
-.brand-color-6{--bc:160,80,80;   }  /* corallo       */
-.brand-color-7{--bc:100,100,60;  }  /* oliva         */
-
-/* Card brand pill — usa il colore del brand */
-.card-brand-pill{
-  font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
-  letter-spacing:0.06em;text-transform:uppercase;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  background:rgba(var(--bc,58,106,154),0.18);
-  color:rgb(var(--bc,58,106,154));
-}
-
-/* Bchip nel drawer — usa il colore del brand quando assegnato */
-.bchip.bchip-on{
-  background:rgba(var(--bc,58,106,154),0.12);
-  color:rgb(var(--bc,58,106,154));
-  border-color:rgba(var(--bc,58,106,154),0.35);
-}
-
-/* Brand tab nella barra superiore — pallino colorato */
-.brand-tab-dot{
-  display:inline-block;width:7px;height:7px;border-radius:50%;
-  margin-right:5px;vertical-align:middle;
-  background:rgb(var(--bc,154,123,79));
-  opacity:0.8;flex-shrink:0;
-}
-
 .dr-meta{font-size:10px;color:var(--ink3);letter-spacing:0.04em;margin-top:8px;text-align:right}
 
 /* ============================================================
@@ -662,6 +629,7 @@ html,body{
         Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
       <button class="tbtn tbtn-ghost" id="sl-btn" onclick="toggleSL()">★ Shortlist</button>
+      <button class="tbtn tbtn-ghost tbtn-hide-sm" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati">📦 Archivio</button>
       <div class="tbtn-sep tbtn-hide-sm"></div>
       <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openBrandManager()">🏷 Brand</button>
       <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="startPdfExport()">↓ PDF</button>
@@ -693,6 +661,7 @@ html,body{
         <option value="shortlisted">Shortlist</option>
         <option value="booked">Confermato</option>
         <option value="rejected">Rifiutato</option>
+        <option value="archived">Archiviato</option>
       </select>
     </div>
     <div class="ff">
@@ -701,22 +670,6 @@ html,body{
         <option value="All">Tutti</option>
         <option value="si">Maggiorenni</option>
         <option value="no">Minorenni</option>
-      </select>
-    </div>
-    <div class="ff">
-      <label>Taglia sup.</label>
-      <select id="f-taglia-sup" onchange="applyTagliaFilter()">
-        <option value="All">Tutte</option>
-        <option>XS</option><option>S</option><option>M</option>
-        <option>L</option><option>XL</option><option>XXL</option>
-      </select>
-    </div>
-    <div class="ff">
-      <label>Taglia inf.</label>
-      <select id="f-taglia-inf" onchange="applyTagliaFilter()">
-        <option value="All">Tutte</option>
-        <option>XS</option><option>S</option><option>M</option>
-        <option>L</option><option>XL</option><option>XXL</option>
       </select>
     </div>
     <div class="ff">
@@ -844,6 +797,7 @@ let candidates  = [];
 let brands      = [];
 let curBrand    = 'All';
 let showSLOnly  = false;
+let showArchived = false;
 let curC        = null;
 let filtersOpen = false;
 let debTimer;
@@ -875,16 +829,6 @@ async function init(){
 }
 
 // ============================================================
-// BRAND COLOR HELPER
-// Restituisce la classe CSS brand-color-N in base all'indice
-// del brand nell'array brands[] — consistente su tutta la pagina
-// ============================================================
-function brandColorClass(brandId) {
-  const idx = brands.findIndex(b => b.id === brandId);
-  return idx >= 0 ? `brand-color-${idx % 8}` : '';
-}
-
-// ============================================================
 // BRANDS
 // ============================================================
 async function loadBrands(){
@@ -898,12 +842,10 @@ function renderBrandBar(){
   const bar = document.getElementById('brand-bar');
   const end = bar.querySelector('.brand-bar-end');
   [...bar.querySelectorAll('.brand-tab:not([data-id="All"])')].forEach(el=>el.remove());
-  brands.forEach((b, idx)=>{
+  brands.forEach(b=>{
     const btn=document.createElement('button');
-    const cls=`brand-color-${idx%8}`;
-    btn.className=`brand-tab ${cls}${curBrand===b.id?' active':''}`;
-    btn.dataset.id=b.id;
-    btn.innerHTML=`<span class="brand-tab-dot"></span>${esc(b.nome)}`;
+    btn.className=`brand-tab${curBrand===b.id?' active':''}`;
+    btn.dataset.id=b.id; btn.textContent=b.nome;
     btn.onclick=()=>selBrand(b.id);
     bar.insertBefore(btn,end);
   });
@@ -954,6 +896,7 @@ async function loadCandidates(){
     minH:        document.getElementById('f-minh').value,
     maxH:        document.getElementById('f-maxh').value,
     shortlisted: showSLOnly?'true':'false',
+    showArchived: showArchived?'true':'false',
   });
   if(!d.ok){
     document.getElementById('gallery').innerHTML=
@@ -962,22 +905,10 @@ async function loadCandidates(){
     return;
   }
   candidates = d.candidates||[];
-
-  // Filtro taglia lato client (più veloce, evita round-trip extra)
-  let filtered = candidates;
-  const fSup = document.getElementById('f-taglia-sup').value;
-  const fInf = document.getElementById('f-taglia-inf').value;
-  if(fSup !== 'All') filtered = filtered.filter(c =>
-    (c.taglia_sup||c.taglia||'').toUpperCase() === fSup.toUpperCase()
-  );
-  if(fInf !== 'All') filtered = filtered.filter(c =>
-    (c.taglia_inf||'').toUpperCase() === fInf.toUpperCase()
-  );
-
   const bn = curBrand!=='All'?(' — '+(brands.find(b=>b.id===curBrand)?.nome||'')):'';
   document.getElementById('count-lbl').textContent=
-    ` ${filtered.length} candidat${filtered.length===1?'o':'i'}${bn}${showSLOnly?' · shortlist':''}`;
-  renderGallery(filtered);
+    ` ${d.total} candidat${d.total===1?'o':'i'}${bn}${showSLOnly?' · shortlist':''}`;
+  renderGallery(candidates);
 }
 function debounce(){ clearTimeout(debTimer); debTimer=setTimeout(loadCandidates,300); }
 function reload(){ loadCandidates(); }
@@ -1002,7 +933,8 @@ function cardHTML(c){
 
   const cover    = c.cover_url || (c.photo_urls&&c.photo_urls[0]) || '';
   const sl       = c.is_shortlisted;
-  const sLbl     = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[c.status]||c.status;
+  const sLbl     = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[c.status]||c.status;
+  const isArchived = c.status === 'archived';
   const cBrands  = (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
   const isMinor  = c.maggiorenne===false || c.maggiorenne==='FALSE';
 
@@ -1015,7 +947,7 @@ function cardHTML(c){
   ].filter(Boolean);
 
   return `
-  <div class="card${sl?' sl':''}" onclick="openDrawer('${c.id}')">
+  <div class="card${sl?' sl':''}${isArchived?' archived-card':''}" onclick="openDrawer('${c.id}')">
     <div class="card-photo">
       ${cover
         ? `<img src="${cover}" loading="lazy" alt="${esc(c.nome)}"
@@ -1023,13 +955,8 @@ function cardHTML(c){
         : '<div class="no-ph">Nessuna foto</div>'
       }
       <div class="card-overlay"></div>
-      ${(c.brand_ids||[]).length
-        ? `<div class="card-brand-pills">${(c.brand_ids||[]).slice(0,2).map(bid=>{
-            const b=brands.find(x=>x.id===bid);
-            if(!b)return'';
-            const cls=brandColorClass(bid);
-            return`<span class="card-brand-pill ${cls}">${esc(b.nome)}</span>`;
-          }).join('')}</div>`
+      ${cBrands.length
+        ? `<div class="card-brand-pills">${cBrands.slice(0,2).map(n=>`<span class="card-brand-pill">${esc(n)}</span>`).join('')}</div>`
         : ''}
       <button class="star-btn${sl?' on':''}"
         onclick="event.stopPropagation();toggleSL_card('${c.id}',${sl})"
@@ -1065,9 +992,47 @@ async function updateStatus(id,status){
   renderGallery(candidates);
   await apiPost({action:'updateStatus',candidateId:id,status});
 }
+
+// ── Archivia / Ripristina ──────────────────────────────────
+async function archiveCandidate(id, isCurrentlyArchived) {
+  const newStatus = isCurrentlyArchived ? 'pending' : 'archived';
+  candidates = candidates.map(c => c.id===id ? {...c, status:newStatus} : c);
+  if (!showArchived && newStatus === 'archived') {
+    // Rimuovi dalla gallery corrente
+    candidates = candidates.filter(c => c.id !== id);
+  }
+  renderGallery(candidates);
+  closeDrawer();
+  await apiPost({ action:'updateStatus', candidateId:id, status:newStatus });
+}
+
+// ── Elimina definitivamente ───────────────────────────────
+async function deleteCandidate(id, nome) {
+  const confirmed = confirm(
+    `Eliminare definitivamente "${nome}"?\n\nQuesta azione è irreversibile — il profilo e le foto verranno rimossi.`
+  );
+  if (!confirmed) return;
+
+  // Ottimistic: rimuovi subito dalla UI
+  candidates = candidates.filter(c => c.id !== id);
+  renderGallery(candidates);
+  closeDrawer();
+
+  const res = await apiPost({ action:'deleteCandidate', candidateId:id });
+  if (!res.ok) {
+    alert('Errore durante l\'eliminazione: ' + (res.error||'sconosciuto'));
+    // Ricarica per ripristinare stato reale
+    loadCandidates();
+  }
+}
 function toggleSL(){
   showSLOnly=!showSLOnly;
   document.getElementById('sl-btn').className=`tbtn ${showSLOnly?'tbtn-active':'tbtn-ghost'}`;
+  loadCandidates();
+}
+function toggleArchived(){
+  showArchived=!showArchived;
+  document.getElementById('arch-btn').className=`tbtn tbtn-hide-sm ${showArchived?'tbtn-active':'tbtn-ghost'}`;
   loadCandidates();
 }
 
@@ -1099,8 +1064,7 @@ function renderBrandChips(cid){
   }
   el.innerHTML=brands.map(b=>{
     const on=(c.brand_ids||[]).includes(b.id);
-    const cls=brandColorClass(b.id);
-    return`<button class="bchip ${cls} ${on?'bchip-on':'bchip-off'}"
+    return`<button class="bchip ${on?'bchip-on':'bchip-off'}"
       onclick="toggleBrandAssign('${cid}','${b.id}',${on})">
       ${on?'✓':'+'}  ${esc(b.nome)}
     </button>`;
@@ -1152,10 +1116,33 @@ function openDrawer(id){
           ${sl?'★ In shortlist':'☆ Shortlist'}
         </button>
         <select class="status-sel" onchange="updateStatus('${c.id}',this.value)">
-          ${['pending','shortlisted','booked','rejected'].map(s=>
-            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[s]}</option>`
+          ${['pending','shortlisted','booked','rejected','archived'].map(s=>
+            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[s]}</option>`
           ).join('')}
         </select>
+      </div>
+
+      <!-- Azioni rapide archivia / elimina -->
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button
+          onclick="archiveCandidate('${c.id}',${c.status==='archived'})"
+          style="flex:1;padding:8px;background:${c.status==='archived'?'rgba(154,123,79,0.1)':'transparent'};
+                 border:1px solid ${c.status==='archived'?'rgba(154,123,79,0.3)':'var(--rule2)'};
+                 color:${c.status==='archived'?'var(--gold2)':'var(--ink3)'};
+                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
+                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
+          id="dr-arch-btn">
+          ${c.status==='archived'?'↩ Ripristina':'📦 Archivia'}
+        </button>
+        <button
+          onclick="deleteCandidate('${c.id}','${esc(c.nome)} ${esc(c.cognome)}')"
+          style="padding:8px 12px;background:transparent;
+                 border:1px solid rgba(160,64,64,0.3);color:var(--red);
+                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
+                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
+          title="Elimina definitivamente">
+          🗑 Elimina
+        </button>
       </div>
 
       <!-- Dati anagrafici -->
@@ -1280,8 +1267,6 @@ function updateFBadge(){
   const n=[
     document.getElementById('f-status').value!=='All',
     document.getElementById('f-maggiorenne').value!=='All',
-    document.getElementById('f-taglia-sup').value!=='All',
-    document.getElementById('f-taglia-inf').value!=='All',
     !!document.getElementById('f-minh').value,
     !!document.getElementById('f-maxh').value,
   ].filter(Boolean).length;
@@ -1292,33 +1277,14 @@ function updateFBadge(){
 function clearFilters(){
   document.getElementById('f-status').value='All';
   document.getElementById('f-maggiorenne').value='All';
-  document.getElementById('f-taglia-sup').value='All';
-  document.getElementById('f-taglia-inf').value='All';
   document.getElementById('f-minh').value='';
   document.getElementById('f-maxh').value='';
   updateFBadge(); loadCandidates();
 }
-['f-status','f-maggiorenne','f-taglia-sup','f-taglia-inf','f-minh','f-maxh'].forEach(id=>{
+['f-status','f-maggiorenne','f-minh','f-maxh'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change',updateFBadge);
   document.getElementById(id)?.addEventListener('input',updateFBadge);
 });
-
-// Filtro taglia: riapplica in tempo reale senza nuovo fetch
-function applyTagliaFilter(){
-  updateFBadge();
-  let filtered = candidates;
-  const fSup = document.getElementById('f-taglia-sup').value;
-  const fInf = document.getElementById('f-taglia-inf').value;
-  if(fSup !== 'All') filtered = filtered.filter(c =>
-    (c.taglia_sup||c.taglia||'').toUpperCase() === fSup.toUpperCase()
-  );
-  if(fInf !== 'All') filtered = filtered.filter(c =>
-    (c.taglia_inf||'').toUpperCase() === fInf.toUpperCase()
-  );
-  document.getElementById('count-lbl').textContent =
-    ` ${filtered.length} candidat${filtered.length===1?'o':'i'}`;
-  renderGallery(filtered);
-}
 
 // ============================================================
 // PDF BOOK EXPORT
