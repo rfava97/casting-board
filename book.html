@@ -464,13 +464,13 @@ async function init() {
       // Aggiorna title tab
       document.title = `${brandName} — Casting Book`;
 
-      // Mostra solo shortlisted e booked per lo stilista
+      // Conta tutti i candidati assegnati al brand (esclusi archiviati)
       const modelli = allCandidates.filter(c =>
         (c.brand_ids||[]).includes(URL_BRAND) &&
-        ['shortlisted','booked'].includes(c.status)
+        c.status !== 'archived'
       );
       document.getElementById('bh-meta').textContent =
-        `${modelli.length} model${modelli.length !== 1 ? 's' : ''} selezionat${modelli.length !== 1 ? 'i' : 'o'}`;
+        `${modelli.length} model${modelli.length !== 1 ? 's' : ''} assegnat${modelli.length !== 1 ? 'i' : 'o'}`;
 
     } else {
       // Modalità admin normale — popola il selettore brand
@@ -503,11 +503,12 @@ function toggleView() {
 function render() {
   let list = allCandidates;
 
-  // In modalità link brand: mostra solo shortlisted e booked
+  // In modalità link brand: mostra tutti i candidati del brand
+  // (esclusi gli archiviati ed eliminati)
   if (IS_BRAND_LINK) {
     list = list.filter(c =>
       (c.brand_ids||[]).includes(curBrand) &&
-      ['shortlisted','booked'].includes(c.status)
+      c.status !== 'archived'
     );
   } else {
     if (curBrand !== 'All') list = list.filter(c => (c.brand_ids||[]).includes(curBrand));
