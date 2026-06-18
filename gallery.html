@@ -2,930 +2,1629 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Casa Vantini — Candidatura Modelli</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casting Board</title>
+
+<!-- ============================================================
+     CONFIG — modifica solo questo blocco
+     ============================================================ -->
 <script>
-// ── CONFIG ─────────────────────────────────────────────────
 const CONFIG = {
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz7YjkcflYr9KXoYZmLVrKTIcnP9HHo9u5FBKIlrQCIP4gNJWKRlQqmL3pIPZHjt-hS/exec',
   TOKEN: 'CastingModelsFDS',
-  AGENCY_NAME: 'Casa Vantini',
+  AGENCY_NAME: 'Casting Board',
+  GALLERY_PASSWORD: 'Admin0123',
 };
-
-const SIZE_INFO = {
-  XS:  { donna:'It. 38/40 · seno 80–85 · vita 64–69 · fianchi 87–91 cm',      uomo:'Non disponibile' },
-  S:   { donna:'It. 40/42 · seno 85–90 · vita 70–75 · fianchi 92–97 cm',      uomo:'It. 46 · torace 80–88 · vita 75–79 cm' },
-  M:   { donna:'It. 44 · seno 90–95 · vita 74–79 · fianchi 97–100 cm',        uomo:'It. 48 · torace 89–96 · vita 80–84 cm' },
-  L:   { donna:'It. 46/48 · seno 95–100 · vita 80–84 · fianchi 101–107 cm',   uomo:'It. 50 · torace 97–104 · vita 85–90 cm' },
-  XL:  { donna:'It. 48/50 · seno 100–105 · vita 85–90 · fianchi 107–110 cm',  uomo:'It. 52 · torace 105–115 · vita 90–94 cm' },
-  XXL: { donna:'Non disponibile',                                               uomo:'It. 54/56 · torace 115–120 · vita 95–100 cm' },
-};
-const SIZES = ['XS','S','M','L','XL','XXL'];
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
+/* ============================================================
+   CASTING BOARD — Light editorial theme
+   Palette: warm white / sand / slate
+   ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f7f5f2; --bg2:#ffffff; --bg3:#f0ede9; --bg4:#e8e4df;
-  --rule:rgba(0,0,0,0.08); --rule2:rgba(0,0,0,0.14); --rule3:rgba(0,0,0,0.24);
-  --ink:#1a1814; --ink2:#4a4744; --ink3:#8a8785;
-  --gold:#9a7b4f; --gold2:#7d6240; --gold3:rgba(154,123,79,0.1);
-  --green:#3d8a62; --red:#a04040; --amber:#b07830;
-  --r:4px; --r-lg:10px;
+  /* Backgrounds */
+  --bg:   #f7f5f2;
+  --bg2:  #ffffff;
+  --bg3:  #f0ede9;
+  --bg4:  #e8e4df;
+
+  /* Borders */
+  --rule: rgba(0,0,0,0.07);
+  --rule2:rgba(0,0,0,0.13);
+  --rule3:rgba(0,0,0,0.22);
+
+  /* Text */
+  --ink:  #1a1814;
+  --ink2: #4a4744;
+  --ink3: #8a8785;
+
+  /* Accents */
+  --gold: #9a7b4f;
+  --gold2:#7d6240;
+  --gold3:rgba(154,123,79,0.1);
+  --green:#3d8a62;
+  --red:  #a04040;
+  --blue: #3a6a9a;
+  --amber:#b07830;
+
+  /* Radii */
+  --r:    4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* Fonts */
   --serif:'Cormorant Garamond',Georgia,serif;
-  --sans:'DM Sans',-apple-system,sans-serif;
-  --sh:0 1px 3px rgba(0,0,0,0.08);
-}
-html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;min-height:100vh;-webkit-font-smoothing:antialiased}
+  --sans: 'DM Sans',-apple-system,sans-serif;
 
-/* ══════════════════════════════════════════════
-   LANDING SCREEN
-   ══════════════════════════════════════════════ */
-#landing{
-  min-height:100vh;
-  display:flex;flex-direction:column;
-  background:var(--ink);
-  color:var(--bg);
-  position:relative;
-  overflow:hidden;
+  /* Shadows */
+  --sh-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --sh-md: 0 4px 16px rgba(0,0,0,0.1);
+  --sh-lg: 0 12px 40px rgba(0,0,0,0.14);
 }
 
-/* Texture grain sottile */
-#landing::before{
-  content:'';position:absolute;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size:200px 200px;
-  pointer-events:none;opacity:0.4;
+html,body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:13px;
+  line-height:1.6;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
 }
 
-/* Linea oro orizzontale top */
-#landing::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--rule2);border-radius:3px}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+#login{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:999;padding:20px;
+}
+.login-box{
+  background:var(--bg2);border:1px solid var(--rule2);
+  border-radius:var(--r-lg);padding:40px 32px;
+  width:100%;max-width:320px;text-align:center;
+  box-shadow:var(--sh-lg);
+}
+.login-logo{
+  font-family:var(--sans);font-size:9px;letter-spacing:0.35em;
+  text-transform:uppercase;color:var(--gold);display:block;margin-bottom:20px;
+}
+.login-box h2{
+  font-family:var(--serif);font-size:28px;font-weight:300;
+  color:var(--ink);margin-bottom:4px;
+}
+.login-box p{color:var(--ink3);font-size:12px;margin-bottom:24px}
+.login-box input{
+  width:100%;background:var(--bg3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--ink);padding:12px 14px;
+  font-size:15px;text-align:center;font-family:var(--sans);
+  letter-spacing:0.06em;margin-bottom:12px;transition:border-color 0.2s;
+}
+.login-box input:focus{outline:none;border-color:var(--gold2)}
+.login-box button{
+  width:100%;padding:12px;background:var(--gold);color:#fff;
+  border:none;border-radius:var(--r);font-size:11px;font-weight:500;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;
+  font-family:var(--sans);transition:background 0.15s;
+}
+.login-box button:hover{background:var(--gold2)}
+#login-err{color:var(--red);font-size:11px;margin-top:8px;display:none}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+#app{display:none}
+
+/* ---- TOPBAR ---- */
+.topbar{
+  background:var(--bg2);border-bottom:1px solid var(--rule);
+  padding:0 16px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  position:sticky;top:0;z-index:200;box-shadow:var(--sh-sm);
+}
+.topbar-brand{
+  font-family:var(--serif);font-size:17px;font-weight:300;
+  letter-spacing:0.04em;color:var(--ink);
+  display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;
+}
+.topbar-brand::after{content:'';display:block;width:1px;height:14px;background:var(--rule2)}
+.topbar-count{font-size:11px;color:var(--ink3);letter-spacing:0.04em;white-space:nowrap}
+.topbar-actions{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+
+/* Buttons */
+.tbtn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 11px;border-radius:var(--r);
+  font-size:11px;font-weight:400;letter-spacing:0.05em;
+  cursor:pointer;border:none;font-family:var(--sans);
+  text-transform:uppercase;transition:all 0.15s;white-space:nowrap;
+}
+.tbtn-ghost{background:transparent;color:var(--ink3);border:1px solid transparent}
+.tbtn-ghost:hover{color:var(--ink);background:var(--bg3);border-color:var(--rule2)}
+.tbtn-outline{background:transparent;color:var(--ink);border:1px solid var(--rule2)}
+.tbtn-outline:hover{background:var(--bg3);border-color:var(--rule3)}
+.tbtn-gold{background:var(--gold);color:#fff;font-weight:500}
+.tbtn-gold:hover{background:var(--gold2)}
+.tbtn-active{background:var(--gold3);color:var(--gold2);border:1px solid rgba(154,123,79,0.25)}
+.tbtn-sep{width:1px;height:18px;background:var(--rule);margin:0 2px}
+
+/* Hide some topbar items on small screens */
+@media(max-width:600px){
+  .tbtn-hide-sm{display:none}
+  .topbar-brand::after{display:none}
+  .topbar-count{display:none}
 }
 
-.landing-inner{
-  flex:1;display:flex;flex-direction:column;justify-content:space-between;
-  max-width:600px;margin:0 auto;width:100%;
-  padding:48px 28px 40px;
-  animation:fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) both;
+/* ---- BRAND BAR ---- */
+.brand-bar{
+  background:var(--bg2);border-bottom:1px solid var(--rule);
+  padding:0 16px;display:flex;align-items:stretch;gap:0;
+  overflow-x:auto;scrollbar-width:none;
 }
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(24px)}
-  to{opacity:1;transform:translateY(0)}
+.brand-bar::-webkit-scrollbar{display:none}
+.brand-tab{
+  padding:0 16px;border-bottom:2px solid transparent;
+  cursor:pointer;font-size:11px;font-weight:400;
+  letter-spacing:0.07em;text-transform:uppercase;
+  color:var(--ink3);background:none;
+  border-left:none;border-right:none;border-top:none;
+  transition:color 0.15s,border-color 0.15s;
+  white-space:nowrap;height:36px;display:flex;align-items:center;
+  font-family:var(--sans);flex-shrink:0;
+}
+.brand-tab:hover{color:var(--ink)}
+.brand-tab.active{color:var(--gold2);border-bottom-color:var(--gold)}
+.brand-bar-end{
+  margin-left:auto;display:flex;align-items:center;
+  padding:0 0 0 12px;border-left:1px solid var(--rule);flex-shrink:0;
+}
+.brand-add{
+  font-size:11px;color:var(--ink3);background:none;border:none;
+  cursor:pointer;padding:4px 8px;letter-spacing:0.05em;
+  text-transform:uppercase;font-family:var(--sans);transition:color 0.15s;
+}
+.brand-add:hover{color:var(--ink)}
+
+/* ---- SEARCH + FILTERS ---- */
+.searchbar{
+  background:var(--bg2);border-bottom:1px solid var(--rule);
+  padding:8px 16px;display:flex;gap:8px;align-items:center;
+}
+.search-input{
+  flex:1;max-width:380px;background:var(--bg3);
+  border:1px solid var(--rule);border-radius:var(--r);
+  color:var(--ink);padding:8px 11px;font-size:12px;font-family:var(--sans);
+}
+.search-input:focus{outline:none;border-color:var(--rule3)}
+.search-input::placeholder{color:var(--ink3)}
+
+#filter-panel{
+  background:var(--bg2);border-bottom:1px solid var(--rule);
+  padding:10px 16px;display:none;flex-wrap:wrap;gap:10px;align-items:flex-end;
+}
+#filter-panel.open{display:flex}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff label{font-size:9px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.1em}
+.ff select,.ff input{
+  background:var(--bg3);border:1px solid var(--rule);
+  border-radius:var(--r);color:var(--ink);
+  padding:6px 9px;font-size:11px;font-family:var(--sans);min-width:110px;
+}
+.ff select:focus,.ff input:focus{outline:none;border-color:var(--rule3)}
+.filter-dot{
+  background:var(--gold);color:#fff;border-radius:50%;
+  width:14px;height:14px;font-size:8px;font-weight:500;
+  display:inline-flex;align-items:center;justify-content:center;
+  vertical-align:middle;margin-left:3px;
+}
+.clear-btn{
+  padding:6px 10px;background:transparent;border:1px solid var(--rule2);
+  color:var(--ink3);border-radius:var(--r);cursor:pointer;
+  font-size:10px;font-family:var(--sans);letter-spacing:0.07em;
+  text-transform:uppercase;transition:all 0.15s;align-self:flex-end;
+}
+.clear-btn:hover{color:var(--ink);border-color:var(--rule3)}
+
+/* ============================================================
+   GALLERY GRID
+   ============================================================ */
+#gallery{
+  padding:14px 16px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:12px;
+}
+@media(max-width:480px){
+  #gallery{grid-template-columns:repeat(2,1fr);gap:8px;padding:10px}
 }
 
-/* Presenters tag */
-.landing-tag{
-  font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
-  color:rgba(154,123,79,0.9);font-weight:400;
-  display:flex;align-items:center;gap:10px;margin-bottom:0;
+/* ---- CARD ---- */
+.card{
+  background:var(--bg2);border:1px solid var(--rule);
+  border-radius:var(--r-md);overflow:hidden;cursor:pointer;
+  transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;
+  box-shadow:var(--sh-sm);
 }
-.landing-tag::before,.landing-tag::after{
-  content:'';flex:1;height:1px;
-  background:linear-gradient(90deg,rgba(154,123,79,0.4),transparent);
+.card:hover{transform:translateY(-3px);box-shadow:var(--sh-lg);border-color:var(--rule2)}
+.card.sl{border-color:rgba(154,123,79,0.4);box-shadow:0 0 0 1px rgba(154,123,79,0.2),var(--sh-sm)}
+.card-photo{position:relative;aspect-ratio:3/4;background:var(--bg4);overflow:hidden}
+.card-photo img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
 }
-.landing-tag::after{
-  background:linear-gradient(270deg,rgba(154,123,79,0.4),transparent);
+.card:hover .card-photo img{transform:scale(1.05)}
+.no-ph{
+  width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;
+  color:var(--ink3);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;
 }
-
-/* Main title block */
-.landing-title-block{
-  margin:32px 0 28px;
+.card-overlay{
+  position:absolute;bottom:0;left:0;right:0;height:45%;
+  background:linear-gradient(to top,rgba(26,24,20,0.55),transparent);
+  pointer-events:none;
 }
-.landing-eyebrow{
-  font-family:var(--sans);font-size:10px;letter-spacing:0.25em;
-  text-transform:uppercase;color:rgba(245,242,238,0.45);
-  margin-bottom:12px;
+.star-btn{
+  position:absolute;top:7px;right:7px;
+  background:rgba(255,255,255,0.85);color:var(--ink3);
+  border:1px solid rgba(0,0,0,0.1);border-radius:50%;
+  width:28px;height:28px;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);transition:all 0.2s;box-shadow:var(--sh-sm);
 }
-.landing-h1{
-  font-family:var(--serif);
-  font-size:clamp(38px,10vw,58px);
-  font-weight:300;line-height:1.0;
-  letter-spacing:-0.02em;
-  color:#f5f2ee;
-  margin-bottom:6px;
+.star-btn.on{background:var(--gold);color:#fff;border-color:transparent}
+.star-btn:hover{transform:scale(1.1)}
+.status-badge{
+  position:absolute;bottom:7px;left:7px;
+  font-size:8px;font-weight:500;padding:3px 7px;border-radius:2px;
+  text-transform:uppercase;letter-spacing:0.1em;
 }
-.landing-h1 em{font-style:italic;font-weight:300;color:var(--gold)}
-.landing-h2{
-  font-family:var(--serif);
-  font-size:clamp(15px,4.5vw,22px);
-  font-weight:300;line-height:1.3;
-  letter-spacing:0.04em;
-  color:rgba(245,242,238,0.6);
-  text-transform:uppercase;
-  margin-top:8px;
+.s-pending{background:rgba(255,255,255,0.85);color:var(--ink3)}
+.s-shortlisted{background:rgba(154,123,79,0.9);color:#fff}
+.s-booked{background:rgba(61,138,98,0.9);color:#fff}
+.s-rejected{background:rgba(160,64,64,0.85);color:#fff}
+.s-archived{background:rgba(100,100,100,0.7);color:#ddd}
+.card.archived-card{opacity:0.45;filter:grayscale(0.4)}
+.card-brand-pills{
+  position:absolute;top:7px;left:7px;display:flex;flex-direction:column;gap:3px;
+  max-width:calc(100% - 44px);
 }
-
-/* Divider */
-.landing-divider{
-  width:40px;height:1px;
-  background:var(--gold);
-  margin:24px 0;
-  opacity:0.6;
-}
-
-/* Body text */
-.landing-body{
-  display:flex;flex-direction:column;gap:16px;
-  margin-bottom:28px;
-}
-.landing-body p{
-  font-size:14px;line-height:1.75;
-  color:rgba(245,242,238,0.72);
-  font-weight:300;
-  letter-spacing:0.01em;
-}
-.landing-body p strong{
-  color:rgba(245,242,238,0.92);
-  font-weight:500;
-}
-
-/* Event info card */
-.landing-event{
-  background:rgba(245,242,238,0.05);
-  border:1px solid rgba(154,123,79,0.3);
-  border-radius:var(--r-lg);
-  padding:20px 22px;
-  margin-bottom:28px;
-}
-.landing-event-row{
-  display:flex;align-items:baseline;gap:12px;
-  font-size:13px;margin-bottom:10px;
-}
-.landing-event-row:last-child{margin-bottom:0}
-.ev-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
-.ev-lbl{
-  font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;
-  color:rgba(154,123,79,0.8);min-width:72px;flex-shrink:0;
-}
-.ev-val{color:#f5f2ee;font-weight:300;line-height:1.4}
-.ev-val strong{font-weight:500}
-
-/* Nota arrivo */
-.landing-note{
-  background:rgba(154,123,79,0.1);
-  border-left:2px solid var(--gold);
-  border-radius:0 var(--r) var(--r) 0;
-  padding:12px 16px;
-  font-size:12px;color:rgba(245,242,238,0.75);
-  line-height:1.6;margin-bottom:28px;
-}
-.landing-note strong{color:rgba(245,242,238,0.92)}
-
-/* CTA button */
-.landing-cta{
-  width:100%;padding:18px;
-  background:var(--gold);color:var(--ink);
-  border:none;border-radius:var(--r);
-  font-size:11px;font-weight:500;letter-spacing:0.18em;
-  text-transform:uppercase;cursor:pointer;
-  font-family:var(--sans);
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  transition:background 0.2s,transform 0.15s;
-}
-.landing-cta:hover{background:#b08d5f;transform:translateY(-1px)}
-.landing-cta:active{transform:translateY(0)}
-.landing-cta-arrow{font-size:16px;transition:transform 0.2s}
-.landing-cta:hover .landing-cta-arrow{transform:translateX(4px)}
-
-/* Footer landing */
-.landing-footer{
-  text-align:center;padding:20px 28px 28px;
-  font-size:10px;letter-spacing:0.08em;
-  color:rgba(245,242,238,0.2);text-transform:uppercase;
-}
-
-/* Transition out */
-#landing.hiding{
-  animation:fadeOut 0.4s ease forwards;
-}
-@keyframes fadeOut{
-  to{opacity:0;transform:translateY(-12px)}
-}
-
-/* ══════════════════════════════════════════════
-   FORM (nascosto inizialmente)
-   ══════════════════════════════════════════════ */
-#form-wrapper{display:none}
-
-/* ── Progress bar ── */
-#pbar{height:2px;background:var(--gold);width:0;position:fixed;top:0;left:0;z-index:100;transition:width 0.4s}
-
-/* ── Header ── */
-.hdr{background:var(--bg2);border-bottom:1px solid var(--rule);padding:20px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:var(--sh)}
-.hdr-agency{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:8px}
-.hdr h1{font-family:var(--serif);font-size:24px;font-weight:300;color:var(--ink);margin-bottom:4px}
-.hdr p{font-size:12px;color:var(--ink3)}
-
-/* ── Wrap ── */
-.wrap{max-width:540px;margin:0 auto;padding:26px 18px 80px}
-.sec{margin-bottom:30px}
-.sec-title{font-size:9px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.18em;padding-bottom:8px;border-bottom:1px solid var(--rule);margin-bottom:16px}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:400px){.grid-2{grid-template-columns:1fr}}
-
-/* ── Fields ── */
-.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-.field:last-child{margin-bottom:0}
-.field label{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.12em}
-.field input,.field select,.field textarea{
-  background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r);
-  color:var(--ink);padding:12px 14px;font-size:15px;font-family:var(--sans);
-  -webkit-appearance:none;width:100%;transition:border-color 0.2s;
-}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold2)}
-.field input::placeholder,.field textarea::placeholder{color:var(--ink3)}
-.field select option{background:var(--bg2);color:var(--ink)}
-.field textarea{resize:vertical;min-height:80px;line-height:1.65}
-.field .hint{font-size:10px;color:var(--ink3);line-height:1.5}
-.field .err{color:var(--red);font-size:10px;display:none}
-.field.has-error input,.field.has-error select,.field.has-error textarea{border-color:var(--red)}
-.field.has-error .err{display:block}
-
-/* ── Età badge ── */
-#eta-badge{display:none;margin-top:4px;padding:4px 10px;border-radius:var(--r);font-size:10px;font-weight:500;letter-spacing:0.06em;width:fit-content}
-#eta-badge.over{background:rgba(61,138,98,0.1);color:var(--green);display:inline-block}
-#eta-badge.under{background:rgba(176,120,48,0.1);color:var(--amber);display:inline-block}
-
-/* ── Consenso minorenni ── */
-#consenso-box{display:none;background:rgba(154,123,79,0.07);border:1px solid rgba(154,123,79,0.22);border-radius:var(--r-lg);padding:16px;margin-top:8px}
-#consenso-box.show{display:block}
-#consenso-box p{font-size:12px;color:var(--gold2);line-height:1.65;margin-bottom:12px}
-.cbox-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
-.cbox-row input[type=checkbox]{width:16px;height:16px;min-width:16px;margin-top:2px;accent-color:var(--gold);cursor:pointer}
-.cbox-row span{font-size:12px;color:var(--ink2);line-height:1.55}
-#consenso-err{color:var(--red);font-size:10px;margin-top:6px;display:none}
-#consenso-err.show{display:block}
-
-/* ── Toggle (tatuaggi / piercing) ── */
-.toggle-row{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r);
-  padding:13px 14px;margin-bottom:10px;cursor:pointer;
-  transition:border-color 0.15s;user-select:none;
-}
-.toggle-row:last-child{margin-bottom:0}
-.toggle-row:hover{border-color:var(--rule2)}
-.toggle-label{font-size:14px;color:var(--ink2)}
-.toggle-switch{
-  position:relative;width:44px;height:24px;flex-shrink:0;
-}
-.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
-.toggle-track{
-  position:absolute;inset:0;background:var(--bg4);border-radius:12px;
-  border:1px solid var(--rule2);transition:background 0.2s,border-color 0.2s;
-}
-.toggle-thumb{
-  position:absolute;top:3px;left:3px;
-  width:16px;height:16px;border-radius:50%;
-  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.15);
-  transition:transform 0.2s;
-}
-.toggle-switch input:checked ~ .toggle-track{background:var(--gold);border-color:var(--gold2)}
-.toggle-switch input:checked ~ .toggle-thumb{transform:translateX(20px)}
-
-/* ── Taglie ── */
-.size-group{margin-bottom:18px}
-.size-group-label{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.size-group-label::after{content:'';flex:1;height:1px;background:var(--rule)}
-.size-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-@media(max-width:400px){.size-grid{grid-template-columns:repeat(3,1fr)}}
-.sopt{position:relative}
-.sopt input[type=radio]{position:absolute;opacity:0;width:0;height:0}
-.sopt label{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:10px 4px 8px;background:var(--bg3);border:1px solid var(--rule);
-  border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:400;
-  transition:all 0.15s;color:var(--ink2);text-align:center;
-  position:relative;user-select:none;
-}
-.sopt input[type=radio]:checked + label{border-color:var(--gold2);background:var(--gold3);color:var(--gold2);font-weight:500}
-.sopt label:hover{border-color:var(--rule3);background:var(--bg4)}
-.sopt label .tip{
-  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
-  background:var(--ink);color:#fff;
-  font-size:10px;line-height:1.55;padding:8px 11px;border-radius:var(--r);
-  pointer-events:none;opacity:0;transition:opacity 0.15s;
-  box-shadow:0 4px 16px rgba(0,0,0,0.18);z-index:20;
-  min-width:180px;max-width:240px;white-space:normal;text-align:left;
-}
-.sopt label .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink)}
-.sopt label:hover .tip,.sopt input[type=radio]:checked + label .tip{opacity:1}
-@media(hover:none){
-  .sopt label .tip{bottom:auto;top:calc(100% + 8px)}
-  .sopt label .tip::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--ink)}
-}
-.size-err{color:var(--red);font-size:10px;margin-top:4px;display:none}
-.size-err.show{display:block}
-
-/* ── Foto istruzioni card ── */
-.foto-guide{
-  background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r-lg);
-  padding:16px;margin-bottom:16px;
-}
-.foto-guide-title{
-  font-size:10px;font-weight:500;color:var(--gold2);text-transform:uppercase;
-  letter-spacing:0.12em;margin-bottom:10px;display:flex;align-items:center;gap:6px;
-}
-.foto-guide ul{list-style:none;display:flex;flex-direction:column;gap:6px}
-.foto-guide li{
-  display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--ink2);line-height:1.5;
-}
-.foto-guide li::before{
-  content:'';display:block;width:5px;height:5px;border-radius:50%;
-  background:var(--gold);flex-shrink:0;margin-top:5px;
-}
-.foto-slots{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;
-}
-.foto-slot{
-  border:1.5px dashed var(--rule2);border-radius:var(--r-lg);
-  aspect-ratio:3/4;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px;
-  cursor:pointer;transition:border-color 0.2s,background 0.2s;
-  background:var(--bg3);overflow:hidden;position:relative;
-}
-.foto-slot:hover,.foto-slot.drag-over{border-color:var(--gold);background:rgba(154,123,79,0.04)}
-.foto-slot.has-photo{border-style:solid;border-color:var(--rule)}
-.foto-slot.has-error{border-color:var(--red)}
-.foto-slot-icon{font-size:24px;opacity:0.3}
-.foto-slot-label{font-size:11px;color:var(--ink3);letter-spacing:0.03em;text-align:center;padding:0 8px}
-.foto-slot-badge{
-  position:absolute;top:6px;left:6px;
-  background:rgba(154,123,79,0.9);color:#fff;
+.card-brand-pill{
   font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
-  letter-spacing:0.08em;text-transform:uppercase;
+  background:rgba(58,106,154,0.85);color:#fff;
+  letter-spacing:0.06em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.foto-slot img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
-.foto-slot .rm-photo{
-  position:absolute;top:5px;right:5px;z-index:2;
-  background:rgba(26,24,20,0.65);color:#fff;border:none;border-radius:50%;
-  width:22px;height:22px;font-size:13px;cursor:pointer;
+/* Badge minorenne sulla card */
+.minor-badge{
+  position:absolute;bottom:7px;right:7px;
+  font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
+  background:rgba(176,120,48,0.85);color:#fff;
+  letter-spacing:0.07em;text-transform:uppercase;
+}
+.card-info{padding:9px 11px 11px}
+.card-name{
+  font-family:var(--serif);font-size:15px;font-weight:300;
+  color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-sub{
+  font-size:10px;color:var(--ink3);margin-top:3px;
+  letter-spacing:0.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ============================================================
+   LOADING / EMPTY STATES
+   ============================================================ */
+.state{
+  grid-column:1/-1;padding:80px 20px;
+  text-align:center;color:var(--ink3);
+}
+.state h3{
+  font-family:var(--serif);font-size:20px;font-weight:300;
+  color:var(--ink2);margin-bottom:8px;
+}
+.state p{font-size:12px}
+.spinner{
+  display:inline-block;width:20px;height:20px;
+  border:1.5px solid var(--rule2);border-top-color:var(--gold);
+  border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:8px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============================================================
+   LIGHTBOX
+   ============================================================ */
+#lb{
+  position:fixed;inset:0;background:rgba(10,10,10,0.95);
+  z-index:700;display:none;align-items:center;justify-content:center;
+}
+#lb.open{display:flex}
+#lb-img{
+  max-height:90vh;max-width:90vw;object-fit:contain;
+  border-radius:2px;box-shadow:0 32px 80px rgba(0,0,0,0.6);
+}
+.lb-nav{
+  position:fixed;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,0.12);color:#fff;
+  border:1px solid rgba(255,255,255,0.2);border-radius:50%;
+  width:42px;height:42px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+.lb-nav:hover{background:rgba(255,255,255,0.22)}
+#lb-prev{left:14px}#lb-next{right:14px}
+#lb-close{
+  position:fixed;top:14px;right:14px;
+  background:rgba(255,255,255,0.12);color:#fff;
+  border:1px solid rgba(255,255,255,0.2);border-radius:50%;
+  width:34px;height:34px;font-size:16px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
 }
-#ph-err{color:var(--red);font-size:11px;margin-top:4px;display:none}
+#lb-counter{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;
+}
 
-/* ── Submit ── */
-.btn-send{width:100%;padding:15px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:10px;transition:background 0.15s;margin-top:24px}
-.btn-send:hover{background:var(--gold2)}
-.btn-send:disabled{opacity:0.45;cursor:not-allowed}
-.spinner{width:15px;height:15px;border:1.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.legal{text-align:center;font-size:10px;color:var(--ink3);margin-top:12px;line-height:1.7}
-#up-status{text-align:center;font-size:11px;color:var(--ink3);margin-top:6px;min-height:16px}
-#form-err{color:var(--red);font-size:12px;margin-top:10px;display:none;text-align:center}
+/* ============================================================
+   DRAWER
+   ============================================================ */
+#ov{
+  position:fixed;inset:0;background:rgba(26,24,20,0.4);
+  z-index:399;display:none;backdrop-filter:blur(2px);
+}
+#ov.open{display:block}
+#drawer{
+  position:fixed;top:0;right:-100%;
+  width:min(480px,100%);height:100%;
+  background:var(--bg2);border-left:1px solid var(--rule2);
+  z-index:400;overflow-y:auto;
+  transition:right 0.28s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:-8px 0 32px rgba(0,0,0,0.1);
+}
+#drawer.open{right:0}
 
-/* ── States ── */
-.state{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center}
-.state-icon{font-size:38px;opacity:0.55;margin-bottom:18px}
-.state-title{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:8px}
-.state-sub{font-size:13px;color:var(--ink3);line-height:1.8}
-.btn-retry{margin-top:20px;padding:10px 24px;background:transparent;color:var(--ink);border:1px solid var(--rule2);border-radius:var(--r);cursor:pointer;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--sans)}
+/* On mobile drawer is full screen */
+@media(max-width:480px){
+  #drawer{width:100%;border-left:none}
+}
+
+.dr-head{
+  padding:14px 16px;border-bottom:1px solid var(--rule);
+  display:flex;align-items:flex-start;justify-content:space-between;
+  position:sticky;top:0;background:var(--bg2);z-index:10;
+  box-shadow:var(--sh-sm);
+}
+.dr-head h2{
+  font-family:var(--serif);font-size:22px;font-weight:300;
+  color:var(--ink);line-height:1.2;
+}
+.dr-head p{font-size:11px;color:var(--ink3);margin-top:3px;letter-spacing:0.03em}
+.dr-close{
+  background:none;border:none;color:var(--ink3);
+  font-size:20px;cursor:pointer;padding:2px 6px;
+  transition:color 0.15s;line-height:1;margin-top:2px;flex-shrink:0;
+}
+.dr-close:hover{color:var(--ink)}
+
+.dr-hero{
+  aspect-ratio:4/5;background:var(--bg4);overflow:hidden;cursor:pointer;position:relative;
+}
+.dr-hero img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s}
+.dr-hero:hover img{transform:scale(1.03)}
+.dr-hero-badge{
+  position:absolute;bottom:10px;right:10px;
+  font-size:9px;letter-spacing:0.07em;text-transform:uppercase;
+  color:rgba(255,255,255,0.8);background:rgba(26,24,20,0.55);
+  padding:3px 8px;border-radius:2px;backdrop-filter:blur(4px);
+}
+.dr-strip{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
+  background:var(--bg4);padding:2px;
+}
+.dr-thumb{
+  aspect-ratio:1;background:var(--bg4);overflow:hidden;cursor:pointer;position:relative;
+}
+.dr-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.15s}
+.dr-thumb:hover img{opacity:0.85}
+.dr-thumb.active-t::after{
+  content:'';position:absolute;inset:0;
+  border:2px solid var(--gold);pointer-events:none;
+}
+
+.dr-body{padding:16px}
+
+.dr-actions{display:flex;gap:8px;margin-bottom:14px}
+.sl-btn{
+  flex:1;padding:9px;border:none;border-radius:var(--r);
+  font-size:10px;font-weight:500;letter-spacing:0.08em;
+  text-transform:uppercase;cursor:pointer;font-family:var(--sans);
+  transition:all 0.15s;
+}
+.sl-on{background:var(--gold);color:#fff}
+.sl-off{background:var(--bg3);color:var(--ink3);border:1px solid var(--rule2)}
+.sl-off:hover{color:var(--ink);border-color:var(--rule3)}
+.status-sel{
+  flex:1;background:var(--bg3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--ink);padding:9px 10px;
+  font-size:11px;font-family:var(--sans);cursor:pointer;
+}
+
+/* Info cards */
+.icard{margin-bottom:10px;border:1px solid var(--rule);border-radius:var(--r-md);overflow:hidden}
+.icard-head{
+  padding:7px 12px;background:var(--bg3);
+  font-size:9px;font-weight:500;color:var(--ink3);
+  text-transform:uppercase;letter-spacing:0.1em;
+  border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:6px;
+}
+.icard-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.irow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px}
+.irow .lbl{color:var(--ink3);min-width:80px;font-size:11px;letter-spacing:0.03em;flex-shrink:0}
+.irow .val{color:var(--ink);text-align:right;word-break:break-word}
+.irow .val-big{font-family:var(--serif);font-size:17px;font-weight:300;color:var(--ink)}
+.irow a{color:var(--gold2)}
+.irow a:hover{text-decoration:underline}
+
+/* Brand chips */
+.brand-chips{display:flex;flex-wrap:wrap;gap:5px}
+.bchip{
+  display:flex;align-items:center;gap:4px;
+  padding:5px 10px;border-radius:2px;font-size:10px;
+  font-weight:400;letter-spacing:0.05em;text-transform:uppercase;
+  cursor:pointer;border:1px solid;transition:all 0.15s;font-family:var(--sans);
+}
+.bchip-on{background:rgba(58,106,154,0.1);color:var(--blue);border-color:rgba(58,106,154,0.3)}
+.bchip-off{background:transparent;color:var(--ink3);border-color:var(--rule2)}
+.bchip-off:hover{color:var(--ink);border-color:var(--rule3)}
+
+/* ── Colori brand dinamici ── */
+.brand-color-0{--bc:72,122,172}   .brand-color-1{--bc:154,100,60}
+.brand-color-2{--bc:80,140,100}   .brand-color-3{--bc:140,80,140}
+.brand-color-4{--bc:180,130,40}   .brand-color-5{--bc:60,140,160}
+.brand-color-6{--bc:160,80,80}    .brand-color-7{--bc:100,100,60}
+.card-brand-pill{
+  font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
+  letter-spacing:0.06em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:rgba(var(--bc,58,106,154),0.18);
+  color:rgb(var(--bc,58,106,154));
+}
+.bchip.bchip-on{
+  background:rgba(var(--bc,58,106,154),0.12);
+  color:rgb(var(--bc,58,106,154));
+  border-color:rgba(var(--bc,58,106,154),0.35);
+}
+.brand-tab-dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  margin-right:5px;background:rgb(var(--bc,154,123,79));
+  opacity:0.8;flex-shrink:0;vertical-align:middle;
+}
+
+.dr-meta{font-size:10px;color:var(--ink3);letter-spacing:0.04em;margin-top:8px;text-align:right}
+
+/* ============================================================
+   BRAND MANAGER MODAL
+   ============================================================ */
+#bm-modal{
+  position:fixed;inset:0;background:rgba(26,24,20,0.5);
+  z-index:900;display:none;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(4px);
+}
+#bm-modal.open{display:flex}
+.bm-box{
+  background:var(--bg2);border:1px solid var(--rule2);
+  border-radius:var(--r-lg);padding:24px;width:100%;max-width:360px;
+  box-shadow:var(--sh-lg);
+}
+.bm-box h3{font-family:var(--serif);font-size:20px;font-weight:300;margin-bottom:16px}
+.bm-list{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;max-height:240px;overflow-y:auto}
+.bm-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg3);border-radius:var(--r);padding:8px 12px;
+  font-size:12px;border:1px solid var(--rule);
+}
+.bm-del{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:13px;padding:2px;transition:color 0.15s}
+.bm-del:hover{color:var(--red)}
+.bm-new{display:flex;gap:8px;margin-bottom:12px}
+.bm-new input{
+  flex:1;background:var(--bg3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--ink);padding:9px 12px;font-size:13px;font-family:var(--sans);
+}
+.bm-new input:focus{outline:none;border-color:var(--gold2)}
+.bm-new button{
+  padding:9px 14px;background:var(--gold);color:#fff;
+  border:none;border-radius:var(--r);font-size:11px;
+  font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
+  cursor:pointer;font-family:var(--sans);white-space:nowrap;
+}
+.bm-close{
+  width:100%;padding:9px;background:transparent;
+  border:1px solid var(--rule2);color:var(--ink3);border-radius:var(--r);
+  cursor:pointer;font-size:11px;font-family:var(--sans);
+  letter-spacing:0.06em;text-transform:uppercase;transition:all 0.15s;
+}
+.bm-close:hover{color:var(--ink);border-color:var(--rule3)}
+
+/* ============================================================
+   POPUP TAGLIE — tooltip con tabella misure
+   ============================================================ */
+#size-popup{
+  position:fixed;inset:0;background:rgba(26,24,20,0.5);
+  z-index:950;display:none;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(4px);
+}
+#size-popup.open{display:flex}
+.sp-box{
+  background:var(--bg2);border:1px solid var(--rule2);
+  border-radius:var(--r-lg);padding:24px;width:100%;max-width:520px;
+  max-height:85vh;overflow-y:auto;box-shadow:var(--sh-lg);
+}
+.sp-box h3{font-family:var(--serif);font-size:20px;font-weight:300;margin-bottom:4px}
+.sp-box .sp-sub{font-size:11px;color:var(--ink3);margin-bottom:18px;letter-spacing:0.03em}
+.sp-section{margin-bottom:18px}
+.sp-section-title{
+  font-size:9px;font-weight:500;color:var(--ink3);
+  text-transform:uppercase;letter-spacing:0.12em;
+  margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--rule);
+}
+.sp-table{width:100%;border-collapse:collapse;font-size:11px}
+.sp-table th{
+  text-align:left;padding:6px 8px;
+  background:var(--bg3);color:var(--ink3);
+  font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+  border-bottom:1px solid var(--rule2);
+}
+.sp-table td{
+  padding:7px 8px;border-bottom:1px solid var(--rule);
+  color:var(--ink);vertical-align:top;
+}
+.sp-table tr:last-child td{border-bottom:none}
+.sp-table tr:hover td{background:var(--bg3)}
+.sp-table td:first-child{font-weight:500;color:var(--gold2);white-space:nowrap}
+.sp-close{
+  width:100%;margin-top:16px;padding:9px;background:transparent;
+  border:1px solid var(--rule2);color:var(--ink3);border-radius:var(--r);
+  cursor:pointer;font-size:11px;font-family:var(--sans);
+  letter-spacing:0.06em;text-transform:uppercase;transition:all 0.15s;
+}
+.sp-close:hover{color:var(--ink);border-color:var(--rule3)}
+
+/* i button stile info */
+.info-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--bg4);border:1px solid var(--rule2);
+  color:var(--ink3);font-size:9px;font-style:italic;font-family:Georgia,serif;
+  cursor:pointer;transition:all 0.15s;line-height:1;vertical-align:middle;
+  flex-shrink:0;
+}
+.info-btn:hover{background:var(--gold3);border-color:var(--gold);color:var(--gold2)}
+
+/* ============================================================
+   PDF OVERLAY
+   ============================================================ */
+#pdf-overlay{
+  position:fixed;inset:0;background:rgba(247,245,242,0.92);
+  z-index:1000;display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);
+}
+#pdf-overlay.open{display:flex}
+.pdf-box{text-align:center;padding:40px}
+.pdf-box p{font-family:var(--serif);font-size:22px;font-weight:300;margin-bottom:6px;color:var(--ink)}
+.pdf-box small{color:var(--ink3);font-size:12px;letter-spacing:0.04em}
+.pdf-progress{width:200px;height:2px;background:var(--rule2);border-radius:1px;margin:20px auto 0;overflow:hidden}
+.pdf-progress-bar{height:100%;background:var(--gold);width:0;transition:width 0.3s}
 </style>
 </head>
 <body>
-<div id="pbar"></div>
 
-<!-- ══════════════════════════════════════════════
-     LANDING SCREEN
-     ══════════════════════════════════════════════ -->
-<div id="landing">
-  <div class="landing-inner">
-
-    <!-- Presenters -->
-    <div class="landing-tag">Casa delle Stelle × Expose mgmt</div>
-
-    <!-- Titolo -->
-    <div class="landing-title-block">
-      <div class="landing-eyebrow">Fashion Show — Brescia 2026</div>
-      <div class="landing-h1"><em>Casa</em> Vantini</div>
-      <div class="landing-h2">Home is where<br>the heart is</div>
-    </div>
-
-    <div class="landing-divider"></div>
-
-    <!-- Testo descrittivo -->
-    <div class="landing-body">
-      <p>
-        In occasione della <strong>Festa della Musica 2026</strong>, Casa delle Stelle in collaborazione con Expose mgmt presenta un <strong>fashion show diffuso lungo Via Vantini</strong>: una sfilata dedicata a brand di artigianato, upcycling, custom e vintage research, ispirata al concetto di <strong>HOUSE</strong> e <strong>HOME</strong> come spazi di identità, relazioni e trasformazione.
-      </p>
-      <p>
-        Il progetto prenderà vita attraverso installazioni, ambienti domestici e performance create in collaborazione con realtà e showroom di Via Vantini, tra cui <strong>Maison Cò</strong> e <strong>39 Vantini</strong>, trasformando la strada in una casa aperta, inclusiva e comunitaria.
-      </p>
-      <p>
-        Essendo una realtà indipendente e autofinanziata, siamo alla ricerca di <strong>volontar* e persone disponibili a partecipare alla sfilata</strong>, anche senza esperienza. Nessun requisito richiesto: l'obiettivo è creare uno spazio accogliente dove tutt* possano sentirsi parte del progetto.
-      </p>
-    </div>
-
-    <!-- Info evento -->
-    <div class="landing-event">
-      <div class="landing-event-row">
-        <span class="ev-icon">📍</span>
-        <span class="ev-lbl">Dove</span>
-        <span class="ev-val">Via Vantini, <strong>Brescia</strong></span>
-      </div>
-      <div class="landing-event-row">
-        <span class="ev-icon">📅</span>
-        <span class="ev-lbl">Quando</span>
-        <span class="ev-val"><strong>Sabato 20 Giugno 2026</strong> — ore 20:00</span>
-      </div>
-    </div>
-
-    <!-- Nota orario arrivo -->
-    <div class="landing-note">
-      Se ti va di sfilare come modell*, ti dovrai presentare a partire dalle <strong>ore 14:00</strong>. Compila il form qui sotto per candidarti.
-    </div>
-
-    <!-- CTA -->
-    <button class="landing-cta" onclick="goToForm()">
-      Candidati ora
-      <span class="landing-cta-arrow">→</span>
-    </button>
-
-  </div>
-
-  <div class="landing-footer">
-    Casa Vantini · Fest della Musica 2026
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <span class="login-logo" id="login-agency">Casting Studio</span>
+    <h2>Board</h2>
+    <p>Accesso riservato</p>
+    <input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Accedi</button>
+    <div id="login-err">Password non corretta</div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════
-     FORM WRAPPER (nascosto fino al click su CTA)
-     ══════════════════════════════════════════════ -->
-<div id="form-wrapper">
-<div id="state-ok" class="state" style="display:none">
-  <div>
-    <div class="state-icon">✓</div>
-    <div class="state-title" style="color:var(--green)">Candidatura inviata</div>
-    <div class="state-sub">
-      Grazie per aver inviato il tuo profilo.<br>Ti contatteremo al più presto.
+<!-- APP -->
+<div id="app">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:0;overflow:hidden">
+      <div class="topbar-brand" id="app-brand">Casting Board</div>
+      <span class="topbar-count" id="count-lbl"></span>
     </div>
-    <a href="https://chat.whatsapp.com/I2lRoDxLI4IEzZMB9YA1zF?mode=gi_t"
-       target="_blank" rel="noopener"
-       style="display:inline-flex;align-items:center;gap:10px;
-              margin-top:24px;padding:14px 22px;
-              background:#25D366;color:#fff;border-radius:4px;
-              font-size:12px;font-weight:500;letter-spacing:0.06em;
-              text-transform:uppercase;text-decoration:none;
-              font-family:var(--sans);transition:background 0.15s"
-       onmouseover="this.style.background='#1db954'"
-       onmouseout="this.style.background='#25D366'">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-      </svg>
-      Entra nel gruppo WhatsApp
-    </a>
+    <div class="topbar-actions">
+      <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
+        Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
+      </button>
+      <button class="tbtn tbtn-ghost" id="sl-btn" onclick="toggleSL()">★ Shortlist</button>
+      <button class="tbtn tbtn-ghost tbtn-hide-sm" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati">📦 Archivio</button>
+      <div class="tbtn-sep tbtn-hide-sm"></div>
+      <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openBrandManager()">🏷 Brand</button>
+      <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="startPdfExport()">↓ PDF</button>
+      <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="window.open('apply.html','_blank')">+ Form</button>
+      <button class="tbtn tbtn-ghost" onclick="reload()" title="Aggiorna">↻</button>
+    </div>
+  </div>
+
+  <!-- Brand Tabs -->
+  <div class="brand-bar" id="brand-bar">
+    <button class="brand-tab active" data-id="All" onclick="selBrand('All')">Tutti</button>
+    <div class="brand-bar-end">
+      <button class="brand-add" onclick="openBrandManager()">+ Brand</button>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="searchbar">
+    <input type="search" class="search-input" id="q" placeholder="Cerca nome, cognome, instagram…" oninput="debounce()">
+  </div>
+
+  <!-- Filters -->
+  <div id="filter-panel">
+    <div class="ff">
+      <label>Status</label>
+      <select id="f-status" onchange="debounce()">
+        <option value="All">Tutti</option>
+        <option value="pending">In attesa</option>
+        <option value="shortlisted">Shortlist</option>
+        <option value="booked">Confermato</option>
+        <option value="rejected">Rifiutato</option>
+      </select>
+    </div>
+    <div class="ff">
+      <label>Età</label>
+      <select id="f-maggiorenne" onchange="debounce()">
+        <option value="All">Tutti</option>
+        <option value="si">Maggiorenni</option>
+        <option value="no">Minorenni</option>
+      </select>
+    </div>
+    <div class="ff">
+      <label>Alt. min (cm)</label>
+      <input type="number" id="f-minh" placeholder="es. 160" oninput="debounce()">
+    </div>
+    <div class="ff">
+      <label>Alt. max (cm)</label>
+      <input type="number" id="f-maxh" placeholder="es. 185" oninput="debounce()">
+    </div>
+    <button class="clear-btn" onclick="clearFilters()">✕ Azzera</button>
+  </div>
+
+  <!-- Gallery -->
+  <div id="gallery">
+    <div class="state"><span class="spinner"></span> Caricamento…</div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- LIGHTBOX -->
+<div id="lb" onclick="if(event.target===this)closeLB()">
+  <button class="lb-nav" id="lb-prev" onclick="lbNav(-1)">‹</button>
+  <img id="lb-img" src="" alt="">
+  <button class="lb-nav" id="lb-next" onclick="lbNav(1)">›</button>
+  <button id="lb-close" onclick="closeLB()">×</button>
+  <div id="lb-counter"></div>
+</div>
+
+<!-- DRAWER OVERLAY -->
+<div id="ov" onclick="closeDrawer()"></div>
+
+<!-- DRAWER -->
+<div id="drawer">
+  <div class="dr-head">
+    <div>
+      <h2 id="dr-name">—</h2>
+      <p id="dr-sub">—</p>
+    </div>
+    <button class="dr-close" onclick="closeDrawer()">×</button>
+  </div>
+  <div id="dr-content"></div>
+</div>
+
+<!-- BRAND MANAGER MODAL -->
+<div id="bm-modal" onclick="if(event.target===this)closeBM()">
+  <div class="bm-box">
+    <h3>Brand</h3>
+    <div class="bm-list" id="bm-list"></div>
+    <div class="bm-new">
+      <input type="text" id="bm-inp" placeholder="Nome brand…" onkeydown="if(event.key==='Enter')createBrand()">
+      <button onclick="createBrand()">Aggiungi</button>
+    </div>
+    <button class="bm-close" onclick="closeBM()">Chiudi</button>
   </div>
 </div>
 
-<!-- ERROR -->
-<div id="state-err" class="state" style="display:none">
-  <div>
-    <div class="state-icon">—</div>
-    <div class="state-title" style="color:var(--red)">Invio non riuscito</div>
-    <div class="state-sub" id="err-msg">Si è verificato un errore. Riprova.</div>
-    <button class="btn-retry" onclick="resetForm()">← Riprova</button>
+<!-- POPUP GUIDE TAGLIE -->
+<div id="size-popup" onclick="if(event.target===this)closeSizePopup()">
+  <div class="sp-box">
+    <h3>Guida alle Taglie</h3>
+    <p class="sp-sub">Misure indicative · Senza distinzione di genere</p>
+
+    <div class="sp-section">
+      <div class="sp-section-title">Taglie Donna</div>
+      <table class="sp-table">
+        <thead>
+          <tr>
+            <th>Taglia</th>
+            <th>It.</th>
+            <th>Seno</th>
+            <th>Vita</th>
+            <th>Fianchi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>XS</td><td>38/40</td><td>80–85 cm</td><td>64–69 cm</td><td>87–91 cm</td></tr>
+          <tr><td>S</td><td>40/42</td><td>85–90 cm</td><td>70–75 cm</td><td>92–97 cm</td></tr>
+          <tr><td>M</td><td>44</td><td>90–95 cm</td><td>74–79 cm</td><td>97–100 cm</td></tr>
+          <tr><td>L</td><td>46/48</td><td>95–100 cm</td><td>80–84 cm</td><td>101–107 cm</td></tr>
+          <tr><td>XL</td><td>48/50</td><td>100–105 cm</td><td>85–90 cm</td><td>107–110 cm</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sp-section">
+      <div class="sp-section-title">Taglie Uomo</div>
+      <table class="sp-table">
+        <thead>
+          <tr>
+            <th>Taglia</th>
+            <th>It.</th>
+            <th>Torace</th>
+            <th>Vita</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>S</td><td>46</td><td>80–88 cm</td><td>75–79 cm</td></tr>
+          <tr><td>M</td><td>48</td><td>89–96 cm</td><td>80–84 cm</td></tr>
+          <tr><td>L</td><td>50</td><td>97–104 cm</td><td>85–90 cm</td></tr>
+          <tr><td>XL</td><td>52</td><td>105–115 cm</td><td>90–94 cm</td></tr>
+          <tr><td>XXL</td><td>54/56</td><td>115–120 cm</td><td>95–100 cm</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button class="sp-close" onclick="closeSizePopup()">Chiudi</button>
   </div>
 </div>
 
-<!-- FORM -->
-<div id="main">
-  <div class="hdr">
-    <span class="hdr-agency" id="hdr-agency">Casting Studio</span>
-    <h1>Candidatura</h1>
-    <p>Compila il modulo e carica le tue foto</p>
-  </div>
-
-  <div class="wrap">
-
-    <!-- ── DATI PERSONALI ── -->
-    <div class="sec">
-      <div class="sec-title">Dati personali</div>
-
-      <div class="grid-2" style="margin-bottom:12px">
-        <div class="field" id="f-nome">
-          <label>Nome *</label>
-          <input id="nome" type="text" placeholder="Sofia" autocomplete="given-name">
-          <span class="err">Obbligatorio</span>
-        </div>
-        <div class="field" id="f-cognome">
-          <label>Cognome *</label>
-          <input id="cognome" type="text" placeholder="Rossi" autocomplete="family-name">
-          <span class="err">Obbligatorio</span>
-        </div>
-      </div>
-
-      <div class="field" id="f-instagram" style="margin-bottom:12px">
-        <label>@ Instagram *</label>
-        <input id="instagram" type="text" placeholder="@sofiarossi" autocomplete="off">
-        <span class="hint">Con o senza @</span>
-        <span class="err">Obbligatorio</span>
-      </div>
-
-      <div class="field" id="f-telefono" style="margin-bottom:12px">
-        <label>Numero di cellulare *</label>
-        <input id="telefono" type="tel" placeholder="+39 333 0001234" autocomplete="tel" inputmode="tel">
-        <span class="err">Obbligatorio</span>
-      </div>
-
-      <div class="grid-2">
-        <div class="field" id="f-eta">
-          <label>Età *</label>
-          <input id="eta" type="number" placeholder="21" min="14" max="70" inputmode="numeric" oninput="onEta(this.value)">
-          <div id="eta-badge"></div>
-          <span class="err">Età: 14–70</span>
-        </div>
-        <div class="field" id="f-altezza_cm">
-          <label>Altezza (cm) *</label>
-          <input id="altezza_cm" type="number" placeholder="170" min="140" max="220" inputmode="numeric">
-          <span class="err">Obbligatorio</span>
-        </div>
-      </div>
-
-      <!-- Consenso genitori — solo per minorenni -->
-      <div id="consenso-box">
-        <p>⚠ Hai meno di 18 anni. È necessario il consenso di un genitore o tutore legale.</p>
-        <label class="cbox-row">
-          <input type="checkbox" id="consenso-check">
-          <span>Confermo di avere il consenso di un genitore o tutore legale, consapevole di questa candidatura.</span>
-        </label>
-        <div id="consenso-err">Devi confermare il consenso per procedere.</div>
-      </div>
-    </div>
-
-    <!-- ── MISURE ── -->
-    <div class="sec">
-      <div class="sec-title">Misure abbigliamento *</div>
-      <p style="font-size:11px;color:var(--ink3);margin-bottom:16px;line-height:1.6">
-        Tieni premuto (o passa il mouse) sulla taglia per vedere le misure corrispondenti.
-      </p>
-      <div class="size-group">
-        <div class="size-group-label">Parte superiore</div>
-        <div class="size-grid" id="grid-sup"></div>
-        <div class="size-err" id="err-sup">Seleziona la taglia superiore</div>
-      </div>
-      <div class="size-group">
-        <div class="size-group-label">Parte inferiore</div>
-        <div class="size-grid" id="grid-inf"></div>
-        <div class="size-err" id="err-inf">Seleziona la taglia inferiore</div>
-      </div>
-    </div>
-
-    <!-- ── DETTAGLI FISICI ── -->
-    <div class="sec">
-      <div class="sec-title">Dettagli fisici</div>
-
-      <!-- Toggle tatuaggi -->
-      <label class="toggle-row" onclick="toggleCheck('tatuaggi')">
-        <span class="toggle-label">Ho tatuaggi</span>
-        <div class="toggle-switch">
-          <input type="checkbox" id="tatuaggi">
-          <div class="toggle-track"></div>
-          <div class="toggle-thumb"></div>
-        </div>
-      </label>
-
-      <!-- Toggle piercing -->
-      <label class="toggle-row" onclick="toggleCheck('piercing')">
-        <span class="toggle-label">Ho piercing</span>
-        <div class="toggle-switch">
-          <input type="checkbox" id="piercing">
-          <div class="toggle-track"></div>
-          <div class="toggle-thumb"></div>
-        </div>
-      </label>
-    </div>
-
-    <!-- ── NOTE E DISPONIBILITÀ ── -->
-    <div class="sec">
-      <div class="sec-title">Note e disponibilità</div>
-
-      <div class="field" style="margin-bottom:12px">
-        <label>Orario di arrivo alla sfilata</label>
-        <input id="orario_arrivo" type="time" placeholder="09:00">
-        <span class="hint">Indica l'orario in cui puoi essere presente</span>
-      </div>
-
-      <div class="field">
-        <label>Note particolari (facoltativo)</label>
-        <textarea id="note_particolari" placeholder="Eventuali disagi, allergie al trucco, altre informazioni utili al casting…"></textarea>
-      </div>
-    </div>
-
-    <!-- ── FOTO ── -->
-    <div class="sec">
-      <div class="sec-title">Foto *</div>
-
-      <!-- Istruzioni chiare -->
-      <div class="foto-guide">
-        <div class="foto-guide-title">
-          <span>📷</span> Come caricare le foto
-        </div>
-        <ul>
-          <li><strong>2 foto richieste:</strong> un primo piano frontale e una foto di profilo (lato)</li>
-          <li>Puoi <strong>scattare con la fotocamera</strong> o <strong>scegliere dalla galleria</strong></li>
-          <li>Entrambe le foto ad <strong>altezza occhi</strong></li>
-          <li>Sfondo neutro o semplice, <strong>luce naturale</strong> preferibilmente</li>
-          <li><strong>Senza filtri</strong> — colori naturali, nessun effetto</li>
-          <li>Trucco base o al naturale — <strong>meglio al naturale</strong></li>
-          <li>Foto <strong>a colori</strong>, in buona risoluzione</li>
-        </ul>
-      </div>
-
-      <!-- Due slot foto fisse -->
-      <div class="foto-slots">
-        <!-- Slot 1: frontale -->
-        <div class="foto-slot" id="slot-0"
-          onclick="document.getElementById('phi-0').click()"
-          ondragover="onSlotDO(event,0)" ondragleave="onSlotDL(0)" ondrop="onSlotDP(event,0)">
-          <div class="foto-slot-icon">👤</div>
-          <div class="foto-slot-label">Primo piano<br><strong>frontale</strong></div>
-        </div>
-        <input type="file" id="phi-0" accept="image/*" style="display:none" onchange="setSlotPhoto(0,this.files[0])">
-
-        <!-- Slot 2: profilo -->
-        <div class="foto-slot" id="slot-1"
-          onclick="document.getElementById('phi-1').click()"
-          ondragover="onSlotDO(event,1)" ondragleave="onSlotDL(1)" ondrop="onSlotDP(event,1)">
-          <div class="foto-slot-icon">↙</div>
-          <div class="foto-slot-label">Foto di profilo<br><strong>(lato, occhi)</strong></div>
-        </div>
-        <input type="file" id="phi-1" accept="image/*" style="display:none" onchange="setSlotPhoto(1,this.files[0])">
-      </div>
-
-      <div id="ph-err">Carica entrambe le foto richieste</div>
-    </div>
-
-    <button class="btn-send" id="btn-send" onclick="doSubmit()">Invia candidatura</button>
-    <div id="up-status"></div>
-    <div id="form-err">Correggi i campi evidenziati prima di procedere.</div>
-    <p class="legal">I tuoi dati sono trattati in modo riservato e usati esclusivamente per il casting.<br>Non vengono condivisi con terze parti.</p>
-
+<!-- PDF PROGRESS -->
+<div id="pdf-overlay">
+  <div class="pdf-box">
+    <p>Generazione Book PDF</p>
+    <small id="pdf-status">Preparazione…</small>
+    <div class="pdf-progress"><div class="pdf-progress-bar" id="pdf-bar"></div></div>
   </div>
 </div>
-</div><!-- /form-wrapper -->
 
 <script>
-// ── Landing → Form transition ─────────────────────────────
-function goToForm() {
-  const landing = document.getElementById('landing');
-  const wrapper = document.getElementById('form-wrapper');
-  landing.classList.add('hiding');
-  setTimeout(() => {
-    landing.style.display = 'none';
-    wrapper.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, 380);
-}
+// ============================================================
+// STATE
+// ============================================================
+let candidates  = [];
+let brands      = [];
+let curBrand    = 'All';
+let showSLOnly  = false;
+let showArchived = false;
+let curC        = null;
+let filtersOpen = false;
+let debTimer;
+let lbPhotos=[], lbIdx=0;
 
-// ── Foto a 2 slot fissi ───────────────────────────────────
-const photos = [null, null]; // slot 0 = frontale, slot 1 = profilo
-
-const SLOT_LABELS = [
-  { icon:'👤', label:'Primo piano<br><strong>frontale</strong>', badge:'Frontale' },
-  { icon:'↙',  label:'Foto di profilo<br><strong>(lato, occhi)</strong>', badge:'Profilo' },
-];
-
-function setSlotPhoto(idx, file) {
-  if (!file) return;
-  if (photos[idx]?.preview) URL.revokeObjectURL(photos[idx].preview);
-  photos[idx] = { file, preview: URL.createObjectURL(file) };
-  renderSlot(idx);
-  document.getElementById('ph-err').style.display = 'none';
-  document.getElementById('slot-' + idx).classList.remove('has-error');
-}
-
-function removeSlotPhoto(idx) {
-  if (photos[idx]?.preview) URL.revokeObjectURL(photos[idx].preview);
-  photos[idx] = null;
-  renderSlot(idx);
-}
-
-function renderSlot(idx) {
-  const slot = document.getElementById('slot-' + idx);
-  const p    = photos[idx];
-  const info = SLOT_LABELS[idx];
-  if (p) {
-    slot.classList.add('has-photo');
-    slot.innerHTML = `
-      <img src="${p.preview}" alt="foto ${idx}">
-      <span class="foto-slot-badge">${info.badge}</span>
-      <button class="rm-photo" onclick="event.stopPropagation();removeSlotPhoto(${idx})" type="button">×</button>`;
+// ============================================================
+// LOGIN
+// ============================================================
+function doLogin(){
+  const pwd = document.getElementById('pwd').value;
+  if(!CONFIG.GALLERY_PASSWORD || pwd===CONFIG.GALLERY_PASSWORD){
+    document.getElementById('login').style.display='none';
+    document.getElementById('app').style.display='block';
+    const name = CONFIG.AGENCY_NAME||'Casting Board';
+    document.getElementById('app-brand').textContent = name;
+    document.getElementById('login-agency').textContent = name.toUpperCase();
+    init();
   } else {
-    slot.classList.remove('has-photo');
-    slot.innerHTML = `
-      <div class="foto-slot-icon">${info.icon}</div>
-      <div class="foto-slot-label">${info.label}</div>`;
+    document.getElementById('login-err').style.display='block';
   }
 }
 
-function onSlotDO(e, idx) { e.preventDefault(); document.getElementById('slot-' + idx).classList.add('drag-over'); }
-function onSlotDL(idx) { document.getElementById('slot-' + idx).classList.remove('drag-over'); }
-function onSlotDP(e, idx) {
-  e.preventDefault(); onSlotDL(idx);
-  const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
-  if (file) setSlotPhoto(idx, file);
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+  await loadBrands();
+  await loadCandidates();
 }
 
-// ── Toggle (tatuaggi / piercing) ─────────────────────────
-function toggleCheck(id) {
-  const cb = document.getElementById(id);
-  cb.checked = !cb.checked;
+// ============================================================
+// BRANDS
+// ============================================================
+async function loadBrands(){
+  const d = await apiGet({action:'getBrands'});
+  if(!d.ok) return;
+  brands = d.brands||[];
+  renderBrandBar();
+  renderBMList();
+}
+function renderBrandBar(){
+  const bar = document.getElementById('brand-bar');
+  const end = bar.querySelector('.brand-bar-end');
+  [...bar.querySelectorAll('.brand-tab:not([data-id="All"])')].forEach(el=>el.remove());
+  brands.forEach((b, idx)=>{
+    const cls = `brand-color-${idx%8}`;
+    const btn = document.createElement('button');
+    btn.className = `brand-tab ${cls}${curBrand===b.id?' active':''}`;
+    btn.dataset.id = b.id;
+    btn.innerHTML = `<span class="brand-tab-dot"></span>${esc(b.nome)}`;
+    btn.onclick = ()=>selBrand(b.id);
+    bar.insertBefore(btn, end);
+  });
+  bar.querySelector('.brand-tab[data-id="All"]').classList.toggle('active', curBrand==='All');
 }
 
-// ── Età ──────────────────────────────────────────────────
-function onEta(val) {
-  const n     = parseInt(val);
-  const badge = document.getElementById('eta-badge');
-  const cbox  = document.getElementById('consenso-box');
-  if (!val || isNaN(n)) { badge.className = ''; cbox.classList.remove('show'); return; }
-  if (n >= 18) { badge.textContent='✓ Maggiorenne'; badge.className='over'; cbox.classList.remove('show'); }
-  else         { badge.textContent='⚠ Minorenne';  badge.className='under'; cbox.classList.add('show'); }
+// ── Link book per stilista ────────────────────────────────
+function brandBookUrl(brandId) {
+  const base = window.location.href.replace(/gallery\.html.*$/, 'book.html');
+  return `${base}?brand=${encodeURIComponent(brandId)}`;
+}
+async function copyBrandLink(brandId, brandNome) {
+  const url = brandBookUrl(brandId);
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast(`Link per "${brandNome}" copiato! ✓`);
+  } catch(e) {
+    prompt(`Copia questo link per ${brandNome}:`, url);
+  }
+}
+function showToast(msg) {
+  let t = document.getElementById('_toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = '_toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--bg2);padding:10px 18px;border-radius:var(--r);font-size:12px;font-family:var(--sans);letter-spacing:0.04em;z-index:9999;opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.2);white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 2500);
+}
+function selBrand(id){ curBrand=id; renderBrandBar(); loadCandidates(); }
+function openBrandManager(){ renderBMList(); document.getElementById('bm-modal').classList.add('open'); }
+function closeBM(){ document.getElementById('bm-modal').classList.remove('open'); }
+function renderBMList(){
+  const list=document.getElementById('bm-list');
+  if(!brands.length){
+    list.innerHTML='<div style="color:var(--ink3);font-size:11px;padding:8px 0">Nessun brand ancora</div>';
+    return;
+  }
+  list.innerHTML=brands.map(b=>`
+    <div class="bm-item">
+      <span style="flex:1">${esc(b.nome)}</span>
+      <button
+        onclick="copyBrandLink('${b.id}','${esc(b.nome)}')"
+        title="Copia link stilista"
+        style="background:none;border:1px solid var(--rule2);border-radius:var(--r);
+               color:var(--ink3);cursor:pointer;font-size:10px;padding:3px 8px;
+               margin-right:4px;font-family:var(--sans);letter-spacing:0.04em;
+               transition:all 0.15s;white-space:nowrap"
+        onmouseover="this.style.color='var(--ink)';this.style.borderColor='var(--rule3)'"
+        onmouseout="this.style.color='var(--ink3)';this.style.borderColor='var(--rule2)'">
+        🔗 Link
+      </button>
+      <button class="bm-del" onclick="deleteBrand('${b.id}','${esc(b.nome)}')" title="Elimina">×</button>
+    </div>`).join('');
+}
+async function createBrand(){
+  const inp=document.getElementById('bm-inp');
+  const nome=inp.value.trim(); if(!nome)return;
+  inp.value='';
+  const d=await apiPost({action:'createBrand',nome});
+  if(d.ok){ brands.push({id:d.id,nome}); renderBrandBar(); renderBMList(); }
+}
+async function deleteBrand(id,nome){
+  if(!confirm(`Eliminare "${nome}"?`)) return;
+  await apiPost({action:'deleteBrand',brandId:id});
+  brands=brands.filter(b=>b.id!==id);
+  if(curBrand===id) curBrand='All';
+  candidates=candidates.map(c=>({...c,brand_ids:(c.brand_ids||[]).filter(bid=>bid!==id)}));
+  renderBrandBar(); renderBMList(); renderGallery(candidates);
 }
 
-// ── Taglie ────────────────────────────────────────────────
-function buildSizeGrid(containerId, groupName) {
-  document.getElementById(containerId).innerHTML = SIZES.map(sz => {
-    const info = SIZE_INFO[sz];
-    return `
-    <div class="sopt">
-      <input type="radio" name="${groupName}" id="${groupName}-${sz}" value="${sz}">
-      <label for="${groupName}-${sz}">
-        ${sz}
-        <span class="tip"><strong>Donna:</strong> ${info.donna}<br><strong>Uomo:</strong> ${info.uomo}</span>
-      </label>
-    </div>`;
+// ============================================================
+// CANDIDATES — LOAD
+// ============================================================
+async function loadCandidates(){
+  document.getElementById('gallery').innerHTML='<div class="state"><span class="spinner"></span> Caricamento…</div>';
+  const d = await apiGet({
+    action:      'getCandidates',
+    search:      document.getElementById('q').value.trim(),
+    status:      document.getElementById('f-status').value,
+    maggiorenne: document.getElementById('f-maggiorenne').value,
+    brand:       curBrand,
+    minH:        document.getElementById('f-minh').value,
+    maxH:        document.getElementById('f-maxh').value,
+    shortlisted: showSLOnly?'true':'false',
+    showArchived: showArchived?'true':'false',
+  });
+  if(!d.ok){
+    document.getElementById('gallery').innerHTML=
+      `<div class="state"><h3>Errore</h3><p>${esc(d.error||'Risposta non valida dal server')}</p></div>`;
+    console.error('API error:', d);
+    return;
+  }
+  candidates = d.candidates||[];
+  const bn = curBrand!=='All'?(' — '+(brands.find(b=>b.id===curBrand)?.nome||'')):'';
+  document.getElementById('count-lbl').textContent=
+    ` ${d.total} candidat${d.total===1?'o':'i'}${bn}${showSLOnly?' · shortlist':''}`;
+  renderGallery(candidates);
+}
+function debounce(){ clearTimeout(debTimer); debTimer=setTimeout(loadCandidates,300); }
+function reload(){ loadCandidates(); }
+
+// ============================================================
+// GALLERY RENDER
+// ============================================================
+function renderGallery(list){
+  if(!list.length){
+    document.getElementById('gallery').innerHTML=
+      '<div class="state"><h3>Nessun candidato</h3><p>Prova a modificare i filtri.</p></div>';
+    return;
+  }
+  document.getElementById('gallery').innerHTML = list.map(cardHTML).join('');
+}
+
+function cardHTML(c){
+  // FIX: legge sia taglia_sup (nuovo) sia taglia (legacy)
+  const tagliaSup = c.taglia_sup || c.taglia || '';
+  const tagliaInf = c.taglia_inf || '';
+  const tagliaStr = [tagliaSup?'↑'+tagliaSup:'', tagliaInf?'↓'+tagliaInf:''].filter(Boolean).join(' ');
+
+  const cover    = c.cover_url || (c.photo_urls&&c.photo_urls[0]) || '';
+  const sl       = c.is_shortlisted;
+  const sLbl     = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[c.status]||c.status;
+  const isArchived = c.status === 'archived';
+  const cBrands  = (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
+  const isMinor  = c.maggiorenne===false || c.maggiorenne==='FALSE';
+
+  // Info nella card: instagram · età · altezza · taglia
+  const subParts = [
+    c.instagram ? esc(c.instagram) : '',
+    c.eta       ? c.eta+'a'        : '',
+    c.altezza_cm? c.altezza_cm+'cm': '',
+    tagliaStr,
+  ].filter(Boolean);
+
+  return `
+  <div class="card${sl?' sl':''}${isArchived?' archived-card':''}" onclick="openDrawer('${c.id}')">
+    <div class="card-photo">
+      ${cover
+        ? `<img src="${cover}" loading="lazy" alt="${esc(c.nome)}"
+             onerror="this.parentElement.innerHTML='<div class=no-ph>Nessuna foto</div>'">`
+        : '<div class="no-ph">Nessuna foto</div>'
+      }
+      <div class="card-overlay"></div>
+      ${cBrands.length
+        ? `<div class="card-brand-pills">${cBrands.slice(0,2).map(n=>`<span class="card-brand-pill">${esc(n)}</span>`).join('')}</div>`
+        : ''}
+      <button class="star-btn${sl?' on':''}"
+        onclick="event.stopPropagation();toggleSL_card('${c.id}',${sl})"
+        title="${sl?'Rimuovi shortlist':'Aggiungi shortlist'}">★</button>
+      <span class="status-badge s-${c.status||'pending'}">${sLbl}</span>
+      ${isMinor ? '<span class="minor-badge">Minorenne</span>' : ''}
+    </div>
+    <div class="card-info">
+      <div class="card-name">${esc(c.nome||'')} ${esc(c.cognome||'')}</div>
+      <div class="card-sub">${subParts.join(' · ')}</div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// SHORTLIST
+// ============================================================
+async function toggleSL_card(id,cur){
+  const nv=!cur;
+  candidates=candidates.map(c=>c.id===id?{...c,is_shortlisted:nv}:c);
+  renderGallery(candidates);
+  if(curC?.id===id){ curC.is_shortlisted=nv; updateDrawerSLBtn(nv); }
+  await apiPost({action:'toggleShortlist',candidateId:id,value:nv});
+}
+function updateDrawerSLBtn(v){
+  const btn=document.getElementById('dr-sl-btn');
+  if(!btn)return;
+  btn.className=`sl-btn ${v?'sl-on':'sl-off'}`;
+  btn.textContent=v?'★ In shortlist':'☆ Shortlist';
+}
+async function updateStatus(id,status){
+  candidates=candidates.map(c=>c.id===id?{...c,status}:c);
+  renderGallery(candidates);
+  await apiPost({action:'updateStatus',candidateId:id,status});
+}
+function toggleSL(){
+  showSLOnly=!showSLOnly;
+  document.getElementById('sl-btn').className=`tbtn ${showSLOnly?'tbtn-active':'tbtn-ghost'}`;
+  loadCandidates();
+}
+function toggleArchived(){
+  showArchived=!showArchived;
+  document.getElementById('arch-btn').className=`tbtn tbtn-hide-sm ${showArchived?'tbtn-active':'tbtn-ghost'}`;
+  loadCandidates();
+}
+
+// ── Archivia / Ripristina ─────────────────────────────────
+async function archiveCandidate(id, isCurrentlyArchived) {
+  const newStatus = isCurrentlyArchived ? 'pending' : 'archived';
+  candidates = candidates.map(c => c.id===id ? {...c, status:newStatus} : c);
+  if (!showArchived && newStatus === 'archived') {
+    candidates = candidates.filter(c => c.id !== id);
+  }
+  renderGallery(candidates);
+  closeDrawer();
+  await apiPost({ action:'updateStatus', candidateId:id, status:newStatus });
+}
+
+// ── Elimina definitivamente ───────────────────────────────
+async function deleteCandidate(id, nome) {
+  const confirmed = confirm(
+    `Eliminare definitivamente "${nome}"?\n\nQuesta azione è irreversibile — il profilo e le foto verranno rimossi.`
+  );
+  if (!confirmed) return;
+  candidates = candidates.filter(c => c.id !== id);
+  renderGallery(candidates);
+  closeDrawer();
+  const res = await apiPost({ action:'deleteCandidate', candidateId:id });
+  if (!res.ok) {
+    alert('Errore durante l\'eliminazione: ' + (res.error||'sconosciuto'));
+    loadCandidates();
+  }
+}
+
+// ============================================================
+// BRAND ASSIGN (dal drawer)
+// ============================================================
+async function toggleBrandAssign(cid,bid,assigned){
+  const assign=!assigned;
+  candidates=candidates.map(c=>{
+    if(c.id!==cid)return c;
+    const ids=c.brand_ids||[];
+    return{...c,brand_ids:assign?[...ids,bid]:ids.filter(id=>id!==bid)};
+  });
+  if(curC?.id===cid){
+    const ids=curC.brand_ids||[];
+    curC.brand_ids=assign?[...ids,bid]:ids.filter(id=>id!==bid);
+    renderBrandChips(cid);
+  }
+  renderGallery(candidates);
+  await apiPost({action:'assignBrand',candidateId:cid,brandId:bid,assign});
+}
+function renderBrandChips(cid){
+  const c=candidates.find(x=>x.id===cid);
+  const el=document.getElementById('brand-chips');
+  if(!c||!el)return;
+  if(!brands.length){
+    el.innerHTML='<span style="color:var(--ink3);font-size:11px">Nessun brand. Creane uno.</span>';
+    return;
+  }
+  el.innerHTML=brands.map(b=>{
+    const on=(c.brand_ids||[]).includes(b.id);
+    return`<button class="bchip ${on?'bchip-on':'bchip-off'}"
+      onclick="toggleBrandAssign('${cid}','${b.id}',${on})">
+      ${on?'✓':'+'}  ${esc(b.nome)}
+    </button>`;
   }).join('');
 }
 
-// ── Init ─────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  buildSizeGrid('grid-sup', 'ts');
-  buildSizeGrid('grid-inf', 'ti');
-  document.getElementById('hdr-agency').textContent =
-    (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
+// ============================================================
+// DRAWER
+// ============================================================
+function openDrawer(id){
+  const c=candidates.find(x=>x.id===id);
+  if(!c)return;
+  curC=c;
+
+  // FIX: legge sia taglia_sup (nuovo) sia taglia (legacy)
+  const tagliaSup = c.taglia_sup || c.taglia || '—';
+  const tagliaInf = c.taglia_inf || '—';
+  const isMinor   = c.maggiorenne===false || String(c.maggiorenne).toUpperCase()==='FALSE';
+
+  document.getElementById('dr-name').textContent=`${c.nome||''} ${c.cognome||''}`;
+  document.getElementById('dr-sub').textContent=[
+    c.instagram||'',
+    c.eta?(c.eta+' anni'+' · '+(isMinor?'Minorenne':'Maggiorenne')):'',
+    c.altezza_cm?c.altezza_cm+' cm':'',
+  ].filter(Boolean).join(' · ');
+
+  const photos=c.photo_urls||[];
+  const sl=c.is_shortlisted;
+  const ig=c.instagram?.replace('@','')||null;
+
+  document.getElementById('dr-content').innerHTML=`
+    <div class="dr-hero" onclick="openLB(${JSON.stringify(photos)},0)">
+      ${photos[0]
+        ?`<img id="dr-hero-img" src="${photos[0]}" alt="${esc(c.nome)}">`
+        :'<div style="height:280px;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Nessuna foto</div>'}
+      ${photos.length>1?`<div class="dr-hero-badge">Tap per aprire · ${photos.length} foto</div>`:''}
+    </div>
+    ${photos.length>1?`
+    <div class="dr-strip" id="dr-strip">
+      ${photos.map((u,i)=>`
+        <div class="dr-thumb${i===0?' active-t':''}" id="dt-${i}" onclick="switchPhoto(${i})">
+          <img src="${u}" loading="lazy">
+        </div>`).join('')}
+    </div>`:''}
+
+    <div class="dr-body">
+      <div class="dr-actions">
+        <button class="sl-btn ${sl?'sl-on':'sl-off'}" id="dr-sl-btn" onclick="toggleSL_card('${c.id}',${sl})">
+          ${sl?'★ In shortlist':'☆ Shortlist'}
+        </button>
+        <select class="status-sel" onchange="updateStatus('${c.id}',this.value)">
+          ${['pending','shortlisted','booked','rejected','archived'].map(s=>
+            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[s]}</option>`
+          ).join('')}
+        </select>
+      </div>
+
+      <!-- Azioni rapide archivia / elimina -->
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button
+          onclick="archiveCandidate('${c.id}',${c.status==='archived'})"
+          style="flex:1;padding:8px;background:${c.status==='archived'?'rgba(154,123,79,0.1)':'transparent'};
+                 border:1px solid ${c.status==='archived'?'rgba(154,123,79,0.3)':'var(--rule2)'};
+                 color:${c.status==='archived'?'var(--gold2)':'var(--ink3)'};
+                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
+                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s">
+          ${c.status==='archived'?'↩ Ripristina':'📦 Archivia'}
+        </button>
+        <button
+          onclick="deleteCandidate('${c.id}','${esc(c.nome)} ${esc(c.cognome)}')"
+          style="padding:8px 12px;background:transparent;
+                 border:1px solid rgba(160,64,64,0.3);color:var(--red);
+                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
+                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
+          title="Elimina definitivamente">
+          🗑 Elimina
+        </button>
+      </div>
+
+      <!-- Dati anagrafici -->
+      <div class="icard">
+        <div class="icard-head">
+          Dati personali
+          ${isMinor?'<span style="background:rgba(176,120,48,0.15);color:var(--amber);font-size:9px;padding:2px 7px;border-radius:2px;font-weight:500;letter-spacing:0.07em">MINORENNE</span>':''}
+        </div>
+        <div class="icard-body">
+          ${c.eta?`<div class="irow"><span class="lbl">Età</span><span class="val">${c.eta} anni</span></div>`:''}
+          ${c.altezza_cm?`<div class="irow"><span class="lbl">Altezza</span><span class="val val-big">${c.altezza_cm} cm</span></div>`:''}
+          ${c.instagram?`<div class="irow"><span class="lbl">Instagram</span><span class="val"><a href="https://instagram.com/${esc(ig)}" target="_blank">${esc(c.instagram)}</a></span></div>`:''}
+        </div>
+      </div>
+
+      <!-- Misure -->
+      <div class="icard">
+        <div class="icard-head">
+          Misure abbigliamento
+          <button class="info-btn" onclick="openSizePopup()" title="Guida taglie">i</button>
+        </div>
+        <div class="icard-body">
+          <div class="irow">
+            <span class="lbl">Superiore</span>
+            <span class="val val-big">${esc(tagliaSup)}</span>
+          </div>
+          <div class="irow">
+            <span class="lbl">Inferiore</span>
+            <span class="val val-big">${esc(tagliaInf)}</span>
+          </div>
+        </div>
+      </div>
+
+      ${c.note_particolari?`
+      <div class="icard">
+        <div class="icard-head">Note particolari</div>
+        <div class="icard-body">
+          <p style="font-size:12px;color:var(--ink2);line-height:1.7;white-space:pre-wrap">${esc(c.note_particolari)}</p>
+        </div>
+      </div>`:''}
+
+      <div class="icard">
+        <div class="icard-head">Brand assegnati</div>
+        <div class="icard-body">
+          <div class="brand-chips" id="brand-chips"></div>
+        </div>
+      </div>
+
+      <button
+        onclick="startPdfExport([candidates.find(x=>x.id==='${c.id}')])"
+        style="width:100%;margin-top:6px;padding:9px;background:transparent;
+               border:1px solid var(--rule2);color:var(--ink3);border-radius:var(--r);
+               cursor:pointer;font-size:10px;font-family:var(--sans);
+               letter-spacing:0.08em;text-transform:uppercase;transition:all 0.15s"
+        onmouseover="this.style.color='var(--ink)';this.style.borderColor='var(--rule3)'"
+        onmouseout="this.style.color='var(--ink3)';this.style.borderColor='var(--rule2)'">
+        ↓ Esporta scheda PDF
+      </button>
+
+      <div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>
+    </div>`;
+
+  renderBrandChips(c.id);
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('ov').classList.add('open');
+}
+
+function switchPhoto(idx){
+  if(!curC)return;
+  const photos=curC.photo_urls||[];
+  const heroImg=document.getElementById('dr-hero-img');
+  if(heroImg) heroImg.src=photos[idx];
+  document.querySelectorAll('[id^="dt-"]').forEach((el,i)=>{
+    el.classList.toggle('active-t',i===idx);
+  });
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('ov').classList.remove('open');
+  curC=null;
+}
+
+// ============================================================
+// LIGHTBOX
+// ============================================================
+function openLB(photos,idx){
+  lbPhotos=photos; lbIdx=idx;
+  document.getElementById('lb-img').src=photos[idx];
+  document.getElementById('lb-counter').textContent=photos.length>1?`${idx+1} / ${photos.length}`:'';
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB(){ document.getElementById('lb').classList.remove('open'); }
+function lbNav(d){
+  lbIdx=(lbIdx+d+lbPhotos.length)%lbPhotos.length;
+  document.getElementById('lb-img').src=lbPhotos[lbIdx];
+  document.getElementById('lb-counter').textContent=`${lbIdx+1} / ${lbPhotos.length}`;
+}
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('lb').classList.contains('open')){
+    if(e.key==='ArrowLeft')lbNav(-1);
+    if(e.key==='ArrowRight')lbNav(1);
+    if(e.key==='Escape')closeLB();
+  } else if(e.key==='Escape') closeDrawer();
 });
 
-// ── Helpers ───────────────────────────────────────────────
-function g(id) { return (document.getElementById(id)?.value || '').trim(); }
-function setE(id, msg) {
-  const w = document.getElementById('f-' + id); if (!w) return;
-  w.classList.add('has-error');
-  const e = w.querySelector('.err'); if (e && msg) e.textContent = msg;
+// ============================================================
+// POPUP TAGLIE
+// ============================================================
+function openSizePopup(){ document.getElementById('size-popup').classList.add('open'); }
+function closeSizePopup(){ document.getElementById('size-popup').classList.remove('open'); }
+
+// ============================================================
+// FILTERS
+// ============================================================
+function toggleFilters(){
+  filtersOpen=!filtersOpen;
+  document.getElementById('filter-panel').classList.toggle('open',filtersOpen);
+  document.getElementById('filter-btn').className=`tbtn ${filtersOpen?'tbtn-active':'tbtn-ghost'}`;
+  updateFBadge();
 }
-function clrE(id) { document.getElementById('f-' + id)?.classList.remove('has-error'); }
-function getSup() { return document.querySelector('input[name="ts"]:checked')?.value || ''; }
-function getInf() { return document.querySelector('input[name="ti"]:checked')?.value || ''; }
-function isChecked(id) { return document.getElementById(id)?.checked || false; }
-
-// ── Validazione ───────────────────────────────────────────
-function validate() {
-  let ok = true;
-  ['nome','cognome','instagram','telefono','eta','altezza_cm'].forEach(f => {
-    clrE(f); if (!g(f)) { setE(f, 'Obbligatorio'); ok = false; }
-  });
-  const eta = parseInt(g('eta'));
-  if (g('eta') && (isNaN(eta) || eta < 14 || eta > 70)) { setE('eta', 'Età: 14–70'); ok = false; }
-
-  if (!isNaN(eta) && eta < 18) {
-    const check = document.getElementById('consenso-check');
-    const err   = document.getElementById('consenso-err');
-    if (!check.checked) { err.classList.add('show'); ok = false; }
-    else err.classList.remove('show');
-  }
-
-  const supErr = document.getElementById('err-sup');
-  const infErr = document.getElementById('err-inf');
-  if (!getSup()) { supErr.classList.add('show'); ok = false; } else supErr.classList.remove('show');
-  if (!getInf()) { infErr.classList.add('show'); ok = false; } else infErr.classList.remove('show');
-
-  // Entrambe le foto obbligatorie
-  const missingPhoto = photos[0] === null || photos[1] === null;
-  if (missingPhoto) {
-    document.getElementById('ph-err').style.display = 'block';
-    if (!photos[0]) document.getElementById('slot-0').classList.add('has-error');
-    if (!photos[1]) document.getElementById('slot-1').classList.add('has-error');
-    ok = false;
-  }
-  return ok;
+function updateFBadge(){
+  const n=[
+    document.getElementById('f-status').value!=='All',
+    document.getElementById('f-maggiorenne').value!=='All',
+    !!document.getElementById('f-minh').value,
+    !!document.getElementById('f-maxh').value,
+  ].filter(Boolean).length;
+  const b=document.getElementById('fbadge');
+  b.style.display=n?'inline-flex':'none';
+  b.textContent=n;
 }
+function clearFilters(){
+  document.getElementById('f-status').value='All';
+  document.getElementById('f-maggiorenne').value='All';
+  document.getElementById('f-minh').value='';
+  document.getElementById('f-maxh').value='';
+  updateFBadge(); loadCandidates();
+}
+['f-status','f-maggiorenne','f-minh','f-maxh'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change',updateFBadge);
+  document.getElementById(id)?.addEventListener('input',updateFBadge);
+});
 
-// ── Submit ────────────────────────────────────────────────
-async function doSubmit() {
-  document.getElementById('form-err').style.display = 'none';
-  if (!validate()) {
-    document.getElementById('form-err').style.display = 'block';
-    (document.querySelector('.has-error') ||
-     document.querySelector('.size-err.show') ||
-     document.querySelector('#consenso-err.show') ||
-     document.querySelector('.foto-slot.has-error'))
-    ?.scrollIntoView({ behavior:'smooth', block:'center' });
-    return;
-  }
+// ============================================================
+// PDF BOOK EXPORT
+// ============================================================
+async function startPdfExport(list){
+  const toExport=list||candidates;
+  if(!toExport.length){ alert('Nessun candidato da esportare.'); return; }
+  const overlay=document.getElementById('pdf-overlay');
+  const bar=document.getElementById('pdf-bar');
+  overlay.classList.add('open');
+  setPdfP(0,'Inizializzazione…');
 
-  const btn = document.getElementById('btn-send');
-  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Invio…';
-  setBar(10);
+  try{
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const W=210,H=297;
 
-  const eta = parseInt(g('eta'));
-  const data = {
-    nome:            g('nome'),
-    cognome:         g('cognome'),
-    instagram:       g('instagram'),
-    telefono:        g('telefono'),
-    eta,
-    maggiorenne:     eta >= 18,
-    altezza_cm:      parseFloat(g('altezza_cm')),
-    taglia_sup:      getSup(),
-    taglia_inf:      getInf(),
-    tatuaggi:        isChecked('tatuaggi'),
-    piercing:        isChecked('piercing'),
-    orario_arrivo:   g('orario_arrivo'),
-    note_particolari:g('note_particolari'),
-  };
+    for(let i=0;i<toExport.length;i++){
+      const c=toExport[i];
+      setPdfP(Math.round(i/toExport.length*90),`Scheda ${i+1}/${toExport.length}: ${c.nome} ${c.cognome}`);
+      if(i>0) pdf.addPage();
 
-  try {
-    setStatus('Salvataggio dati…');
-    const r = await post({ action:'submit', data });
-    if (!r.ok) throw new Error(r.error || 'Errore salvataggio dati');
-    const cid = r.id;
-    setBar(20);
+      const tagliaSup=c.taglia_sup||c.taglia||'—';
+      const tagliaInf=c.taglia_inf||'—';
+      const isMinor=c.maggiorenne===false||String(c.maggiorenne).toUpperCase()==='FALSE';
 
-    // Carica le 2 foto nell'ordine: frontale (0), profilo (1)
-    for (let i = 0; i < photos.length; i++) {
-      if (!photos[i]) continue;
-      const labels = ['frontale', 'profilo'];
-      setStatus(`Caricamento foto ${labels[i]}…`);
-      btn.innerHTML = `<div class="spinner"></div> Foto ${i+1}/2…`;
-      const b64 = await toB64(photos[i].file);
-      const ext = photos[i].file.name.split('.').pop() || 'jpg';
-      const res = await post({
-        action:'uploadPhoto', candidateId:cid,
-        fileName:`${labels[i]}-${Date.now()}.${ext}`,
-        mimeType:photos[i].file.type, base64Data:b64,
+      // Background
+      pdf.setFillColor(247,245,242); pdf.rect(0,0,W,H,'F');
+
+      // Header line
+      pdf.setDrawColor(154,123,79); pdf.setLineWidth(0.4);
+      pdf.line(12,14,W-12,14);
+
+      // Agency
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(6.5);
+      pdf.setTextColor(154,123,79); pdf.setCharSpace(2);
+      pdf.text((CONFIG.AGENCY_NAME||'CASTING').toUpperCase(),W/2,10,{align:'center'});
+      pdf.setCharSpace(0);
+
+      // Photo left column
+      const px=12,py=20,pw=88,ph=117;
+      pdf.setFillColor(224,220,215);
+      pdf.rect(px,py,pw,ph,'F');
+      const photoUrl = c.cover_url || (c.photo_urls&&c.photo_urls[0]) || '';
+      const photoFid = c.cover_file_id || (c.photo_file_ids&&c.photo_file_ids[0]) || null;
+      if(photoUrl){
+        try{
+          // Timeout 12 secondi per foto — se supera mostra placeholder
+          const imgData = await Promise.race([
+            loadImgB64(photoUrl, photoFid),
+            new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),12000))
+          ]);
+          pdf.addImage(imgData,'JPEG',px,py,pw,ph,'','FAST');
+        }catch(e){
+          console.warn('Foto principale non caricata:',e.message);
+          pdf.setFillColor(224,220,215);pdf.rect(px,py,pw,ph,'F');
+          pdf.setFontSize(7);pdf.setTextColor(160,155,150);
+          pdf.text('Foto non disponibile',px+pw/2,py+ph/2,{align:'center'});
+        }
+      }
+      pdf.setDrawColor(200,195,188); pdf.setLineWidth(0.2);
+      pdf.rect(px,py,pw,ph,'S');
+
+      // Foto aggiuntive strip
+      if(c.photo_urls&&c.photo_urls.length>1){
+        const sy=py+ph+3,sh=30;
+        const sw=(pw/Math.min(c.photo_urls.length-1,4))-1.5;
+        for(let j=1;j<Math.min(c.photo_urls.length,5);j++){
+          const sx=px+(j-1)*(sw+1.5);
+          pdf.setFillColor(224,220,215);pdf.rect(sx,sy,sw,sh,'F');
+          try{
+            const fid2   = c.photo_file_ids&&c.photo_file_ids[j]||null;
+            const imgData2 = await Promise.race([
+              loadImgB64(c.photo_urls[j], fid2),
+              new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
+            ]);
+            pdf.addImage(imgData2,'JPEG',sx,sy,sw,sh,'','FAST');
+          }catch(e){ console.warn('Foto strip non caricata:',e.message); }
+          pdf.setDrawColor(200,195,188);pdf.setLineWidth(0.15);
+          pdf.rect(sx,sy,sw,sh,'S');
+        }
+      }
+
+      // Right column
+      const rx=108,ry=20,rw=90;
+      pdf.setFont('times','italic'); pdf.setFontSize(24);
+      pdf.setTextColor(26,24,20);
+      pdf.text(c.nome||'',rx,ry+10);
+      pdf.setFont('times','normal'); pdf.setFontSize(18);
+      pdf.setTextColor(74,71,68);
+      pdf.text((c.cognome||'').toUpperCase(),rx,ry+19);
+
+      pdf.setDrawColor(200,195,188); pdf.setLineWidth(0.3);
+      pdf.line(rx,ry+23,rx+rw,ry+23);
+
+      if(c.instagram){
+        pdf.setFont('helvetica','normal');pdf.setFontSize(8);
+        pdf.setTextColor(154,123,79);pdf.setCharSpace(0.3);
+        pdf.text(c.instagram,rx,ry+30);pdf.setCharSpace(0);
+      }
+
+      let my=ry+44;
+      const fields=[
+        {l:'ETA`', v:c.eta?(c.eta+' anni'+(isMinor?' (minorenne)':'')):'—'},
+        {l:'ALTEZZA', v:c.altezza_cm?c.altezza_cm+' cm':'—'},
+        {l:'TAGLIA SUP.', v:tagliaSup},
+        {l:'TAGLIA INF.', v:tagliaInf},
+      ];
+      fields.forEach(f=>{
+        pdf.setFont('helvetica','normal');pdf.setFontSize(6);
+        pdf.setTextColor(138,135,133);pdf.setCharSpace(1.2);
+        pdf.text(f.l,rx,my);pdf.setCharSpace(0);
+        pdf.setFont('times','normal');pdf.setFontSize(14);
+        pdf.setTextColor(26,24,20);
+        pdf.text(String(f.v),rx,my+6.5);
+        pdf.setDrawColor(224,220,215);pdf.setLineWidth(0.2);
+        pdf.line(rx,my+10,rx+rw,my+10);
+        my+=17;
       });
-      if (!res.ok) throw new Error(res.error || 'Errore upload foto');
-      setBar(20 + Math.round((i + 1) / 2 * 75));
+
+      if(c.note_particolari){
+        my+=3;
+        pdf.setFont('helvetica','normal');pdf.setFontSize(6);
+        pdf.setTextColor(138,135,133);pdf.setCharSpace(1.2);
+        pdf.text('NOTE',rx,my);pdf.setCharSpace(0);
+        my+=5;
+        pdf.setFont('helvetica','normal');pdf.setFontSize(8);
+        pdf.setTextColor(74,71,68);
+        pdf.splitTextToSize(c.note_particolari,rw).slice(0,4).forEach(line=>{
+          pdf.text(line,rx,my); my+=4.2;
+        });
+      }
+
+      const cBrands=(c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
+      if(cBrands.length){
+        my=Math.max(my,ry+110);
+        pdf.setFont('helvetica','normal');pdf.setFontSize(6);
+        pdf.setTextColor(138,135,133);pdf.setCharSpace(1.2);
+        pdf.text('BRAND',rx,my);pdf.setCharSpace(0);
+        my+=5;
+        cBrands.forEach(bn=>{
+          const bw=pdf.getTextWidth(bn)+6;
+          pdf.setFillColor(232,238,245);pdf.setDrawColor(100,140,180);
+          pdf.setLineWidth(0.15);pdf.roundedRect(rx,my-3.5,bw,5.5,1,1,'FD');
+          pdf.setFont('helvetica','normal');pdf.setFontSize(7);
+          pdf.setTextColor(58,106,154);
+          pdf.text(bn,rx+3,my+0.7);
+          my+=7.5;
+        });
+      }
+
+      // Status
+      const sc={
+        pending:[240,237,233,138,135,133],
+        shortlisted:[249,244,236,154,123,79],
+        booked:[232,244,238,61,138,98],
+        rejected:[244,234,234,160,64,64],
+      }[c.status]||[240,237,233,138,135,133];
+      const sLbl={pending:'IN ATTESA',shortlisted:'SHORTLIST',booked:'CONFERMATO',rejected:'RIFIUTATO'}[c.status]||'—';
+      pdf.setFillColor(sc[0],sc[1],sc[2]);
+      const slw=pdf.getTextWidth(sLbl)+8;
+      pdf.roundedRect(W-12-slw,H-22,slw,6,1,1,'F');
+      pdf.setFont('helvetica','bold');pdf.setFontSize(6);
+      pdf.setCharSpace(0.8);
+      pdf.setTextColor(sc[3],sc[4],sc[5]);
+      pdf.text(sLbl,W-12-slw+4,H-17.5);
+      pdf.setCharSpace(0);
+
+      // Page num
+      pdf.setFont('helvetica','normal');pdf.setFontSize(7);
+      pdf.setTextColor(180,177,174);
+      pdf.text(`${i+1} / ${toExport.length}`,W/2,H-6,{align:'center'});
+
+      // Footer line
+      pdf.setDrawColor(154,123,79);pdf.setLineWidth(0.4);
+      pdf.line(12,H-14,W-12,H-14);
     }
 
-    setBar(100);
-    document.getElementById('main').style.display = 'none';
-    document.getElementById('state-ok').style.display = 'flex';
-
-  } catch (err) {
-    console.error('SUBMIT ERROR:', err);
-    document.getElementById('main').style.display = 'none';
-    document.getElementById('err-msg').textContent = err.message || 'Errore imprevisto. Riprova.';
-    document.getElementById('state-err').style.display = 'flex';
+    setPdfP(98,'Salvataggio…');
+    pdf.save(`casting-book-${new Date().toISOString().slice(0,10)}.pdf`);
+    setPdfP(100,'Completato!');
+    setTimeout(()=>document.getElementById('pdf-overlay').classList.remove('open'),1200);
+  }catch(err){
+    console.error(err);
+    document.getElementById('pdf-overlay').classList.remove('open');
+    alert('Errore PDF: '+err.message);
   }
 }
 
-async function post(payload) {
-  const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+function setPdfP(pct,msg){
+  document.getElementById('pdf-bar').style.width=pct+'%';
+  document.getElementById('pdf-status').textContent=msg;
+}
+
+// ── Carica immagine per jsPDF ────────────────────────────────────────────────
+// Strategia a 3 livelli:
+// 1. fetch() dell'URL con mode:'no-cors' → blob → FileReader (funziona se Drive
+//    serve l'immagine senza blocco CORS sul blob fetch — spesso funziona)
+// 2. Crea un <img> nel DOM, aspetta onload, lo disegna su canvas.
+//    Funziona quando l'immagine è già in cache del browser.
+// 3. Se entrambi falliscono → richiama il proxy Apps Script (getImageBase64).
+//    Richiede il deploy del nuovo Code.gs v5.1.
+// In tutti i casi: se tutto fallisce → placeholder, il PDF continua ugualmente.
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadImgB64(url, fileId) {
+  // Strategia 1: fetch con credentials omit — spesso Google Drive thumbnail
+  // risponde correttamente con CORS quando il file è pubblico
+  try {
+    const res = await fetch(url, { mode: 'cors', credentials: 'omit' });
+    if (res.ok) {
+      const blob   = await res.blob();
+      const b64    = await blobToB64(blob);
+      if (b64) return b64;
+    }
+  } catch (_) {}
+
+  // Strategia 2: crea <img> nel DOM (usa la cache del browser)
+  try {
+    const b64 = await imgElementToB64(url);
+    if (b64) return b64;
+  } catch (_) {}
+
+  // Strategia 3: proxy tramite Apps Script (richiede Code.gs v5.1 deployato)
+  try {
+    const params = { action: 'getImageBase64', token: CONFIG.TOKEN };
+    if (fileId) { params.fileId = fileId; } else { params.url = url; }
+    const qs   = new URLSearchParams(params).toString();
+    const res  = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${qs}`);
+    const data = await res.json();
+    if (data.ok && data.base64) {
+      return `data:${data.mime||'image/jpeg'};base64,${data.base64}`;
+    }
+  } catch (_) {}
+
+  // Tutto fallito → lancia errore così il chiamante mostra placeholder
+  throw new Error('Impossibile caricare immagine: ' + url);
+}
+
+function blobToB64(blob) {
+  return new Promise(resolve => {
+    const fr = new FileReader();
+    fr.onload  = () => resolve(fr.result);   // dataURL già pronta
+    fr.onerror = () => resolve(null);
+    fr.readAsDataURL(blob);
+  });
+}
+
+function imgElementToB64(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const cv = document.createElement('canvas');
+        cv.width  = img.naturalWidth  || img.width  || 800;
+        cv.height = img.naturalHeight || img.height || 1000;
+        cv.getContext('2d').drawImage(img, 0, 0);
+        resolve(cv.toDataURL('image/jpeg', 0.85));
+      } catch (e) { reject(e); }
+    };
+    img.onerror = () => reject(new Error('img load failed'));
+    // Aggiunge un piccolo delay e cache-bust per evitare risposte cached senza CORS header
+    setTimeout(() => { img.src = url + (url.includes('?') ? '&' : '?') + '_pdf=' + Date.now(); }, 50);
+  });
+}
+
+// ============================================================
+// API
+// ============================================================
+async function apiPost(payload){
+  const res=await fetch(CONFIG.APPS_SCRIPT_URL,{
     method:'POST',
-    body:JSON.stringify({ ...payload, token:CONFIG.TOKEN }),
+    body:JSON.stringify({...payload,token:CONFIG.TOKEN}),
     headers:{'Content-Type':'text/plain'},
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const text = await res.text();
-  try { return JSON.parse(text); }
-  catch (e) { throw new Error('Risposta non valida: ' + text.slice(0, 100)); }
+  return res.json();
 }
-
-function toB64(file) {
-  return new Promise(resolve => {
-    if (file.size > 1.5 * 1024 * 1024) {
-      const img = new Image();
-      img.onload = () => {
-        const cv = document.createElement('canvas');
-        const r  = Math.min(1, 1400 / Math.max(img.width, img.height));
-        cv.width = img.width * r; cv.height = img.height * r;
-        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-        cv.toBlob(b => {
-          const fr = new FileReader(); fr.onload = () => resolve(fr.result.split(',')[1]);
-          fr.readAsDataURL(b);
-        }, file.type, 0.85);
-      };
-      img.src = URL.createObjectURL(file);
-    } else {
-      const fr = new FileReader(); fr.onload = () => resolve(fr.result.split(',')[1]);
-      fr.readAsDataURL(file);
-    }
-  });
+async function apiGet(params){
+  const qs=new URLSearchParams({...params,token:CONFIG.TOKEN}).toString();
+  const res=await fetch(`${CONFIG.APPS_SCRIPT_URL}?${qs}`);
+  return res.json();
 }
-
-function setBar(p)  { document.getElementById('pbar').style.width = p + '%'; }
-function setStatus(m){ document.getElementById('up-status').textContent = m; }
-function resetForm() {
-  document.getElementById('state-err').style.display = 'none';
-  document.getElementById('main').style.display = 'block';
-  document.getElementById('btn-send').disabled = false;
-  document.getElementById('btn-send').innerHTML = 'Invia candidatura';
-  setBar(0); setStatus('');
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
