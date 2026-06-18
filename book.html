@@ -128,16 +128,27 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 /* Body scheda — 2 colonne */
 .scheda-body{display:grid;grid-template-columns:200px 1fr;min-height:280px}
 
-/* Foto colonna */
-.scheda-photo{position:relative;background:var(--bg4);overflow:hidden}
-.scheda-photo img{width:100%;height:100%;object-fit:cover;display:block}
+/* Foto colonna — altezza esplicita per evitare collasso in stampa */
+.scheda-photo{
+  position:relative;background:var(--bg4);overflow:hidden;
+  /* L'altezza viene ereditata dal grid, ma serve un min per screen */
+  min-height:260px;
+}
+.scheda-photo img{
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+  /* Assicura che l'img occupi tutto il contenitore anche in stampa */
+  position:absolute;top:0;left:0;
+}
+/* Wrapper relativo necessario per il position:absolute sull'img */
+.scheda-photo{position:relative;}
 .scheda-photo .no-photo{
   width:100%;height:100%;min-height:260px;
   display:flex;align-items:center;justify-content:center;
   color:var(--ink3);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
 }
 .photo-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--bg4)}
-.photo-strip img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.photo-strip img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
 
 /* Dati colonna */
 .scheda-data{padding:20px 24px;display:flex;flex-direction:column;justify-content:space-between}
@@ -202,36 +213,128 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 }
 .cover-meta{text-align:right;font-size:11px;color:var(--ink3);line-height:1.8;letter-spacing:0.03em}
 
-/* ── PRINT STYLES ── */
+/* ── Modalità link brand (vista stilista) ── */
+.brand-hero{
+  background:var(--ink);color:#f5f2ee;
+  padding:36px 28px 28px;
+  border-bottom:2px solid var(--gold);
+  display:none; /* mostrato solo in modalità link */
+}
+.brand-hero-label{
+  font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:12px;display:block;
+}
+.brand-hero-name{
+  font-family:var(--serif);font-size:clamp(28px,8vw,48px);
+  font-weight:300;letter-spacing:-0.02em;margin-bottom:6px;
+}
+.brand-hero-meta{
+  font-size:12px;color:rgba(245,242,238,0.5);letter-spacing:0.04em;
+}
+/* Nascondi controlli admin in modalità link */
+.brand-link-mode .controls{ display:none !important; }
+.brand-link-mode #login{ display:none !important; }
 @media print {
-  @page { size:A4 portrait; margin:12mm 10mm; }
+  @page { size:A4 portrait; margin:10mm 8mm; }
 
-  /* Nascondi tutto tranne il book */
   #login, .controls { display:none !important; }
   #book { padding:0 !important; }
-  html,body { background:#fff !important; font-size:12px; }
+  html,body { background:#fff !important; font-size:11px; }
 
+  /* Ogni scheda = una pagina intera */
   .scheda{
     box-shadow:none !important;
-    border:0.5px solid #ccc !important;
-    page-break-after:always;
-    break-after:page;
-    margin-bottom:0 !important;
+    border:0.5px solid #ddd !important;
     border-radius:0 !important;
+    margin:0 !important;
+    page-break-after: always;
+    break-after: page;
+    /* Dimensioni esplicite A4 meno i margini: 210-16=194mm × 297-20=277mm */
+    width:  194mm;
+    height: 277mm;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   .scheda:last-child{ page-break-after:avoid; break-after:avoid; }
 
-  .brand-divider{ page-break-after:avoid; break-after:avoid; }
+  .brand-divider{ display:none !important; }
   .cover-page{ page-break-after:always; break-after:page; }
 
-  /* Forza stampa immagini di sfondo */
-  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  /* Forza stampa colori e immagini — OBBLIGATORIO in Chrome */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
 
-  .scheda-photo img, .photo-strip img { display:block !important; }
+  /* Header scheda — altezza fissa */
+  .scheda-header{
+    flex-shrink:0;
+    padding:8px 14px !important;
+  }
 
-  .scheda-body{grid-template-columns:180px 1fr}
-  .scheda-name{font-size:26px}
-  .data-val{font-size:18px}
+  /* Body scheda — prende tutto lo spazio rimanente */
+  .scheda-body{
+    flex:1;
+    display:grid !important;
+    grid-template-columns: 130mm 1fr !important;  /* foto 130mm, dati resto */
+    min-height:0;
+    overflow:hidden;
+  }
+
+  /* COLONNA FOTO — dimensioni esplicite in mm */
+  .scheda-photo{
+    width: 130mm !important;
+    height: 100% !important;        /* eredita dal grid row */
+    min-height: 200mm !important;   /* fallback esplicito */
+    overflow: hidden !important;
+    position: relative !important;
+    background: #e8e4df !important;
+    flex-shrink: 0;
+  }
+
+  /* Immagine a piena copertura — essenziale per la stampa */
+  .scheda-photo img{
+    display: block !important;
+    width:  130mm !important;
+    height: 200mm !important;
+    object-fit: cover !important;
+    object-position: center top !important;
+    position: absolute !important;
+    top: 0 !important; left: 0 !important;
+  }
+
+  /* Foto strip extra sotto */
+  .photo-strip{
+    display: grid !important;
+    grid-template-columns: repeat(4,1fr) !important;
+    gap: 1mm !important;
+    position: absolute !important;
+    bottom: 0 !important; left: 0 !important;
+    width: 130mm !important;
+  }
+  .photo-strip img{
+    display: block !important;
+    width: 100% !important;
+    height: 28mm !important;
+    object-fit: cover !important;
+  }
+
+  /* Colonna dati */
+  .scheda-data{
+    padding: 14px 18px !important;
+    overflow: hidden;
+  }
+  .scheda-name{ font-size:22px !important; }
+  .data-val{ font-size:16px !important; }
+  .data-val.small{ font-size:11px !important; }
+
+  /* Footer */
+  .scheda-footer{
+    flex-shrink:0;
+    padding:6px 14px !important;
+  }
 }
 
 /* ── RESPONSIVE ── */
@@ -279,6 +382,13 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
     </div>
   </div>
 
+  <!-- Header brand (solo in modalità link stilista) -->
+  <div class="brand-hero" id="brand-hero">
+    <span class="brand-hero-label" id="bh-agency">Casting Studio</span>
+    <div class="brand-hero-name" id="bh-brand-name">Brand</div>
+    <div class="brand-hero-meta" id="bh-meta"></div>
+  </div>
+
   <!-- Book -->
   <div id="book">
     <div class="loading-state">
@@ -297,6 +407,10 @@ let curBrand      = 'All';
 let curStatus     = 'All';
 let groupByBrand  = false;
 
+// Modalità link: ?brand=BRAND_ID nell'URL
+const URL_BRAND = new URLSearchParams(window.location.search).get('brand');
+const IS_BRAND_LINK = !!URL_BRAND;
+
 // ── LOGIN ──────────────────────────────────────────────────
 function doLogin() {
   const pwd = document.getElementById('pwd').value;
@@ -310,9 +424,9 @@ function doLogin() {
   }
 }
 
-// Se non c'è password, avvia direttamente
+// Se non c'è password oppure siamo in modalità link brand, avvia direttamente
 window.addEventListener('DOMContentLoaded', () => {
-  if (!CONFIG.BOOK_PASSWORD) {
+  if (!CONFIG.BOOK_PASSWORD || IS_BRAND_LINK) {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display   = 'block';
     init();
@@ -329,13 +443,44 @@ async function init() {
     allBrands     = bRes.brands     || [];
     allCandidates = cRes.candidates || [];
 
-    // Popola il selettore brand
-    const sel = document.getElementById('brand-sel');
-    allBrands.forEach(b => {
-      const opt = document.createElement('option');
-      opt.value = b.id; opt.textContent = b.nome;
-      sel.appendChild(opt);
-    });
+    // Modalità link brand — lock sul brand dell'URL
+    if (IS_BRAND_LINK) {
+      curBrand = URL_BRAND;
+      curStatus = 'All'; // mostra tutti gli status (shortlisted + booked)
+
+      const brand = allBrands.find(b => b.id === URL_BRAND);
+      const brandName = brand?.nome || 'Brand';
+
+      // Applica classe che nasconde i controlli admin
+      document.getElementById('app').classList.add('brand-link-mode');
+
+      // Mostra la brand hero
+      const hero = document.getElementById('brand-hero');
+      hero.style.display = 'block';
+      document.getElementById('bh-agency').textContent =
+        (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
+      document.getElementById('bh-brand-name').textContent = brandName;
+
+      // Aggiorna title tab
+      document.title = `${brandName} — Casting Book`;
+
+      // Mostra solo shortlisted e booked per lo stilista
+      const modelli = allCandidates.filter(c =>
+        (c.brand_ids||[]).includes(URL_BRAND) &&
+        ['shortlisted','booked'].includes(c.status)
+      );
+      document.getElementById('bh-meta').textContent =
+        `${modelli.length} model${modelli.length !== 1 ? 's' : ''} selezionat${modelli.length !== 1 ? 'i' : 'o'}`;
+
+    } else {
+      // Modalità admin normale — popola il selettore brand
+      const sel = document.getElementById('brand-sel');
+      allBrands.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id; opt.textContent = b.nome;
+        sel.appendChild(opt);
+      });
+    }
 
     render();
   } catch (err) {
@@ -358,13 +503,15 @@ function toggleView() {
 function render() {
   let list = allCandidates;
 
-  // Filtro brand
-  if (curBrand !== 'All') {
-    list = list.filter(c => (c.brand_ids||[]).includes(curBrand));
-  }
-  // Filtro status
-  if (curStatus !== 'All') {
-    list = list.filter(c => c.status === curStatus);
+  // In modalità link brand: mostra solo shortlisted e booked
+  if (IS_BRAND_LINK) {
+    list = list.filter(c =>
+      (c.brand_ids||[]).includes(curBrand) &&
+      ['shortlisted','booked'].includes(c.status)
+    );
+  } else {
+    if (curBrand !== 'All') list = list.filter(c => (c.brand_ids||[]).includes(curBrand));
+    if (curStatus !== 'All') list = list.filter(c => c.status === curStatus);
   }
 
   // Aggiorna contatore
@@ -436,6 +583,7 @@ function render() {
 function schedaHTML(c, forceBrand) {
   const photos    = c.photo_urls || [];
   const coverUrl  = c.cover_url  || photos[0] || '';
+  const photo2    = photos[1] || '';   // foto profilo
   const isMinor   = c.maggiorenne === false || String(c.maggiorenne).toUpperCase() === 'FALSE';
   const tagliaSup = c.taglia_sup || c.taglia || '—';
   const tagliaInf = c.taglia_inf || '—';
@@ -444,87 +592,68 @@ function schedaHTML(c, forceBrand) {
   const sLbl = { pending:'In attesa', shortlisted:'Shortlist', booked:'Confermato', rejected:'Rifiutato' }[c.status] || c.status;
   const sCls = `s-${c.status || 'pending'}`;
 
-  // Brand da mostrare
   const cBrands = forceBrand
     ? [forceBrand]
     : (c.brand_ids||[]).map(bid => allBrands.find(b => b.id === bid)).filter(Boolean);
 
-  // Strip foto aggiuntive
-  const extraPhotos = photos.slice(1, 5);
-  const stripHTML = extraPhotos.length
-    ? `<div class="photo-strip">${extraPhotos.map(u => `<img src="${esc(u)}" loading="lazy" alt="">`).join('')}</div>`
-    : '';
-
   return `
   <div class="scheda">
-    <!-- Header -->
+
+    <!-- ── Header ── -->
     <div class="scheda-header">
       <span class="scheda-agency">${esc(CONFIG.AGENCY_NAME||'Casting Studio')}</span>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         ${cBrands.map(b => `<span class="scheda-brand">${esc(b.nome)}</span>`).join('')}
         <span class="scheda-status ${sCls}">${sLbl}</span>
       </div>
     </div>
 
-    <!-- Body: foto + dati -->
+    <!-- ── Body ── -->
     <div class="scheda-body">
 
-      <!-- Foto -->
+      <!-- Colonna foto principale -->
       <div class="scheda-photo">
         ${coverUrl
-          ? `<img src="${esc(coverUrl)}" alt="${esc(c.nome)}" loading="lazy">`
-          : '<div class="no-photo">No foto</div>'
+          ? `<img src="${esc(coverUrl)}"
+               alt="${esc(c.nome)}"
+               loading="eager"
+               style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">`
+          : `<div class="no-photo">Nessuna foto</div>`
         }
       </div>
 
-      <!-- Dati -->
+      <!-- Colonna dati -->
       <div class="scheda-data">
         <div>
+
+          <!-- Nome -->
           <div class="scheda-name">
-            <span>${esc(c.nome||'')}</span> ${esc(c.cognome||'')}
+            <span>${esc(c.nome||'')}</span>&nbsp;${esc(c.cognome||'')}
             ${isMinor ? '<span class="minore-badge">Minorenne</span>' : ''}
           </div>
-          ${ig ? `<div class="scheda-instagram"><a href="https://instagram.com/${esc(ig)}" target="_blank">@${esc(ig)}</a></div>` : '<div style="margin-bottom:16px"></div>'}
+          ${ig
+            ? `<div class="scheda-instagram"><a href="https://instagram.com/${esc(ig)}" target="_blank">@${esc(ig)}</a></div>`
+            : `<div style="margin-bottom:12px"></div>`
+          }
 
+          <!-- Dati -->
           <div class="data-grid">
-            ${c.eta ? `
-            <div class="data-item">
-              <div class="data-lbl">Età</div>
-              <div class="data-val">${c.eta} <span style="font-family:var(--sans);font-size:13px;color:var(--ink2)">anni</span></div>
-            </div>` : ''}
-            ${c.altezza_cm ? `
-            <div class="data-item">
-              <div class="data-lbl">Altezza</div>
-              <div class="data-val">${c.altezza_cm} <span style="font-family:var(--sans);font-size:13px;color:var(--ink2)">cm</span></div>
-            </div>` : ''}
-            ${tagliaSup !== '—' ? `
-            <div class="data-item">
-              <div class="data-lbl">Taglia superiore</div>
-              <div class="data-val">${esc(tagliaSup)}</div>
-            </div>` : ''}
-            ${tagliaInf !== '—' ? `
-            <div class="data-item">
-              <div class="data-lbl">Taglia inferiore</div>
-              <div class="data-val">${esc(tagliaInf)}</div>
-            </div>` : ''}
-            ${c.orario_arrivo ? `
-            <div class="data-item">
-              <div class="data-lbl">Orario arrivo</div>
-              <div class="data-val small">${esc(c.orario_arrivo)}</div>
-            </div>` : ''}
-            ${c.telefono ? `
-            <div class="data-item">
-              <div class="data-lbl">Telefono</div>
-              <div class="data-val small">${esc(c.telefono)}</div>
-            </div>` : ''}
+            ${c.eta ? `<div class="data-item"><div class="data-lbl">Età</div><div class="data-val">${c.eta}<span style="font-size:12px;color:var(--ink2)"> anni</span></div></div>` : ''}
+            ${c.altezza_cm ? `<div class="data-item"><div class="data-lbl">Altezza</div><div class="data-val">${c.altezza_cm}<span style="font-size:12px;color:var(--ink2)"> cm</span></div></div>` : ''}
+            ${tagliaSup !== '—' ? `<div class="data-item"><div class="data-lbl">Taglia sup.</div><div class="data-val">${esc(tagliaSup)}</div></div>` : ''}
+            ${tagliaInf !== '—' ? `<div class="data-item"><div class="data-lbl">Taglia inf.</div><div class="data-val">${esc(tagliaInf)}</div></div>` : ''}
+            ${c.orario_arrivo ? `<div class="data-item"><div class="data-lbl">Orario arrivo</div><div class="data-val small">${esc(c.orario_arrivo)}</div></div>` : ''}
+            ${c.telefono ? `<div class="data-item"><div class="data-lbl">Telefono</div><div class="data-val small">${esc(c.telefono)}</div></div>` : ''}
           </div>
 
-          <!-- Tag tatuaggi / piercing -->
+          <!-- Tag -->
+          ${(c.tatuaggi || c.piercing) ? `
           <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-            ${c.tatuaggi ? '<span style="font-size:10px;padding:3px 9px;border-radius:2px;background:rgba(0,0,0,0.06);color:var(--ink2);letter-spacing:0.04em">Tatuaggi</span>' : ''}
-            ${c.piercing ? '<span style="font-size:10px;padding:3px 9px;border-radius:2px;background:rgba(0,0,0,0.06);color:var(--ink2);letter-spacing:0.04em">Piercing</span>' : ''}
-          </div>
+            ${c.tatuaggi ? `<span style="font-size:10px;padding:3px 9px;border-radius:2px;background:rgba(0,0,0,0.06);color:var(--ink2)">Tatuaggi</span>` : ''}
+            ${c.piercing ? `<span style="font-size:10px;padding:3px 9px;border-radius:2px;background:rgba(0,0,0,0.06);color:var(--ink2)">Piercing</span>` : ''}
+          </div>` : ''}
 
+          <!-- Note -->
           ${c.note_particolari ? `
           <div class="scheda-note">
             <div class="scheda-note-lbl">Note particolari</div>
@@ -532,21 +661,22 @@ function schedaHTML(c, forceBrand) {
           </div>` : ''}
         </div>
 
-        <!-- Foto strip extra in basso -->
-        ${extraPhotos.length ? `
-        <div style="margin-top:14px">
-          <div class="data-lbl" style="margin-bottom:5px">Foto aggiuntive</div>
-          <div style="display:grid;grid-template-columns:repeat(${extraPhotos.length},1fr);gap:4px;max-width:280px">
-            ${extraPhotos.map(u => `<img src="${esc(u)}" loading="lazy" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:2px" alt="">`).join('')}
-          </div>
+        <!-- Seconda foto (profilo) nella colonna dati -->
+        ${photo2 ? `
+        <div style="margin-top:12px">
+          <div class="data-lbl" style="margin-bottom:5px">Foto profilo</div>
+          <img src="${esc(photo2)}"
+               loading="eager"
+               alt="profilo"
+               style="width:100%;max-width:160px;aspect-ratio:2/3;object-fit:cover;object-position:center top;display:block;border-radius:2px">
         </div>` : ''}
       </div>
     </div>
 
-    <!-- Footer -->
+    <!-- ── Footer ── -->
     <div class="scheda-footer">
       <span class="scheda-date">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</span>
-      ${c.instagram ? `<span style="font-size:10px;color:var(--ink3)">ig: ${esc(c.instagram)}</span>` : ''}
+      ${c.instagram ? `<span style="font-size:10px;color:var(--ink3)">${esc(c.instagram)}</span>` : ''}
     </div>
   </div>`;
 }

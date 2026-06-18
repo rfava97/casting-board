@@ -254,7 +254,6 @@ html,body{
   transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;
   box-shadow:var(--sh-sm);
 }
-.card.archived-card{opacity:0.45;filter:grayscale(0.4)}
 .card:hover{transform:translateY(-3px);box-shadow:var(--sh-lg);border-color:var(--rule2)}
 .card.sl{border-color:rgba(154,123,79,0.4);box-shadow:0 0 0 1px rgba(154,123,79,0.2),var(--sh-sm)}
 .card-photo{position:relative;aspect-ratio:3/4;background:var(--bg4);overflow:hidden}
@@ -292,7 +291,6 @@ html,body{
 .s-shortlisted{background:rgba(154,123,79,0.9);color:#fff}
 .s-booked{background:rgba(61,138,98,0.9);color:#fff}
 .s-rejected{background:rgba(160,64,64,0.85);color:#fff}
-.s-archived{background:rgba(100,100,100,0.7);color:#ddd}
 .card-brand-pills{
   position:absolute;top:7px;left:7px;display:flex;flex-direction:column;gap:3px;
   max-width:calc(100% - 44px);
@@ -485,6 +483,29 @@ html,body{
 .bchip-off{background:transparent;color:var(--ink3);border-color:var(--rule2)}
 .bchip-off:hover{color:var(--ink);border-color:var(--rule3)}
 
+/* ── Colori brand dinamici ── */
+.brand-color-0{--bc:72,122,172}   .brand-color-1{--bc:154,100,60}
+.brand-color-2{--bc:80,140,100}   .brand-color-3{--bc:140,80,140}
+.brand-color-4{--bc:180,130,40}   .brand-color-5{--bc:60,140,160}
+.brand-color-6{--bc:160,80,80}    .brand-color-7{--bc:100,100,60}
+.card-brand-pill{
+  font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
+  letter-spacing:0.06em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:rgba(var(--bc,58,106,154),0.18);
+  color:rgb(var(--bc,58,106,154));
+}
+.bchip.bchip-on{
+  background:rgba(var(--bc,58,106,154),0.12);
+  color:rgb(var(--bc,58,106,154));
+  border-color:rgba(var(--bc,58,106,154),0.35);
+}
+.brand-tab-dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  margin-right:5px;background:rgb(var(--bc,154,123,79));
+  opacity:0.8;flex-shrink:0;vertical-align:middle;
+}
+
 .dr-meta{font-size:10px;color:var(--ink3);letter-spacing:0.04em;margin-top:8px;text-align:right}
 
 /* ============================================================
@@ -629,7 +650,6 @@ html,body{
         Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
       <button class="tbtn tbtn-ghost" id="sl-btn" onclick="toggleSL()">★ Shortlist</button>
-      <button class="tbtn tbtn-ghost tbtn-hide-sm" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati">📦 Archivio</button>
       <div class="tbtn-sep tbtn-hide-sm"></div>
       <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openBrandManager()">🏷 Brand</button>
       <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="startPdfExport()">↓ PDF</button>
@@ -661,7 +681,6 @@ html,body{
         <option value="shortlisted">Shortlist</option>
         <option value="booked">Confermato</option>
         <option value="rejected">Rifiutato</option>
-        <option value="archived">Archiviato</option>
       </select>
     </div>
     <div class="ff">
@@ -797,7 +816,6 @@ let candidates  = [];
 let brands      = [];
 let curBrand    = 'All';
 let showSLOnly  = false;
-let showArchived = false;
 let curC        = null;
 let filtersOpen = false;
 let debTimer;
@@ -842,14 +860,43 @@ function renderBrandBar(){
   const bar = document.getElementById('brand-bar');
   const end = bar.querySelector('.brand-bar-end');
   [...bar.querySelectorAll('.brand-tab:not([data-id="All"])')].forEach(el=>el.remove());
-  brands.forEach(b=>{
-    const btn=document.createElement('button');
-    btn.className=`brand-tab${curBrand===b.id?' active':''}`;
-    btn.dataset.id=b.id; btn.textContent=b.nome;
-    btn.onclick=()=>selBrand(b.id);
-    bar.insertBefore(btn,end);
+  brands.forEach((b, idx)=>{
+    const cls = `brand-color-${idx%8}`;
+    const btn = document.createElement('button');
+    btn.className = `brand-tab ${cls}${curBrand===b.id?' active':''}`;
+    btn.dataset.id = b.id;
+    btn.innerHTML = `<span class="brand-tab-dot"></span>${esc(b.nome)}`;
+    btn.onclick = ()=>selBrand(b.id);
+    bar.insertBefore(btn, end);
   });
-  bar.querySelector('.brand-tab[data-id="All"]').classList.toggle('active',curBrand==='All');
+  bar.querySelector('.brand-tab[data-id="All"]').classList.toggle('active', curBrand==='All');
+}
+
+// ── Link book per stilista ────────────────────────────────
+function brandBookUrl(brandId) {
+  const base = window.location.href.replace(/gallery\.html.*$/, 'book.html');
+  return `${base}?brand=${encodeURIComponent(brandId)}`;
+}
+async function copyBrandLink(brandId, brandNome) {
+  const url = brandBookUrl(brandId);
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast(`Link per "${brandNome}" copiato! ✓`);
+  } catch(e) {
+    prompt(`Copia questo link per ${brandNome}:`, url);
+  }
+}
+function showToast(msg) {
+  let t = document.getElementById('_toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = '_toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--bg2);padding:10px 18px;border-radius:var(--r);font-size:12px;font-family:var(--sans);letter-spacing:0.04em;z-index:9999;opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.2);white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 2500);
 }
 function selBrand(id){ curBrand=id; renderBrandBar(); loadCandidates(); }
 function openBrandManager(){ renderBMList(); document.getElementById('bm-modal').classList.add('open'); }
@@ -862,7 +909,18 @@ function renderBMList(){
   }
   list.innerHTML=brands.map(b=>`
     <div class="bm-item">
-      <span>${esc(b.nome)}</span>
+      <span style="flex:1">${esc(b.nome)}</span>
+      <button
+        onclick="copyBrandLink('${b.id}','${esc(b.nome)}')"
+        title="Copia link stilista"
+        style="background:none;border:1px solid var(--rule2);border-radius:var(--r);
+               color:var(--ink3);cursor:pointer;font-size:10px;padding:3px 8px;
+               margin-right:4px;font-family:var(--sans);letter-spacing:0.04em;
+               transition:all 0.15s;white-space:nowrap"
+        onmouseover="this.style.color='var(--ink)';this.style.borderColor='var(--rule3)'"
+        onmouseout="this.style.color='var(--ink3)';this.style.borderColor='var(--rule2)'">
+        🔗 Link
+      </button>
       <button class="bm-del" onclick="deleteBrand('${b.id}','${esc(b.nome)}')" title="Elimina">×</button>
     </div>`).join('');
 }
@@ -896,7 +954,6 @@ async function loadCandidates(){
     minH:        document.getElementById('f-minh').value,
     maxH:        document.getElementById('f-maxh').value,
     shortlisted: showSLOnly?'true':'false',
-    showArchived: showArchived?'true':'false',
   });
   if(!d.ok){
     document.getElementById('gallery').innerHTML=
@@ -933,8 +990,7 @@ function cardHTML(c){
 
   const cover    = c.cover_url || (c.photo_urls&&c.photo_urls[0]) || '';
   const sl       = c.is_shortlisted;
-  const sLbl     = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[c.status]||c.status;
-  const isArchived = c.status === 'archived';
+  const sLbl     = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[c.status]||c.status;
   const cBrands  = (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
   const isMinor  = c.maggiorenne===false || c.maggiorenne==='FALSE';
 
@@ -947,7 +1003,7 @@ function cardHTML(c){
   ].filter(Boolean);
 
   return `
-  <div class="card${sl?' sl':''}${isArchived?' archived-card':''}" onclick="openDrawer('${c.id}')">
+  <div class="card${sl?' sl':''}" onclick="openDrawer('${c.id}')">
     <div class="card-photo">
       ${cover
         ? `<img src="${cover}" loading="lazy" alt="${esc(c.nome)}"
@@ -992,47 +1048,9 @@ async function updateStatus(id,status){
   renderGallery(candidates);
   await apiPost({action:'updateStatus',candidateId:id,status});
 }
-
-// ── Archivia / Ripristina ──────────────────────────────────
-async function archiveCandidate(id, isCurrentlyArchived) {
-  const newStatus = isCurrentlyArchived ? 'pending' : 'archived';
-  candidates = candidates.map(c => c.id===id ? {...c, status:newStatus} : c);
-  if (!showArchived && newStatus === 'archived') {
-    // Rimuovi dalla gallery corrente
-    candidates = candidates.filter(c => c.id !== id);
-  }
-  renderGallery(candidates);
-  closeDrawer();
-  await apiPost({ action:'updateStatus', candidateId:id, status:newStatus });
-}
-
-// ── Elimina definitivamente ───────────────────────────────
-async function deleteCandidate(id, nome) {
-  const confirmed = confirm(
-    `Eliminare definitivamente "${nome}"?\n\nQuesta azione è irreversibile — il profilo e le foto verranno rimossi.`
-  );
-  if (!confirmed) return;
-
-  // Ottimistic: rimuovi subito dalla UI
-  candidates = candidates.filter(c => c.id !== id);
-  renderGallery(candidates);
-  closeDrawer();
-
-  const res = await apiPost({ action:'deleteCandidate', candidateId:id });
-  if (!res.ok) {
-    alert('Errore durante l\'eliminazione: ' + (res.error||'sconosciuto'));
-    // Ricarica per ripristinare stato reale
-    loadCandidates();
-  }
-}
 function toggleSL(){
   showSLOnly=!showSLOnly;
   document.getElementById('sl-btn').className=`tbtn ${showSLOnly?'tbtn-active':'tbtn-ghost'}`;
-  loadCandidates();
-}
-function toggleArchived(){
-  showArchived=!showArchived;
-  document.getElementById('arch-btn').className=`tbtn tbtn-hide-sm ${showArchived?'tbtn-active':'tbtn-ghost'}`;
   loadCandidates();
 }
 
@@ -1116,33 +1134,10 @@ function openDrawer(id){
           ${sl?'★ In shortlist':'☆ Shortlist'}
         </button>
         <select class="status-sel" onchange="updateStatus('${c.id}',this.value)">
-          ${['pending','shortlisted','booked','rejected','archived'].map(s=>
-            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[s]}</option>`
+          ${['pending','shortlisted','booked','rejected'].map(s=>
+            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[s]}</option>`
           ).join('')}
         </select>
-      </div>
-
-      <!-- Azioni rapide archivia / elimina -->
-      <div style="display:flex;gap:6px;margin-bottom:14px">
-        <button
-          onclick="archiveCandidate('${c.id}',${c.status==='archived'})"
-          style="flex:1;padding:8px;background:${c.status==='archived'?'rgba(154,123,79,0.1)':'transparent'};
-                 border:1px solid ${c.status==='archived'?'rgba(154,123,79,0.3)':'var(--rule2)'};
-                 color:${c.status==='archived'?'var(--gold2)':'var(--ink3)'};
-                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
-                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
-          id="dr-arch-btn">
-          ${c.status==='archived'?'↩ Ripristina':'📦 Archivia'}
-        </button>
-        <button
-          onclick="deleteCandidate('${c.id}','${esc(c.nome)} ${esc(c.cognome)}')"
-          style="padding:8px 12px;background:transparent;
-                 border:1px solid rgba(160,64,64,0.3);color:var(--red);
-                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
-                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
-          title="Elimina definitivamente">
-          🗑 Elimina
-        </button>
       </div>
 
       <!-- Dati anagrafici -->
