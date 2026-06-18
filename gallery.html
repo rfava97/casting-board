@@ -291,6 +291,8 @@ html,body{
 .s-shortlisted{background:rgba(154,123,79,0.9);color:#fff}
 .s-booked{background:rgba(61,138,98,0.9);color:#fff}
 .s-rejected{background:rgba(160,64,64,0.85);color:#fff}
+.s-archived{background:rgba(100,100,100,0.7);color:#ddd}
+.card.archived-card{opacity:0.45;filter:grayscale(0.4)}
 .card-brand-pills{
   position:absolute;top:7px;left:7px;display:flex;flex-direction:column;gap:3px;
   max-width:calc(100% - 44px);
@@ -650,6 +652,7 @@ html,body{
         Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
       <button class="tbtn tbtn-ghost" id="sl-btn" onclick="toggleSL()">★ Shortlist</button>
+      <button class="tbtn tbtn-ghost tbtn-hide-sm" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati">📦 Archivio</button>
       <div class="tbtn-sep tbtn-hide-sm"></div>
       <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openBrandManager()">🏷 Brand</button>
       <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="startPdfExport()">↓ PDF</button>
@@ -816,6 +819,7 @@ let candidates  = [];
 let brands      = [];
 let curBrand    = 'All';
 let showSLOnly  = false;
+let showArchived = false;
 let curC        = null;
 let filtersOpen = false;
 let debTimer;
@@ -954,6 +958,7 @@ async function loadCandidates(){
     minH:        document.getElementById('f-minh').value,
     maxH:        document.getElementById('f-maxh').value,
     shortlisted: showSLOnly?'true':'false',
+    showArchived: showArchived?'true':'false',
   });
   if(!d.ok){
     document.getElementById('gallery').innerHTML=
@@ -990,7 +995,8 @@ function cardHTML(c){
 
   const cover    = c.cover_url || (c.photo_urls&&c.photo_urls[0]) || '';
   const sl       = c.is_shortlisted;
-  const sLbl     = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[c.status]||c.status;
+  const sLbl     = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[c.status]||c.status;
+  const isArchived = c.status === 'archived';
   const cBrands  = (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
   const isMinor  = c.maggiorenne===false || c.maggiorenne==='FALSE';
 
@@ -1003,7 +1009,7 @@ function cardHTML(c){
   ].filter(Boolean);
 
   return `
-  <div class="card${sl?' sl':''}" onclick="openDrawer('${c.id}')">
+  <div class="card${sl?' sl':''}${isArchived?' archived-card':''}" onclick="openDrawer('${c.id}')">
     <div class="card-photo">
       ${cover
         ? `<img src="${cover}" loading="lazy" alt="${esc(c.nome)}"
@@ -1052,6 +1058,39 @@ function toggleSL(){
   showSLOnly=!showSLOnly;
   document.getElementById('sl-btn').className=`tbtn ${showSLOnly?'tbtn-active':'tbtn-ghost'}`;
   loadCandidates();
+}
+function toggleArchived(){
+  showArchived=!showArchived;
+  document.getElementById('arch-btn').className=`tbtn tbtn-hide-sm ${showArchived?'tbtn-active':'tbtn-ghost'}`;
+  loadCandidates();
+}
+
+// ── Archivia / Ripristina ─────────────────────────────────
+async function archiveCandidate(id, isCurrentlyArchived) {
+  const newStatus = isCurrentlyArchived ? 'pending' : 'archived';
+  candidates = candidates.map(c => c.id===id ? {...c, status:newStatus} : c);
+  if (!showArchived && newStatus === 'archived') {
+    candidates = candidates.filter(c => c.id !== id);
+  }
+  renderGallery(candidates);
+  closeDrawer();
+  await apiPost({ action:'updateStatus', candidateId:id, status:newStatus });
+}
+
+// ── Elimina definitivamente ───────────────────────────────
+async function deleteCandidate(id, nome) {
+  const confirmed = confirm(
+    `Eliminare definitivamente "${nome}"?\n\nQuesta azione è irreversibile — il profilo e le foto verranno rimossi.`
+  );
+  if (!confirmed) return;
+  candidates = candidates.filter(c => c.id !== id);
+  renderGallery(candidates);
+  closeDrawer();
+  const res = await apiPost({ action:'deleteCandidate', candidateId:id });
+  if (!res.ok) {
+    alert('Errore durante l\'eliminazione: ' + (res.error||'sconosciuto'));
+    loadCandidates();
+  }
 }
 
 // ============================================================
@@ -1134,10 +1173,32 @@ function openDrawer(id){
           ${sl?'★ In shortlist':'☆ Shortlist'}
         </button>
         <select class="status-sel" onchange="updateStatus('${c.id}',this.value)">
-          ${['pending','shortlisted','booked','rejected'].map(s=>
-            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato'}[s]}</option>`
+          ${['pending','shortlisted','booked','rejected','archived'].map(s=>
+            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[s]}</option>`
           ).join('')}
         </select>
+      </div>
+
+      <!-- Azioni rapide archivia / elimina -->
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button
+          onclick="archiveCandidate('${c.id}',${c.status==='archived'})"
+          style="flex:1;padding:8px;background:${c.status==='archived'?'rgba(154,123,79,0.1)':'transparent'};
+                 border:1px solid ${c.status==='archived'?'rgba(154,123,79,0.3)':'var(--rule2)'};
+                 color:${c.status==='archived'?'var(--gold2)':'var(--ink3)'};
+                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
+                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s">
+          ${c.status==='archived'?'↩ Ripristina':'📦 Archivia'}
+        </button>
+        <button
+          onclick="deleteCandidate('${c.id}','${esc(c.nome)} ${esc(c.cognome)}')"
+          style="padding:8px 12px;background:transparent;
+                 border:1px solid rgba(160,64,64,0.3);color:var(--red);
+                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
+                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
+          title="Elimina definitivamente">
+          🗑 Elimina
+        </button>
       </div>
 
       <!-- Dati anagrafici -->
