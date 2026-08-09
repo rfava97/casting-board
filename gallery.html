@@ -28,30 +28,30 @@ const CONFIG = {
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* Backgrounds */
-  --bg:   #f7f5f2;
+  /* Backgrounds — bianco/grigio pulito, meno "beige boutique" */
+  --bg:   #f7f7f6;
   --bg2:  #ffffff;
-  --bg3:  #f0ede9;
-  --bg4:  #e8e4df;
+  --bg3:  #f0efed;
+  --bg4:  #e4e2df;
 
   /* Borders */
-  --rule: rgba(0,0,0,0.07);
-  --rule2:rgba(0,0,0,0.13);
-  --rule3:rgba(0,0,0,0.22);
+  --rule: rgba(15,15,13,0.08);
+  --rule2:rgba(15,15,13,0.14);
+  --rule3:rgba(15,15,13,0.24);
 
-  /* Text */
-  --ink:  #1a1814;
-  --ink2: #4a4744;
-  --ink3: #8a8785;
+  /* Text — quasi nero, meno cast marrone, più contrasto editoriale */
+  --ink:  #121210;
+  --ink2: #47453f;
+  --ink3: #8b8983;
 
-  /* Accents */
-  --gold: #9a7b4f;
-  --gold2:#7d6240;
-  --gold3:rgba(154,123,79,0.1);
-  --green:#3d8a62;
-  --red:  #a04040;
-  --blue: #3a6a9a;
-  --amber:#b07830;
+  /* Accenti — champagne profondo al posto del tan/oro chiaro, più "quiet luxury" */
+  --gold: #83693f;
+  --gold2:#65502f;
+  --gold3:rgba(131,105,63,0.10);
+  --green:#3d6b52;
+  --red:  #8f4640;
+  --blue: #3d5a72;
+  --amber:#8f6a30;
 
   /* Radii */
   --r:    4px;
@@ -63,9 +63,9 @@ const CONFIG = {
   --sans: 'DM Sans',-apple-system,sans-serif;
 
   /* Shadows */
-  --sh-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --sh-md: 0 4px 16px rgba(0,0,0,0.1);
-  --sh-lg: 0 12px 40px rgba(0,0,0,0.14);
+  --sh-sm: 0 1px 3px rgba(15,15,13,0.07);
+  --sh-md: 0 4px 16px rgba(15,15,13,0.09);
+  --sh-lg: 0 12px 40px rgba(15,15,13,0.13);
 }
 
 html,body{
@@ -1274,7 +1274,7 @@ function cardHTML(c){
   const sLbl     = {booked:'Confermato',rejected:'Non selezionato',archived:'Archiviato'}[c.status];
   const isArchived = c.status === 'archived';
   const cBrands  = appMode==='database'
-    ? (c.brand_nomi_storico || [])
+    ? []
     : (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
   const isMinor  = c.maggiorenne===false || c.maggiorenne==='FALSE';
 

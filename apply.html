@@ -40,15 +40,15 @@ const EVENTO_ID = new URLSearchParams(location.search).get('evento') || DEFAULT_
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f7f5f2; --bg2:#ffffff; --bg3:#f0ede9; --bg4:#e8e4df;
-  --rule:rgba(0,0,0,0.08); --rule2:rgba(0,0,0,0.14); --rule3:rgba(0,0,0,0.24);
-  --ink:#1a1814; --ink2:#4a4744; --ink3:#8a8785;
-  --gold:#9a7b4f; --gold2:#7d6240; --gold3:rgba(154,123,79,0.1);
-  --green:#3d8a62; --red:#a04040; --amber:#b07830;
+  --bg:#f7f7f6; --bg2:#ffffff; --bg3:#f0efed; --bg4:#e4e2df;
+  --rule:rgba(15,15,13,0.08); --rule2:rgba(15,15,13,0.14); --rule3:rgba(15,15,13,0.24);
+  --ink:#121210; --ink2:#47453f; --ink3:#8b8983;
+  --gold:#83693f; --gold2:#65502f; --gold3:rgba(131,105,63,0.10);
+  --green:#3d6b52; --red:#8f4640; --amber:#8f6a30;
   --r:4px; --r-lg:10px;
   --serif:'Cormorant Garamond',Georgia,serif;
   --sans:'DM Sans',-apple-system,sans-serif;
-  --sh:0 1px 3px rgba(0,0,0,0.08);
+  --sh:0 1px 3px rgba(15,15,13,0.07);
 }
 html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;min-height:100vh;-webkit-font-smoothing:antialiased}
 
@@ -454,6 +454,60 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
      FORM WRAPPER (nascosto fino al click su CTA)
      ══════════════════════════════════════════════ -->
 <div id="form-wrapper">
+
+<!-- STEP 1: VERIFICA PROFILO ESISTENTE -->
+<div id="prescreen">
+  <div class="hdr">
+    <span class="hdr-agency" id="ps-agency">Casting Studio</span>
+    <h1>Prima di iniziare</h1>
+    <p>Se ti sei già candidata/o in passato, ritroviamo subito il tuo profilo</p>
+  </div>
+  <div class="wrap">
+    <div class="sec">
+      <div class="field" id="f-ps-telefono" style="margin-bottom:12px">
+        <label>Numero di cellulare *</label>
+        <input id="ps-telefono" type="tel" placeholder="+39 333 0001234" autocomplete="tel" inputmode="tel">
+        <span class="err">Obbligatorio</span>
+      </div>
+      <div class="field" id="f-ps-email">
+        <label>Email (facoltativa)</label>
+        <input id="ps-email" type="email" placeholder="sofia@email.com" autocomplete="email">
+      </div>
+    </div>
+    <button class="btn-send" id="ps-btn" onclick="doPrescreenCheck()">Verifica profilo →</button>
+    <div id="ps-status" style="text-align:center;font-size:11px;color:var(--ink3);margin-top:10px;min-height:16px"></div>
+  </div>
+</div>
+
+<!-- STEP 2: ESITO VERIFICA + CONSENSO -->
+<div id="prescreen-result" style="display:none">
+  <div class="hdr">
+    <span class="hdr-agency" id="psr-agency">Casting Studio</span>
+    <h1 id="psr-title">—</h1>
+    <p id="psr-sub"></p>
+  </div>
+  <div class="wrap">
+    <div id="psr-card" style="display:none;background:var(--bg3);border:1px solid var(--rule2);border-radius:8px;padding:14px;align-items:center;gap:14px;margin-bottom:22px">
+      <img id="psr-photo" src="" alt="" style="width:60px;height:76px;object-fit:cover;border-radius:4px;background:var(--bg4);flex-shrink:0">
+      <div>
+        <div id="psr-name" style="font-family:var(--serif);font-size:18px;font-weight:400;color:var(--ink)"></div>
+        <div id="psr-meta" style="font-size:11px;color:var(--ink3);margin-top:3px"></div>
+      </div>
+    </div>
+
+    <div class="field" id="f-gdpr" style="flex-direction:row;align-items:flex-start;gap:10px;margin-bottom:6px">
+      <input type="checkbox" id="gdpr-consent" style="width:auto;margin-top:3px;flex:none">
+      <label for="gdpr-consent" style="text-transform:none;letter-spacing:0.01em;font-weight:400;font-size:12px;color:var(--ink2);cursor:pointer">
+        Acconsento al trattamento dei miei dati personali e delle mie foto per finalità di casting, in conformità al GDPR. *
+      </label>
+      <span class="err">Devi accettare per procedere</span>
+    </div>
+
+    <button class="btn-send" id="psr-continue-btn" onclick="continueToForm()">Continua</button>
+    <button class="btn-retry" style="width:100%;margin-top:10px" onclick="backToPrescreen()">← Correggi email/telefono</button>
+  </div>
+</div>
+
 <div id="state-ok" class="state" style="display:none">
   <div>
     <div class="state-icon">✓</div>
@@ -489,7 +543,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 </div>
 
 <!-- FORM -->
-<div id="main">
+<div id="main" style="display:none">
   <div class="hdr">
     <span class="hdr-agency" id="hdr-agency">Casting Studio</span>
     <h1>Candidatura</h1>
@@ -520,22 +574,6 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
         <input id="instagram" type="text" placeholder="@sofiarossi" autocomplete="off">
         <span class="hint">Con o senza @</span>
         <span class="err">Obbligatorio</span>
-      </div>
-
-      <div class="grid-2" style="margin-bottom:12px">
-        <div class="field" id="f-telefono">
-          <label>Numero di cellulare *</label>
-          <input id="telefono" type="tel" placeholder="+39 333 0001234" autocomplete="tel" inputmode="tel" onblur="tryLookup()">
-          <span class="err">Obbligatorio</span>
-        </div>
-        <div class="field" id="f-email">
-          <label>Email (facoltativa)</label>
-          <input id="email" type="email" placeholder="sofia@email.com" autocomplete="email" onblur="tryLookup()">
-        </div>
-      </div>
-
-      <div id="found-banner" style="display:none;background:rgba(61,138,98,0.1);border:1px solid rgba(61,138,98,0.3);color:var(--green);border-radius:var(--r);padding:11px 14px;font-size:12px;letter-spacing:0.02em;margin-bottom:12px;line-height:1.6">
-        ✓ Bentornata/o<span id="found-name"></span>! Ti abbiamo riconosciuto dal numero di telefono: i dati sono già compilati, controlla che siano ancora corretti.
       </div>
 
       <div class="grid-2">
@@ -684,6 +722,7 @@ function goToForm() {
   setTimeout(() => {
     landing.style.display = 'none';
     wrapper.style.display = 'block';
+    document.getElementById('prescreen').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, 380);
 }
@@ -691,8 +730,7 @@ function goToForm() {
 // ── Foto a 2 slot fissi ───────────────────────────────────
 const photos = [null, null]; // slot 0 = frontale, slot 1 = profilo
 let existingPhotoUrls = [null, null]; // foto già in archivio (se profilo riconosciuto)
-let foundPersona = false;
-let lookupTimer = null;
+let foundPersona = null; // profilo trovato dalla verifica, o null se nuovo
 
 const SLOT_LABELS = [
   { icon:'👤', label:'Primo piano<br><strong>frontale</strong>', badge:'Frontale' },
@@ -782,8 +820,11 @@ let CURRENT_EVENTO = null;
 document.addEventListener('DOMContentLoaded', async () => {
   buildSizeGrid('grid-sup', 'ts');
   buildSizeGrid('grid-inf', 'ti');
-  document.getElementById('hdr-agency').textContent =
-    (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
+  const agency = (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
+  ['hdr-agency','ps-agency','psr-agency'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = agency;
+  });
 
   if (!EVENTO_ID) {
     console.warn('EVENTO_ID non impostato: aggiungi ?evento=ID_EVENTO al link, oppure imposta DEFAULT_EVENTO_ID nel file.');
@@ -855,30 +896,74 @@ function renderLanding(ev) {
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── Riconoscimento profilo esistente (via telefono/email) ──
-function tryLookup() {
-  clearTimeout(lookupTimer);
-  lookupTimer = setTimeout(doLookup, 350);
-}
+// ── STEP 1→2: Verifica profilo esistente (via telefono/email) ──
+let psTelefono = '', psEmail = '';
 
-async function doLookup() {
-  const telefono = g('telefono'), email = g('email');
-  if (telefono.length < 6 && !email) return;
+async function doPrescreenCheck() {
+  const telefono = document.getElementById('ps-telefono').value.trim();
+  const email = document.getElementById('ps-email').value.trim();
+
+  clrE('ps-telefono');
+  if (!telefono) { setE('ps-telefono'); return; }
+
+  psTelefono = telefono; psEmail = email;
+
+  const btn = document.getElementById('ps-btn');
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Verifica in corso…';
+  document.getElementById('ps-status').textContent = 'Stiamo controllando se esiste già un tuo profilo…';
+
   try {
     const d = await get({ action:'lookupPersona', telefono, email });
-    if (d.ok && d.persona) {
-      foundPersona = true;
-      fillFromPersona(d.persona);
-    } else if (foundPersona) {
-      foundPersona = false;
-      document.getElementById('found-banner').style.display = 'none';
-    }
-  } catch (err) { console.error(err); }
+    btn.disabled = false; btn.innerHTML = 'Verifica profilo →';
+    document.getElementById('ps-status').textContent = '';
+    showPrescreenResult(d.ok && d.persona ? d.persona : null);
+  } catch (err) {
+    console.error(err);
+    btn.disabled = false; btn.innerHTML = 'Verifica profilo →';
+    document.getElementById('ps-status').textContent = 'Errore di connessione, riprova.';
+  }
+}
+
+function showPrescreenResult(persona) {
+  foundPersona = persona;
+  document.getElementById('prescreen').style.display = 'none';
+  document.getElementById('prescreen-result').style.display = 'block';
+  window.scrollTo({ top:0, behavior:'instant' });
+
+  const card = document.getElementById('psr-card');
+  if (persona) {
+    document.getElementById('psr-title').textContent = `Bentornata/o${persona.nome ? ' '+persona.nome : ''}!`;
+    document.getElementById('psr-sub').textContent = 'Abbiamo trovato il tuo profilo: controlla che i dati siano corretti prima di continuare.';
+    const photoUrl = (persona.photo_urls||[])[0];
+    document.getElementById('psr-photo').src = photoUrl || '';
+    document.getElementById('psr-photo').style.display = photoUrl ? 'block' : 'none';
+    document.getElementById('psr-name').textContent = `${persona.nome||''} ${persona.cognome||''}`.trim();
+    document.getElementById('psr-meta').textContent = [
+      persona.eta ? persona.eta+' anni' : '', persona.instagram || '',
+    ].filter(Boolean).join(' · ');
+    card.style.display = 'flex';
+  } else {
+    document.getElementById('psr-title').textContent = 'Nessun profilo trovato';
+    document.getElementById('psr-sub').textContent = 'Nessun problema: procediamo con una candidatura nuova.';
+    card.style.display = 'none';
+  }
+}
+
+function backToPrescreen() {
+  document.getElementById('prescreen-result').style.display = 'none';
+  document.getElementById('prescreen').style.display = 'block';
+}
+
+function continueToForm() {
+  clrE('gdpr');
+  if (!document.getElementById('gdpr-consent').checked) { setE('gdpr'); return; }
+  document.getElementById('prescreen-result').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  window.scrollTo({ top:0, behavior:'instant' });
+  if (foundPersona) fillFromPersona(foundPersona);
 }
 
 function fillFromPersona(p) {
-  document.getElementById('found-banner').style.display = 'block';
-  document.getElementById('found-name').textContent = p.nome ? ` ${p.nome}` : '';
   setVal('nome', p.nome); setVal('cognome', p.cognome); setVal('instagram', p.instagram);
   setVal('orario_arrivo', p.orario_arrivo); setVal('note_particolari', p.note);
   if (p.eta) { setVal('eta', p.eta); onEta(String(p.eta)); }
@@ -913,7 +998,7 @@ function isChecked(id) { return document.getElementById(id)?.checked || false; }
 // ── Validazione ───────────────────────────────────────────
 function validate() {
   let ok = true;
-  ['nome','cognome','instagram','telefono','eta','altezza_cm'].forEach(f => {
+  ['nome','cognome','instagram','eta','altezza_cm'].forEach(f => {
     clrE(f); if (!g(f)) { setE(f, 'Obbligatorio'); ok = false; }
   });
   const eta = parseInt(g('eta'));
@@ -972,8 +1057,8 @@ async function doSubmit() {
     nome:            g('nome'),
     cognome:         g('cognome'),
     instagram:       g('instagram'),
-    telefono:        g('telefono'),
-    email:           g('email'),
+    telefono:        psTelefono,
+    email:           psEmail,
     eta,
     maggiorenne:     eta >= 18,
     altezza_cm:      parseFloat(g('altezza_cm')),
