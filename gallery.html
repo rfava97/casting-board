@@ -648,6 +648,11 @@ html,body{
       <span class="topbar-count" id="count-lbl"></span>
     </div>
     <div class="topbar-actions">
+      <select id="f-evento" onchange="onEventoChange()" style="background:var(--bg3);border:1px solid var(--rule2);color:var(--ink);border-radius:var(--r);padding:7px 10px;font-size:11px;font-family:var(--sans);letter-spacing:0.03em;max-width:170px">
+        <option value="All">Tutti gli eventi</option>
+      </select>
+      <button class="tbtn tbtn-ghost" onclick="openEventManager()">📅 Eventi</button>
+      <div class="tbtn-sep"></div>
       <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
         Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
@@ -656,7 +661,7 @@ html,body{
       <div class="tbtn-sep tbtn-hide-sm"></div>
       <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openBrandManager()">🏷 Brand</button>
       <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="startPdfExport()">↓ PDF</button>
-      <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="window.open('apply.html','_blank')">+ Form</button>
+      <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openApplyLink()">+ Form</button>
       <button class="tbtn tbtn-ghost" onclick="reload()" title="Aggiorna">↻</button>
     </div>
   </div>
@@ -749,6 +754,20 @@ html,body{
   </div>
 </div>
 
+<!-- EVENT MANAGER MODAL -->
+<div id="ev-modal" onclick="if(event.target===this)closeEV()">
+  <div class="bm-box" style="max-width:440px">
+    <h3>Eventi</h3>
+    <div class="bm-list" id="ev-list"></div>
+    <div class="bm-new" style="flex-direction:column;align-items:stretch;gap:8px">
+      <input type="text" id="ev-nome" placeholder="Nome evento…">
+      <input type="text" id="ev-cliente" placeholder="Cliente (facoltativo)…">
+      <button onclick="createEvento()">+ Crea evento</button>
+    </div>
+    <button class="bm-close" onclick="closeEV()">Chiudi</button>
+  </div>
+</div>
+
 <!-- POPUP GUIDE TAGLIE -->
 <div id="size-popup" onclick="if(event.target===this)closeSizePopup()">
   <div class="sp-box">
@@ -817,7 +836,9 @@ html,body{
 // ============================================================
 let candidates  = [];
 let brands      = [];
+let eventi      = [];
 let curBrand    = 'All';
+let curEvento   = 'All';
 let showSLOnly  = false;
 let showArchived = false;
 let curC        = null;
@@ -846,8 +867,100 @@ function doLogin(){
 // INIT
 // ============================================================
 async function init(){
+  await loadEventi();
   await loadBrands();
   await loadCandidates();
+}
+
+// ============================================================
+// EVENTI
+// ============================================================
+async function loadEventi(){
+  const d = await apiGet({action:'getEventi'});
+  if(!d.ok) return;
+  eventi = d.eventi||[];
+  renderEventoSelect();
+  renderEVList();
+}
+
+function renderEventoSelect(){
+  const sel = document.getElementById('f-evento');
+  const cur = curEvento;
+  sel.innerHTML = '<option value="All">Tutti gli eventi</option>' +
+    eventi.map(ev=>`<option value="${ev.id}">${esc(ev.nome)}${ev.stato==='chiuso'?' (chiuso)':''}</option>`).join('');
+  sel.value = cur;
+}
+
+function onEventoChange(){
+  curEvento = document.getElementById('f-evento').value;
+  loadCandidates();
+}
+
+function openEventManager(){ renderEVList(); document.getElementById('ev-modal').classList.add('open'); }
+function closeEV(){ document.getElementById('ev-modal').classList.remove('open'); }
+
+function renderEVList(){
+  const list = document.getElementById('ev-list');
+  if(!eventi.length){
+    list.innerHTML = '<div style="color:var(--ink3);font-size:11px;padding:8px 0;letter-spacing:0.04em">Nessun evento ancora. Creane uno qui sotto.</div>';
+    return;
+  }
+  list.innerHTML = eventi.map(ev=>`
+    <div class="bm-item" style="flex-direction:column;align-items:stretch;gap:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span>${esc(ev.nome)}${ev.cliente?` <span style="color:var(--ink3)">— ${esc(ev.cliente)}</span>`:''}</span>
+        <button class="bm-del" onclick="deleteEvento('${ev.id}','${esc(ev.nome)}')" title="Elimina">×</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="toggleEventoStato('${ev.id}','${ev.stato}')">${ev.stato==='chiuso'?'Riapri':'Chiudi'}</button>
+        <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="copyApplyLink('${ev.id}')">🔗 Copia link candidatura</button>
+      </div>
+    </div>`).join('');
+}
+
+async function createEvento(){
+  const nome = document.getElementById('ev-nome').value.trim();
+  const cliente = document.getElementById('ev-cliente').value.trim();
+  if(!nome) return;
+  const d = await apiPost({action:'createEvento',data:{nome,cliente,stato:'aperto'}});
+  if(d.ok){
+    document.getElementById('ev-nome').value='';
+    document.getElementById('ev-cliente').value='';
+    await loadEventi();
+  }
+}
+
+async function deleteEvento(id,nome){
+  if(!confirm(`Eliminare l'evento "${nome}"? Le candidature restano salvate ma non saranno più filtrabili per questo evento.`)) return;
+  await apiPost({action:'deleteEvento',eventoId:id});
+  if(curEvento===id) curEvento='All';
+  await loadEventi();
+  loadCandidates();
+}
+
+async function toggleEventoStato(id,statoAttuale){
+  const nuovo = statoAttuale==='chiuso' ? 'aperto' : 'chiuso';
+  await apiPost({action:'updateEvento',eventoId:id,data:{stato:nuovo}});
+  await loadEventi();
+}
+
+function copyApplyLink(id){
+  const url = new URL('apply.html', location.href);
+  url.searchParams.set('evento', id);
+  navigator.clipboard.writeText(url.toString()).then(()=>{
+    showToast('Link copiato negli appunti');
+  }).catch(()=>{ prompt('Copia questo link:', url.toString()); });
+}
+
+function openApplyLink(){
+  if(curEvento==='All'){
+    if(!eventi.length){ alert('Crea prima un evento dal pulsante "📅 Eventi".'); return; }
+    alert('Seleziona un evento specifico dal menu in alto, oppure usa "🔗 Copia link candidatura" dal pannello Eventi.');
+    return;
+  }
+  const url = new URL('apply.html', location.href);
+  url.searchParams.set('evento', curEvento);
+  window.open(url.toString(), '_blank');
 }
 
 // ============================================================
@@ -951,6 +1064,7 @@ async function loadCandidates(){
   document.getElementById('gallery').innerHTML='<div class="state"><span class="spinner"></span> Caricamento…</div>';
   const d = await apiGet({
     action:      'getCandidates',
+    evento:      curEvento,
     search:      document.getElementById('q').value.trim(),
     status:      document.getElementById('f-status').value,
     maggiorenne: document.getElementById('f-maggiorenne').value,
@@ -1078,15 +1192,15 @@ async function archiveCandidate(id, isCurrentlyArchived) {
 }
 
 // ── Elimina definitivamente ───────────────────────────────
-async function deleteCandidate(id, nome) {
+async function deleteCandidate(id, personaId, nome) {
   const confirmed = confirm(
-    `Eliminare definitivamente "${nome}"?\n\nQuesta azione è irreversibile — il profilo e le foto verranno rimossi.`
+    `Eliminare definitivamente "${nome}" da TUTTO il sistema?\n\nVerranno rimossi anagrafica, foto e ogni candidatura su ogni evento. Azione irreversibile.\n\n(Per rimuovere solo da questo evento, usa invece "Archivia".)`
   );
   if (!confirmed) return;
   candidates = candidates.filter(c => c.id !== id);
   renderGallery(candidates);
   closeDrawer();
-  const res = await apiPost({ action:'deleteCandidate', candidateId:id });
+  const res = await apiPost({ action:'deletePersona', personaId });
   if (!res.ok) {
     alert('Errore durante l\'eliminazione: ' + (res.error||'sconosciuto'));
     loadCandidates();
@@ -1191,7 +1305,7 @@ function openDrawer(id){
           ${c.status==='archived'?'↩ Ripristina':'📦 Archivia'}
         </button>
         <button
-          onclick="deleteCandidate('${c.id}','${esc(c.nome)} ${esc(c.cognome)}')"
+          onclick="deleteCandidate('${c.id}','${c.persona_id}','${esc(c.nome)} ${esc(c.cognome)}')"
           style="padding:8px 12px;background:transparent;
                  border:1px solid rgba(160,64,64,0.3);color:var(--red);
                  border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);

@@ -449,6 +449,9 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
     <span class="ctrl-sep">·</span>
     <span class="ctrl-count" id="ctrl-count"></span>
     <div class="ctrl-actions">
+      <select class="brand-sel" id="evento-sel" onchange="filterByEvento(this.value)">
+        <option value="All">Tutti gli eventi</option>
+      </select>
       <select class="brand-sel" id="brand-sel" onchange="filterByBrand(this.value)">
         <option value="All">Tutti i brand</option>
       </select>
@@ -502,10 +505,15 @@ let allBrands     = [];
 let curBrand      = 'All';
 let curStatus     = 'All';
 let groupByBrand  = false;
+let allEventi     = [];
+let curEvento     = 'All';
 
 // Modalità link: ?brand=BRAND_ID nell'URL
 const URL_BRAND = new URLSearchParams(window.location.search).get('brand');
 const IS_BRAND_LINK = !!URL_BRAND;
+// ?evento=EVENTO_ID opzionale: pre-filtra sull'evento anche fuori dalla modalità brand-link
+const URL_EVENTO = new URLSearchParams(window.location.search).get('evento');
+if (URL_EVENTO) curEvento = URL_EVENTO;
 
 // ── LOGIN ──────────────────────────────────────────────────
 function doLogin() {
@@ -532,12 +540,24 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── INIT ───────────────────────────────────────────────────
 async function init() {
   try {
-    const [bRes, cRes] = await Promise.all([
+    const [bRes, eRes, cRes] = await Promise.all([
       apiGet({ action: 'getBrands' }),
-      apiGet({ action: 'getCandidates' }),
+      apiGet({ action: 'getEventi' }),
+      apiGet({ action: 'getCandidates', evento: curEvento }),
     ]);
     allBrands     = bRes.brands     || [];
+    allEventi     = eRes.eventi     || [];
     allCandidates = cRes.candidates || [];
+
+    if (!IS_BRAND_LINK) {
+      const evSel = document.getElementById('evento-sel');
+      allEventi.forEach(ev => {
+        const opt = document.createElement('option');
+        opt.value = ev.id; opt.textContent = ev.nome;
+        evSel.appendChild(opt);
+      });
+      evSel.value = curEvento;
+    }
 
     // Modalità link brand — lock sul brand dell'URL
     if (IS_BRAND_LINK) {
@@ -586,6 +606,13 @@ async function init() {
 }
 
 // ── FILTER CONTROLS ─────────────────────────────────────────
+async function filterByEvento(val) {
+  curEvento = val;
+  document.getElementById('book').innerHTML = '<div class="loading-state"><span class="spinner"></span><p>Caricamento…</p></div>';
+  const cRes = await apiGet({ action:'getCandidates', evento: curEvento });
+  allCandidates = cRes.candidates || [];
+  render();
+}
 function filterByBrand(val)  { curBrand  = val; render(); }
 function filterByStatus(val) { curStatus = val; render(); }
 function toggleView() {

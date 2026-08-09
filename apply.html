@@ -21,6 +21,17 @@ const SIZE_INFO = {
   XXL: { donna:'Non disponibile',                                               uomo:'It. 54/56 · torace 115–120 · vita 95–100 cm' },
 };
 const SIZES = ['XS','S','M','L','XL','XXL'];
+
+// ── EVENTO ─────────────────────────────────────────────────
+// Questa pagina è dedicata a un evento specifico: l'id evento va
+// passato nel link che condividi (es. WhatsApp, bio Instagram)
+// aggiungendo ?evento=ID_EVENTO in fondo all'URL della pagina.
+// L'ID si ottiene dal pannello "📅 Eventi" nella gallery, con
+// "🔗 Copia link candidatura" — oppure incollalo qui come default
+// così il link resta pulito anche senza il parametro.
+const DEFAULT_EVENTO_ID = '';
+const EVENTO_ID = new URLSearchParams(location.search).get('evento') || DEFAULT_EVENTO_ID;
+
 </script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -526,10 +537,20 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
         <span class="err">Obbligatorio</span>
       </div>
 
-      <div class="field" id="f-telefono" style="margin-bottom:12px">
-        <label>Numero di cellulare *</label>
-        <input id="telefono" type="tel" placeholder="+39 333 0001234" autocomplete="tel" inputmode="tel">
-        <span class="err">Obbligatorio</span>
+      <div class="grid-2" style="margin-bottom:12px">
+        <div class="field" id="f-telefono">
+          <label>Numero di cellulare *</label>
+          <input id="telefono" type="tel" placeholder="+39 333 0001234" autocomplete="tel" inputmode="tel" onblur="tryLookup()">
+          <span class="err">Obbligatorio</span>
+        </div>
+        <div class="field" id="f-email">
+          <label>Email (facoltativa)</label>
+          <input id="email" type="email" placeholder="sofia@email.com" autocomplete="email" onblur="tryLookup()">
+        </div>
+      </div>
+
+      <div id="found-banner" style="display:none;background:rgba(61,138,98,0.1);border:1px solid rgba(61,138,98,0.3);color:var(--green);border-radius:var(--r);padding:11px 14px;font-size:12px;letter-spacing:0.02em;margin-bottom:12px;line-height:1.6">
+        ✓ Bentornata/o<span id="found-name"></span>! Ti abbiamo riconosciuto dal numero di telefono: i dati sono già compilati, controlla che siano ancora corretti.
       </div>
 
       <div class="grid-2">
@@ -618,7 +639,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 
     <!-- ── FOTO ── -->
     <div class="sec">
-      <div class="sec-title">Foto *</div>
+      <div class="sec-title" id="foto-sec-title">Foto *</div>
 
       <!-- Istruzioni chiare -->
       <div class="foto-guide">
@@ -684,6 +705,9 @@ function goToForm() {
 
 // ── Foto a 2 slot fissi ───────────────────────────────────
 const photos = [null, null]; // slot 0 = frontale, slot 1 = profilo
+let existingPhotoUrls = [null, null]; // foto già in archivio (se profilo riconosciuto)
+let foundPersona = false;
+let lookupTimer = null;
 
 const SLOT_LABELS = [
   { icon:'👤', label:'Primo piano<br><strong>frontale</strong>', badge:'Frontale' },
@@ -715,6 +739,11 @@ function renderSlot(idx) {
       <img src="${p.preview}" alt="foto ${idx}">
       <span class="foto-slot-badge">${info.badge}</span>
       <button class="rm-photo" onclick="event.stopPropagation();removeSlotPhoto(${idx})" type="button">×</button>`;
+  } else if (existingPhotoUrls[idx]) {
+    slot.classList.add('has-photo');
+    slot.innerHTML = `
+      <img src="${existingPhotoUrls[idx]}" alt="foto ${idx} archivio">
+      <span class="foto-slot-badge">Già in archivio</span>`;
   } else {
     slot.classList.remove('has-photo');
     slot.innerHTML = `
@@ -768,7 +797,53 @@ document.addEventListener('DOMContentLoaded', () => {
   buildSizeGrid('grid-inf', 'ti');
   document.getElementById('hdr-agency').textContent =
     (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
+  if (!EVENTO_ID) {
+    console.warn('EVENTO_ID non impostato: aggiungi ?evento=ID_EVENTO al link, oppure imposta DEFAULT_EVENTO_ID nel file.');
+  }
 });
+
+// ── Riconoscimento profilo esistente (via telefono/email) ──
+function tryLookup() {
+  clearTimeout(lookupTimer);
+  lookupTimer = setTimeout(doLookup, 350);
+}
+
+async function doLookup() {
+  const telefono = g('telefono'), email = g('email');
+  if (telefono.length < 6 && !email) return;
+  try {
+    const d = await get({ action:'lookupPersona', telefono, email });
+    if (d.ok && d.persona) {
+      foundPersona = true;
+      fillFromPersona(d.persona);
+    } else if (foundPersona) {
+      foundPersona = false;
+      document.getElementById('found-banner').style.display = 'none';
+    }
+  } catch (err) { console.error(err); }
+}
+
+function fillFromPersona(p) {
+  document.getElementById('found-banner').style.display = 'block';
+  document.getElementById('found-name').textContent = p.nome ? ` ${p.nome}` : '';
+  setVal('nome', p.nome); setVal('cognome', p.cognome); setVal('instagram', p.instagram);
+  setVal('orario_arrivo', p.orario_arrivo); setVal('note_particolari', p.note);
+  if (p.eta) { setVal('eta', p.eta); onEta(String(p.eta)); }
+  if (p.altezza_cm) setVal('altezza_cm', p.altezza_cm);
+  if (p.taglia_sup) { const r=document.getElementById('ts-'+p.taglia_sup); if(r) r.checked=true; }
+  if (p.taglia_inf) { const r=document.getElementById('ti-'+p.taglia_inf); if(r) r.checked=true; }
+  if (p.tatuaggi) document.getElementById('tatuaggi').checked = true;
+  if (p.piercing) document.getElementById('piercing').checked = true;
+
+  const urls = p.photo_urls || [];
+  existingPhotoUrls = [urls[0]||null, urls[1]||null];
+  document.getElementById('foto-sec-title').textContent = urls.length ? 'Foto (già in archivio)' : 'Foto *';
+  renderSlot(0); renderSlot(1);
+}
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el && val !== undefined && val !== null && val !== '') el.value = val;
+}
 
 // ── Helpers ───────────────────────────────────────────────
 function g(id) { return (document.getElementById(id)?.value || '').trim(); }
@@ -803,12 +878,12 @@ function validate() {
   if (!getSup()) { supErr.classList.add('show'); ok = false; } else supErr.classList.remove('show');
   if (!getInf()) { infErr.classList.add('show'); ok = false; } else infErr.classList.remove('show');
 
-  // Entrambe le foto obbligatorie
-  const missingPhoto = photos[0] === null || photos[1] === null;
+  // Entrambe le foto obbligatorie, a meno che non siano già in archivio
+  const missingPhoto = (photos[0] === null && !existingPhotoUrls[0]) || (photos[1] === null && !existingPhotoUrls[1]);
   if (missingPhoto) {
     document.getElementById('ph-err').style.display = 'block';
-    if (!photos[0]) document.getElementById('slot-0').classList.add('has-error');
-    if (!photos[1]) document.getElementById('slot-1').classList.add('has-error');
+    if (!photos[0] && !existingPhotoUrls[0]) document.getElementById('slot-0').classList.add('has-error');
+    if (!photos[1] && !existingPhotoUrls[1]) document.getElementById('slot-1').classList.add('has-error');
     ok = false;
   }
   return ok;
@@ -817,6 +892,14 @@ function validate() {
 // ── Submit ────────────────────────────────────────────────
 async function doSubmit() {
   document.getElementById('form-err').style.display = 'none';
+
+  if (!EVENTO_ID) {
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('err-msg').textContent = 'Questo link di candidatura non è configurato correttamente (evento mancante). Contatta l\'agenzia.';
+    document.getElementById('state-err').style.display = 'flex';
+    return;
+  }
+
   if (!validate()) {
     document.getElementById('form-err').style.display = 'block';
     (document.querySelector('.has-error') ||
@@ -837,6 +920,7 @@ async function doSubmit() {
     cognome:         g('cognome'),
     instagram:       g('instagram'),
     telefono:        g('telefono'),
+    email:           g('email'),
     eta,
     maggiorenne:     eta >= 18,
     altezza_cm:      parseFloat(g('altezza_cm')),
@@ -845,31 +929,32 @@ async function doSubmit() {
     tatuaggi:        isChecked('tatuaggi'),
     piercing:        isChecked('piercing'),
     orario_arrivo:   g('orario_arrivo'),
-    note_particolari:g('note_particolari'),
+    note:            g('note_particolari'),
   };
 
   try {
     setStatus('Salvataggio dati…');
-    const r = await post({ action:'submit', data });
+    const r = await post({ action:'submit', eventoId:EVENTO_ID, data });
     if (!r.ok) throw new Error(r.error || 'Errore salvataggio dati');
-    const cid = r.id;
+    const personaId = r.id;
     setBar(20);
 
-    // Carica le 2 foto nell'ordine: frontale (0), profilo (1)
-    for (let i = 0; i < photos.length; i++) {
-      if (!photos[i]) continue;
+    // Carica solo le foto NUOVE (quelle già in archivio restano quelle che erano)
+    const toUpload = photos.map((p,i)=>({p,i})).filter(x=>x.p);
+    for (let n = 0; n < toUpload.length; n++) {
+      const { p, i } = toUpload[n];
       const labels = ['frontale', 'profilo'];
       setStatus(`Caricamento foto ${labels[i]}…`);
-      btn.innerHTML = `<div class="spinner"></div> Foto ${i+1}/2…`;
-      const b64 = await toB64(photos[i].file);
-      const ext = photos[i].file.name.split('.').pop() || 'jpg';
+      btn.innerHTML = `<div class="spinner"></div> Foto ${n+1}/${toUpload.length}…`;
+      const b64 = await toB64(p.file);
+      const ext = p.file.name.split('.').pop() || 'jpg';
       const res = await post({
-        action:'uploadPhoto', candidateId:cid,
+        action:'uploadPhoto', personaId,
         fileName:`${labels[i]}-${Date.now()}.${ext}`,
-        mimeType:photos[i].file.type, base64Data:b64,
+        mimeType:p.file.type, base64Data:b64,
       });
       if (!res.ok) throw new Error(res.error || 'Errore upload foto');
-      setBar(20 + Math.round((i + 1) / 2 * 75));
+      setBar(20 + Math.round((n + 1) / toUpload.length * 75));
     }
 
     setBar(100);
@@ -894,6 +979,12 @@ async function post(payload) {
   const text = await res.text();
   try { return JSON.parse(text); }
   catch (e) { throw new Error('Risposta non valida: ' + text.slice(0, 100)); }
+}
+
+async function get(params) {
+  const qs = new URLSearchParams({ ...params, token:CONFIG.TOKEN }).toString();
+  const res = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${qs}`);
+  return res.json();
 }
 
 function toB64(file) {
