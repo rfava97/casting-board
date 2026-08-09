@@ -124,26 +124,41 @@ html,body{
    ============================================================ */
 #app{display:none}
 
-/* ---- TOPBAR ---- */
+/* ---- TOPBAR (livello 1: brand, switch modalità, azioni globali) ---- */
 .topbar{
   background:var(--bg2);border-bottom:1px solid var(--rule);
-  padding:0 16px;height:52px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:0 24px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
   position:sticky;top:0;z-index:200;box-shadow:var(--sh-sm);
 }
+.topbar-left{display:flex;align-items:baseline;gap:12px;white-space:nowrap;flex-shrink:0}
 .topbar-brand{
-  font-family:var(--serif);font-size:17px;font-weight:300;
-  letter-spacing:0.04em;color:var(--ink);
-  display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;
+  font-family:var(--serif);font-size:19px;font-weight:400;
+  letter-spacing:0.01em;color:var(--ink);
 }
-.topbar-brand::after{content:'';display:block;width:1px;height:14px;background:var(--rule2)}
-.topbar-count{font-size:11px;color:var(--ink3);letter-spacing:0.04em;white-space:nowrap}
-.topbar-actions{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.topbar-count{font-size:11px;color:var(--ink3);letter-spacing:0.03em;white-space:nowrap}
+
+/* Segmented control Database / Eventi */
+.mode-switch{
+  display:flex;align-items:center;background:var(--bg3);
+  border:1px solid var(--rule2);border-radius:999px;padding:3px;flex-shrink:0;
+}
+.mode-btn{
+  border:none;background:none;cursor:pointer;
+  padding:7px 18px;border-radius:999px;
+  font-family:var(--sans);font-size:11px;font-weight:500;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);
+  transition:all 0.18s;white-space:nowrap;
+}
+.mode-btn.active{background:var(--ink);color:#fff;box-shadow:var(--sh-sm)}
+.mode-btn:not(.active):hover{color:var(--ink)}
+
+.topbar-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
 
 /* Buttons */
 .tbtn{
   display:inline-flex;align-items:center;gap:5px;
-  padding:6px 11px;border-radius:var(--r);
+  padding:7px 12px;border-radius:var(--r);
   font-size:11px;font-weight:400;letter-spacing:0.05em;
   cursor:pointer;border:none;font-family:var(--sans);
   text-transform:uppercase;transition:all 0.15s;white-space:nowrap;
@@ -155,19 +170,30 @@ html,body{
 .tbtn-gold{background:var(--gold);color:#fff;font-weight:500}
 .tbtn-gold:hover{background:var(--gold2)}
 .tbtn-active{background:var(--gold3);color:var(--gold2);border:1px solid rgba(154,123,79,0.25)}
-.tbtn-sep{width:1px;height:18px;background:var(--rule);margin:0 2px}
+.tbtn-sep{width:1px;height:18px;background:var(--rule);margin:0 4px}
 
-/* Hide some topbar items on small screens */
-@media(max-width:600px){
+@media(max-width:760px){
   .tbtn-hide-sm{display:none}
-  .topbar-brand::after{display:none}
-  .topbar-count{display:none}
+  .topbar{padding:0 14px}
+  .topbar-brand{font-size:16px}
 }
 
-/* ---- BRAND BAR ---- */
-.brand-bar{
+/* ---- CONTEXT BAR (livello 2: cambia in base a Database/Eventi) ---- */
+.context-bar{
   background:var(--bg2);border-bottom:1px solid var(--rule);
-  padding:0 16px;display:flex;align-items:stretch;gap:0;
+  padding:10px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.evento-select{
+  background:var(--bg3);border:1px solid var(--rule2);color:var(--ink);
+  border-radius:var(--r);padding:8px 12px;font-size:12px;font-family:var(--sans);
+  letter-spacing:0.02em;max-width:220px;cursor:pointer;
+}
+.context-label{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.12em;margin-right:2px}
+
+/* ---- BRAND BAR (solo dentro un evento specifico) ---- */
+.brand-bar{
+  background:var(--bg3);border-bottom:1px solid var(--rule);
+  padding:0 24px;display:flex;align-items:stretch;gap:0;
   overflow-x:auto;scrollbar-width:none;
 }
 .brand-bar::-webkit-scrollbar{display:none}
@@ -178,7 +204,7 @@ html,body{
   color:var(--ink3);background:none;
   border-left:none;border-right:none;border-top:none;
   transition:color 0.15s,border-color 0.15s;
-  white-space:nowrap;height:36px;display:flex;align-items:center;
+  white-space:nowrap;height:38px;display:flex;align-items:center;
   font-family:var(--sans);flex-shrink:0;
 }
 .brand-tab:hover{color:var(--ink)}
@@ -238,13 +264,13 @@ html,body{
    GALLERY GRID
    ============================================================ */
 #gallery{
-  padding:14px 16px;
+  padding:22px 24px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:18px;
 }
 @media(max-width:480px){
-  #gallery{grid-template-columns:repeat(2,1fr);gap:8px;padding:10px}
+  #gallery{grid-template-columns:repeat(2,1fr);gap:10px;padding:12px}
 }
 
 /* ---- CARD ---- */
@@ -255,8 +281,7 @@ html,body{
   box-shadow:var(--sh-sm);
 }
 .card:hover{transform:translateY(-3px);box-shadow:var(--sh-lg);border-color:var(--rule2)}
-.card.sl{border-color:rgba(154,123,79,0.4);box-shadow:0 0 0 1px rgba(154,123,79,0.2),var(--sh-sm)}
-.card-photo{position:relative;aspect-ratio:3/4;background:var(--bg4);overflow:hidden}
+.card-photo{position:relative;aspect-ratio:4/5;background:var(--bg4);overflow:hidden}
 .card-photo img{
   width:100%;height:100%;object-fit:cover;display:block;
   transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
@@ -272,23 +297,11 @@ html,body{
   background:linear-gradient(to top,rgba(26,24,20,0.55),transparent);
   pointer-events:none;
 }
-.star-btn{
-  position:absolute;top:7px;right:7px;
-  background:rgba(255,255,255,0.85);color:var(--ink3);
-  border:1px solid rgba(0,0,0,0.1);border-radius:50%;
-  width:28px;height:28px;font-size:13px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);transition:all 0.2s;box-shadow:var(--sh-sm);
-}
-.star-btn.on{background:var(--gold);color:#fff;border-color:transparent}
-.star-btn:hover{transform:scale(1.1)}
 .status-badge{
   position:absolute;bottom:7px;left:7px;
   font-size:8px;font-weight:500;padding:3px 7px;border-radius:2px;
   text-transform:uppercase;letter-spacing:0.1em;
 }
-.s-pending{background:rgba(255,255,255,0.85);color:var(--ink3)}
-.s-shortlisted{background:rgba(154,123,79,0.9);color:#fff}
 .s-booked{background:rgba(61,138,98,0.9);color:#fff}
 .s-rejected{background:rgba(160,64,64,0.85);color:#fff}
 .s-archived{background:rgba(100,100,100,0.7);color:#ddd}
@@ -310,14 +323,14 @@ html,body{
   background:rgba(176,120,48,0.85);color:#fff;
   letter-spacing:0.07em;text-transform:uppercase;
 }
-.card-info{padding:9px 11px 11px}
+.card-info{padding:11px 13px 13px}
 .card-name{
-  font-family:var(--serif);font-size:15px;font-weight:300;
+  font-family:var(--serif);font-size:16px;font-weight:400;letter-spacing:-0.005em;
   color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .card-sub{
-  font-size:10px;color:var(--ink3);margin-top:3px;
-  letter-spacing:0.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:10px;color:var(--ink3);margin-top:4px;
+  letter-spacing:0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
 /* ============================================================
@@ -442,15 +455,6 @@ html,body{
 .dr-body{padding:16px}
 
 .dr-actions{display:flex;gap:8px;margin-bottom:14px}
-.sl-btn{
-  flex:1;padding:9px;border:none;border-radius:var(--r);
-  font-size:10px;font-weight:500;letter-spacing:0.08em;
-  text-transform:uppercase;cursor:pointer;font-family:var(--sans);
-  transition:all 0.15s;
-}
-.sl-on{background:var(--gold);color:#fff}
-.sl-off{background:var(--bg3);color:var(--ink3);border:1px solid var(--rule2)}
-.sl-off:hover{color:var(--ink);border-color:var(--rule3)}
 .status-sel{
   flex:1;background:var(--bg3);border:1px solid var(--rule2);
   border-radius:var(--r);color:var(--ink);padding:9px 10px;
@@ -655,34 +659,28 @@ html,body{
 <!-- APP -->
 <div id="app">
 
-  <!-- Top Bar -->
+  <!-- Top Bar: livello 1 — brand, switch Database/Eventi, azioni globali -->
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:0;overflow:hidden">
+    <div class="topbar-left">
       <div class="topbar-brand" id="app-brand">Casting Board</div>
       <span class="topbar-count" id="count-lbl"></span>
     </div>
-    <div class="topbar-actions">
-      <button class="tbtn tbtn-ghost" id="db-btn" onclick="toggleDbMode()" title="Tutti i modelli, di ogni evento">🗂 Database</button>
-      <select id="f-evento" onchange="onEventoChange()" style="background:var(--bg3);border:1px solid var(--rule2);color:var(--ink);border-radius:var(--r);padding:7px 10px;font-size:11px;font-family:var(--sans);letter-spacing:0.03em;max-width:170px">
-        <option value="All">Tutti gli eventi</option>
-      </select>
-      <button class="tbtn tbtn-ghost" onclick="openEventManager()">📅 Eventi</button>
-      <div class="tbtn-sep"></div>
-      <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
-        Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
-      </button>
-      <button class="tbtn tbtn-ghost" id="sl-btn" onclick="toggleSL()">★ Shortlist</button>
-      <button class="tbtn tbtn-ghost tbtn-hide-sm" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati">📦 Archivio</button>
-      <div class="tbtn-sep tbtn-hide-sm"></div>
-      <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openBrandManager()">🏷 Brand</button>
-      <button class="tbtn tbtn-outline tbtn-hide-sm" onclick="startPdfExport()">↓ PDF</button>
-      <button class="tbtn tbtn-ghost tbtn-hide-sm" onclick="openApplyLink()">+ Form</button>
+
+    <div class="mode-switch">
+      <button class="mode-btn active" id="mode-db-btn" onclick="setMode('database')">Database</button>
+      <button class="mode-btn" id="mode-ev-btn" onclick="setMode('eventi')">Eventi</button>
+    </div>
+
+    <div class="topbar-right">
       <button class="tbtn tbtn-ghost" onclick="reload()" title="Aggiorna">↻</button>
     </div>
   </div>
 
-  <!-- Brand Tabs -->
-  <div class="brand-bar" id="brand-bar">
+  <!-- Context Bar: livello 2 — cambia in base alla modalità -->
+  <div class="context-bar" id="context-bar"></div>
+
+  <!-- Brand Tabs: solo dentro un evento specifico -->
+  <div class="brand-bar" id="brand-bar" style="display:none">
     <button class="brand-tab active" data-id="All" onclick="selBrand('All')">Tutti</button>
     <div class="brand-bar-end">
       <button class="brand-add" onclick="openBrandManager()">+ Brand</button>
@@ -696,14 +694,13 @@ html,body{
 
   <!-- Filters -->
   <div id="filter-panel">
-    <div class="ff">
+    <div class="ff" id="ff-status">
       <label>Status</label>
       <select id="f-status" onchange="debounce()">
         <option value="All">Tutti</option>
-        <option value="pending">In attesa</option>
-        <option value="shortlisted">Shortlist</option>
+        <option value="pending">In valutazione</option>
         <option value="booked">Confermato</option>
-        <option value="rejected">Rifiutato</option>
+        <option value="rejected">Non selezionato</option>
       </select>
     </div>
     <div class="ff">
@@ -878,8 +875,7 @@ let brands      = [];
 let eventi      = [];
 let curBrand    = 'All';
 let curEvento   = 'All';
-let dbMode      = false; // vista "🗂 Database": tutti i modelli, deduplicati, a prescindere dall'evento
-let showSLOnly  = false;
+let appMode     = 'database'; // 'database' (default, tutti i modelli) | 'eventi' (per evento, con status/brand)
 let showArchived = false;
 let curC        = null;
 let filtersOpen = false;
@@ -908,8 +904,7 @@ function doLogin(){
 // ============================================================
 async function init(){
   await loadEventi();
-  await loadBrands();
-  await loadCandidates();
+  setMode('database');
 }
 
 // ============================================================
@@ -925,15 +920,78 @@ async function loadEventi(){
 
 function renderEventoSelect(){
   const sel = document.getElementById('f-evento');
+  if (!sel) return;
   const cur = curEvento;
   sel.innerHTML = '<option value="All">Tutti gli eventi</option>' +
     eventi.map(ev=>`<option value="${ev.id}">${esc(ev.nome)}${ev.stato==='chiuso'?' (chiuso)':''}</option>`).join('');
   sel.value = cur;
 }
 
-function onEventoChange(){
+async function onEventoChange(){
   curEvento = document.getElementById('f-evento').value;
+  curBrand = 'All';
+  await refreshBrandBar();
   loadCandidates();
+}
+
+// ============================================================
+// MODALITÀ: Database (default) vs Eventi
+// ============================================================
+function setMode(mode){
+  appMode = mode;
+  document.getElementById('mode-db-btn').classList.toggle('active', mode==='database');
+  document.getElementById('mode-ev-btn').classList.toggle('active', mode==='eventi');
+  renderContextBar();
+  refreshBrandBar();
+  loadCandidates();
+}
+
+function renderContextBar(){
+  const bar = document.getElementById('context-bar');
+  const ffStatus = document.getElementById('ff-status');
+
+  if(appMode==='database'){
+    bar.innerHTML = `
+      <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
+        Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
+      </button>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="tbtn tbtn-outline" onclick="startPdfExport()">↓ Esporta Book</button>
+      </div>`;
+    if(ffStatus) ffStatus.style.display = 'none';
+  } else {
+    bar.innerHTML = `
+      <span class="context-label">Evento</span>
+      <select id="f-evento" class="evento-select" onchange="onEventoChange()">
+        <option value="All">Tutti gli eventi</option>
+      </select>
+      <button class="tbtn tbtn-ghost" onclick="openEventManager()">✎ Gestisci eventi</button>
+      <div class="tbtn-sep"></div>
+      <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
+        Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
+      </button>
+      <button class="tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati">📦 Archivio</button>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" id="link-btn" style="display:none">🔗 Link candidatura</button>
+        <button class="tbtn tbtn-outline" onclick="startPdfExport()">↓ PDF</button>
+      </div>`;
+    renderEventoSelect();
+    if(ffStatus) ffStatus.style.display = '';
+    document.getElementById('link-btn').style.display = curEvento==='All' ? 'none' : '';
+  }
+}
+
+// Mostra/nasconde/ricarica la barra brand: visibile SOLO in modalità Eventi
+// con un evento specifico selezionato (i brand appartengono a quell'evento).
+async function refreshBrandBar(){
+  const bar = document.getElementById('brand-bar');
+  const showBar = appMode==='eventi' && curEvento!=='All';
+  bar.style.display = showBar ? 'flex' : 'none';
+  if(showBar){
+    await loadBrands(curEvento);
+  } else {
+    brands = [];
+  }
 }
 
 function openEventManager(){ closeEventForm(); renderEVList(); document.getElementById('ev-modal').classList.add('open'); }
@@ -1017,22 +1075,12 @@ function copyApplyLink(id){
   }).catch(()=>{ prompt('Copia questo link:', url.toString()); });
 }
 
-function openApplyLink(){
-  if(curEvento==='All'){
-    if(!eventi.length){ alert('Crea prima un evento dal pulsante "📅 Eventi".'); return; }
-    alert('Seleziona un evento specifico dal menu in alto, oppure usa "🔗 Copia link candidatura" dal pannello Eventi.');
-    return;
-  }
-  const url = new URL('apply.html', location.href);
-  url.searchParams.set('evento', curEvento);
-  window.open(url.toString(), '_blank');
-}
 
 // ============================================================
 // BRANDS
 // ============================================================
-async function loadBrands(){
-  const d = await apiGet({action:'getBrands'});
+async function loadBrands(eventoId){
+  const d = await apiGet(eventoId ? {action:'getBrands', eventoId} : {action:'getBrands'});
   if(!d.ok) return;
   brands = d.brands||[];
   renderBrandBar();
@@ -1081,7 +1129,14 @@ function showToast(msg) {
   t._t = setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 2500);
 }
 function selBrand(id){ curBrand=id; renderBrandBar(); loadCandidates(); }
-function openBrandManager(){ renderBMList(); document.getElementById('bm-modal').classList.add('open'); }
+function openBrandManager(){
+  if(appMode!=='eventi' || curEvento==='All'){
+    alert('Seleziona prima un evento specifico: i brand sono legati a un evento.');
+    return;
+  }
+  renderBMList();
+  document.getElementById('bm-modal').classList.add('open');
+}
 function closeBM(){ document.getElementById('bm-modal').classList.remove('open'); }
 function renderBMList(){
   const list=document.getElementById('bm-list');
@@ -1110,8 +1165,8 @@ async function createBrand(){
   const inp=document.getElementById('bm-inp');
   const nome=inp.value.trim(); if(!nome)return;
   inp.value='';
-  const d=await apiPost({action:'createBrand',nome});
-  if(d.ok){ brands.push({id:d.id,nome}); renderBrandBar(); renderBMList(); }
+  const d=await apiPost({action:'createBrand',nome,eventoId:curEvento});
+  if(d.ok){ brands.push({id:d.id,nome,evento_id:curEvento}); renderBrandBar(); renderBMList(); }
 }
 async function deleteBrand(id,nome){
   if(!confirm(`Eliminare "${nome}"?`)) return;
@@ -1128,13 +1183,11 @@ async function deleteBrand(id,nome){
 async function loadCandidates(){
   document.getElementById('gallery').innerHTML='<div class="state"><span class="spinner"></span> Caricamento…</div>';
 
-  if(dbMode){
+  if(appMode==='database'){
     const d = await apiGet({
       action:      'getPersone',
       search:      document.getElementById('q').value.trim(),
-      taglia:      document.getElementById('f-taglia')?.value || 'All',
       maggiorenne: document.getElementById('f-maggiorenne').value,
-      brand:       curBrand,
       minH:        document.getElementById('f-minh').value,
       maxH:        document.getElementById('f-maxh').value,
     });
@@ -1145,16 +1198,14 @@ async function loadCandidates(){
       return;
     }
     // Normalizza le persone come "candidates" così cardHTML/openDrawer restano compatibili.
-    // In dbMode "id" = persona_id (non esiste una candidatura specifica da mostrare).
+    // In modalità Database "id" = persona_id (non esiste una candidatura specifica da mostrare).
     candidates = (d.persone||[]).map(pe => ({
       ...pe,
       id: pe.persona_id,
       status: null,
-      is_shortlisted: false,
       brand_ids: pe.brand_ids_storico || [],
     }));
-    const bn = curBrand!=='All'?(' — '+(brands.find(b=>b.id===curBrand)?.nome||'')):'';
-    document.getElementById('count-lbl').textContent = ` ${d.total} modell${d.total===1?'o':'i'} nel database${bn}`;
+    document.getElementById('count-lbl').textContent = ` ${d.total} modell${d.total===1?'o':'i'} nel database`;
     renderGallery(candidates);
     return;
   }
@@ -1168,7 +1219,6 @@ async function loadCandidates(){
     brand:       curBrand,
     minH:        document.getElementById('f-minh').value,
     maxH:        document.getElementById('f-maxh').value,
-    shortlisted: showSLOnly?'true':'false',
     showArchived: showArchived?'true':'false',
   });
   if(!d.ok){
@@ -1180,20 +1230,10 @@ async function loadCandidates(){
   candidates = d.candidates||[];
   const bn = curBrand!=='All'?(' — '+(brands.find(b=>b.id===curBrand)?.nome||'')):'';
   document.getElementById('count-lbl').textContent=
-    ` ${d.total} candidat${d.total===1?'o':'i'}${bn}${showSLOnly?' · shortlist':''}`;
+    ` ${d.total} candidat${d.total===1?'o':'i'}${bn}`;
   renderGallery(candidates);
 }
 
-function toggleDbMode(){
-  dbMode = !dbMode;
-  document.getElementById('db-btn').className = `tbtn ${dbMode?'tbtn-active':'tbtn-ghost'}`;
-  document.getElementById('f-evento').disabled = dbMode;
-  document.getElementById('sl-btn').style.display = dbMode ? 'none' : '';
-  document.getElementById('arch-btn').style.display = dbMode ? 'none' : '';
-  const statusFilter = document.getElementById('f-status');
-  if(statusFilter) statusFilter.closest('.ff').style.display = dbMode ? 'none' : '';
-  loadCandidates();
-}
 function debounce(){ clearTimeout(debTimer); debTimer=setTimeout(loadCandidates,300); }
 function reload(){ loadCandidates(); }
 
@@ -1216,10 +1256,11 @@ function cardHTML(c){
   const tagliaStr = [tagliaSup?'↑'+tagliaSup:'', tagliaInf?'↓'+tagliaInf:''].filter(Boolean).join(' ');
 
   const cover    = c.cover_url || (c.photo_urls&&c.photo_urls[0]) || '';
-  const sl       = c.is_shortlisted;
-  const sLbl     = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[c.status]||c.status;
+  const sLbl     = {booked:'Confermato',rejected:'Non selezionato',archived:'Archiviato'}[c.status];
   const isArchived = c.status === 'archived';
-  const cBrands  = (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
+  const cBrands  = appMode==='database'
+    ? (c.brand_nomi_storico || [])
+    : (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
   const isMinor  = c.maggiorenne===false || c.maggiorenne==='FALSE';
 
   // Info nella card: instagram · età · altezza · taglia
@@ -1231,7 +1272,7 @@ function cardHTML(c){
   ].filter(Boolean);
 
   return `
-  <div class="card${sl?' sl':''}${isArchived?' archived-card':''}" onclick="openDrawer('${c.id}')">
+  <div class="card${isArchived?' archived-card':''}" onclick="openDrawer('${c.id}')">
     <div class="card-photo">
       ${cover
         ? `<img src="${cover}" loading="lazy" alt="${esc(c.nome)}"
@@ -1242,14 +1283,9 @@ function cardHTML(c){
       ${cBrands.length
         ? `<div class="card-brand-pills">${cBrands.slice(0,2).map(n=>`<span class="card-brand-pill">${esc(n)}</span>`).join('')}</div>`
         : ''}
-      ${dbMode ? `
-        <span class="status-badge" style="background:rgba(58,106,154,0.15);color:var(--blue)">🎪 ${c.totale_eventi||0} event${c.totale_eventi===1?'o':'i'}</span>
-      ` : `
-        <button class="star-btn${sl?' on':''}"
-          onclick="event.stopPropagation();toggleSL_card('${c.id}',${sl})"
-          title="${sl?'Rimuovi shortlist':'Aggiungi shortlist'}">★</button>
-        <span class="status-badge s-${c.status||'pending'}">${sLbl}</span>
-      `}
+      ${appMode==='database'
+        ? `<span class="status-badge" style="background:rgba(58,106,154,0.15);color:var(--blue)">🎪 ${c.totale_eventi||0} event${c.totale_eventi===1?'o':'i'}</span>`
+        : (sLbl ? `<span class="status-badge s-${c.status}">${sLbl}</span>` : '')}
       ${isMinor ? '<span class="minor-badge">Minorenne</span>' : ''}
     </div>
     <div class="card-info">
@@ -1259,35 +1295,14 @@ function cardHTML(c){
   </div>`;
 }
 
-// ============================================================
-// SHORTLIST
-// ============================================================
-async function toggleSL_card(id,cur){
-  const nv=!cur;
-  candidates=candidates.map(c=>c.id===id?{...c,is_shortlisted:nv}:c);
-  renderGallery(candidates);
-  if(curC?.id===id){ curC.is_shortlisted=nv; updateDrawerSLBtn(nv); }
-  await apiPost({action:'toggleShortlist',candidateId:id,value:nv});
-}
-function updateDrawerSLBtn(v){
-  const btn=document.getElementById('dr-sl-btn');
-  if(!btn)return;
-  btn.className=`sl-btn ${v?'sl-on':'sl-off'}`;
-  btn.textContent=v?'★ In shortlist':'☆ Shortlist';
-}
 async function updateStatus(id,status){
   candidates=candidates.map(c=>c.id===id?{...c,status}:c);
   renderGallery(candidates);
   await apiPost({action:'updateStatus',candidateId:id,status});
 }
-function toggleSL(){
-  showSLOnly=!showSLOnly;
-  document.getElementById('sl-btn').className=`tbtn ${showSLOnly?'tbtn-active':'tbtn-ghost'}`;
-  loadCandidates();
-}
 function toggleArchived(){
   showArchived=!showArchived;
-  document.getElementById('arch-btn').className=`tbtn tbtn-hide-sm ${showArchived?'tbtn-active':'tbtn-ghost'}`;
+  document.getElementById('arch-btn').className=`tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}`;
   loadCandidates();
 }
 
@@ -1375,7 +1390,6 @@ function openDrawer(id){
   ].filter(Boolean).join(' · ');
 
   const photos=c.photo_urls||[];
-  const sl=c.is_shortlisted;
   const ig=c.instagram?.replace('@','')||null;
 
   document.getElementById('dr-content').innerHTML=`
@@ -1394,17 +1408,14 @@ function openDrawer(id){
     </div>`:''}
 
     <div class="dr-body">
-      ${dbMode ? `
+      ${appMode==='database' ? `
       <div style="background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r);padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--ink2);letter-spacing:0.03em">
-        🗂 Profilo database — dati aggregati da ${c.totale_eventi||0} candidatur${c.totale_eventi===1?'a':'e'}. Per gestire status/shortlist/brand apri il profilo dalla lista dell'evento specifico.
+        🗂 Profilo database — dati aggregati da ${c.totale_eventi||0} candidatur${c.totale_eventi===1?'a':'e'}. Per gestire status/brand apri il profilo dalla lista dell'evento specifico.
       </div>` : `
       <div class="dr-actions">
-        <button class="sl-btn ${sl?'sl-on':'sl-off'}" id="dr-sl-btn" onclick="toggleSL_card('${c.id}',${sl})">
-          ${sl?'★ In shortlist':'☆ Shortlist'}
-        </button>
         <select class="status-sel" onchange="updateStatus('${c.id}',this.value)">
-          ${['pending','shortlisted','booked','rejected','archived'].map(s=>
-            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'}[s]}</option>`
+          ${['pending','booked','rejected'].map(s=>
+            `<option value="${s}"${c.status===s?' selected':''}>${{pending:'In valutazione',booked:'Confermato',rejected:'Non selezionato'}[s]}</option>`
           ).join('')}
         </select>
       </div>
@@ -1471,7 +1482,7 @@ function openDrawer(id){
         </div>
       </div>`:''}
 
-      ${!dbMode ? `
+      ${appMode!=='database' ? `
       <div class="icard">
         <div class="icard-head">Brand assegnati (per questo evento)</div>
         <div class="icard-body">
@@ -1498,10 +1509,10 @@ function openDrawer(id){
         ↓ Esporta scheda PDF
       </button>
 
-      ${!dbMode ? `<div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>` : ''}
+      ${appMode!=='database' ? `<div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>` : ''}
     </div>`;
 
-  if(!dbMode) renderBrandChips(c.id);
+  if(appMode!=='database') renderBrandChips(c.id);
   loadStorico(c.persona_id);
   document.getElementById('drawer').classList.add('open');
   document.getElementById('ov').classList.add('open');
@@ -1517,7 +1528,7 @@ async function loadStorico(personaId){
       box.innerHTML = '<p style="font-size:11px;color:var(--ink3)">Nessuna candidatura precedente registrata.</p>';
       return;
     }
-    const statusLbl = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'};
+    const statusLbl = {pending:'In valutazione',booked:'Confermato',rejected:'Non selezionato',archived:'Archiviato'};
     box.innerHTML = d.storico.map(s=>`
       <div style="padding:8px 0;border-bottom:1px solid var(--rule)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
@@ -1743,7 +1754,9 @@ async function startPdfExport(list){
         });
       }
 
-      const cBrands=(c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
+      const cBrands = appMode==='database'
+        ? (c.brand_nomi_storico || [])
+        : (c.brand_ids||[]).map(bid=>brands.find(b=>b.id===bid)?.nome).filter(Boolean);
       if(cBrands.length){
         my=Math.max(my,ry+110);
         pdf.setFont('helvetica','normal');pdf.setFontSize(6);
@@ -1761,14 +1774,17 @@ async function startPdfExport(list){
         });
       }
 
-      // Status
-      const sc={
+      // Status (in modalità Database mostra il numero di eventi invece dello status,
+      // che non ha senso su un profilo aggregato)
+      const sc = appMode==='database' ? [240,237,233,90,88,86] : ({
         pending:[240,237,233,138,135,133],
-        shortlisted:[249,244,236,154,123,79],
         booked:[232,244,238,61,138,98],
         rejected:[244,234,234,160,64,64],
-      }[c.status]||[240,237,233,138,135,133];
-      const sLbl={pending:'IN ATTESA',shortlisted:'SHORTLIST',booked:'CONFERMATO',rejected:'RIFIUTATO'}[c.status]||'—';
+        archived:[230,230,230,120,120,120],
+      }[c.status]||[240,237,233,138,135,133]);
+      const sLbl = appMode==='database'
+        ? `${c.totale_eventi||0} EVENT${c.totale_eventi===1?'O':'I'}`
+        : ({pending:'IN VALUTAZIONE',booked:'CONFERMATO',rejected:'NON SELEZIONATO',archived:'ARCHIVIATO'}[c.status]||'—');
       pdf.setFillColor(sc[0],sc[1],sc[2]);
       const slw=pdf.getTextWidth(sLbl)+8;
       pdf.roundedRect(W-12-slw,H-22,slw,6,1,1,'F');
