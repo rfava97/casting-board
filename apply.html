@@ -271,6 +271,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 .cbox-row span{font-size:12px;color:var(--ink2);line-height:1.55}
 #consenso-err{color:var(--red);font-size:10px;margin-top:6px;display:none}
 #consenso-err.show{display:block}
+#gdpr-err.show{display:block}
 
 /* ── Toggle (tatuaggi / piercing) ── */
 .toggle-row{
@@ -455,12 +456,27 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
      ══════════════════════════════════════════════ -->
 <div id="form-wrapper">
 
+<!-- STEP 0: NUOVO MODELLO O GIÀ REGISTRATO? -->
+<div id="choice">
+  <div class="hdr">
+    <span class="hdr-agency" id="ch-agency">Casting Studio</span>
+    <h1>Ti sei già candidato/a?</h1>
+    <p>Serve solo a capire se dobbiamo cercare un profilo esistente</p>
+  </div>
+  <div class="wrap">
+    <div class="sec" style="display:flex;flex-direction:column;gap:12px">
+      <button class="btn-send" style="margin-top:0" onclick="chooseExisting()">Mi sono già candidato/a in passato</button>
+      <button class="btn-retry" style="width:100%;margin-top:0;padding:15px" onclick="chooseNew()">È la prima volta, sono un nuovo volto</button>
+    </div>
+  </div>
+</div>
+
 <!-- STEP 1: VERIFICA PROFILO ESISTENTE -->
-<div id="prescreen">
+<div id="prescreen" style="display:none">
   <div class="hdr">
     <span class="hdr-agency" id="ps-agency">Casting Studio</span>
-    <h1>Prima di iniziare</h1>
-    <p>Se ti sei già candidata/o in passato, ritroviamo subito il tuo profilo</p>
+    <h1 id="ps-title">Verifica il tuo profilo</h1>
+    <p id="ps-sub">Inserisci gli stessi dati usati l'ultima volta: email e/o telefono</p>
   </div>
   <div class="wrap">
     <div class="sec">
@@ -476,10 +492,11 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
     </div>
     <button class="btn-send" id="ps-btn" onclick="doPrescreenCheck()">Verifica profilo →</button>
     <div id="ps-status" style="text-align:center;font-size:11px;color:var(--ink3);margin-top:10px;min-height:16px"></div>
+    <button class="btn-retry" style="width:100%;margin-top:6px" onclick="backToChoice()">← Indietro</button>
   </div>
 </div>
 
-<!-- STEP 2: ESITO VERIFICA + CONSENSO -->
+<!-- STEP 2: ESITO VERIFICA — dati estesi, correggibili nel passaggio successivo -->
 <div id="prescreen-result" style="display:none">
   <div class="hdr">
     <span class="hdr-agency" id="psr-agency">Casting Studio</span>
@@ -487,23 +504,25 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
     <p id="psr-sub"></p>
   </div>
   <div class="wrap">
-    <div id="psr-card" style="display:none;background:var(--bg3);border:1px solid var(--rule2);border-radius:8px;padding:14px;align-items:center;gap:14px;margin-bottom:22px">
-      <img id="psr-photo" src="" alt="" style="width:60px;height:76px;object-fit:cover;border-radius:4px;background:var(--bg4);flex-shrink:0">
-      <div>
-        <div id="psr-name" style="font-family:var(--serif);font-size:18px;font-weight:400;color:var(--ink)"></div>
-        <div id="psr-meta" style="font-size:11px;color:var(--ink3);margin-top:3px"></div>
+    <div id="psr-card" style="display:none;background:var(--bg3);border:1px solid var(--rule2);border-radius:10px;padding:16px;margin-bottom:22px">
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+        <img id="psr-photo" src="" alt="" style="width:60px;height:76px;object-fit:cover;border-radius:4px;background:var(--bg4);flex-shrink:0">
+        <div>
+          <div id="psr-name" style="font-family:var(--serif);font-size:18px;font-weight:400;color:var(--ink)"></div>
+          <div id="psr-sub-meta" style="font-size:11px;color:var(--ink3);margin-top:3px"></div>
+        </div>
       </div>
+      <!-- Dati estesi in sola lettura: tutto quello che troveremo pre-compilato -->
+      <div id="psr-details" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;border-top:1px solid var(--rule2);padding-top:12px"></div>
     </div>
 
-    <div class="field" id="f-gdpr" style="flex-direction:row;align-items:flex-start;gap:10px;margin-bottom:6px">
-      <input type="checkbox" id="gdpr-consent" style="width:auto;margin-top:3px;flex:none">
-      <label for="gdpr-consent" style="text-transform:none;letter-spacing:0.01em;font-weight:400;font-size:12px;color:var(--ink2);cursor:pointer">
-        Acconsento al trattamento dei miei dati personali e delle mie foto per finalità di casting, in conformità al GDPR. *
-      </label>
-      <span class="err">Devi accettare per procedere</span>
-    </div>
+    <p id="psr-photo-note" style="display:none;font-size:11px;color:var(--amber);background:rgba(143,106,48,0.08);border:1px solid rgba(143,106,48,0.25);border-radius:var(--r);padding:10px 12px;margin-bottom:16px;line-height:1.6">
+      ⚠ Le tue foto risalgono a più di 6 mesi fa: nel passaggio successivo ti chiederemo di ricaricarle.
+    </p>
 
-    <button class="btn-send" id="psr-continue-btn" onclick="continueToForm()">Continua</button>
+    <p style="font-size:11px;color:var(--ink3);margin-bottom:16px;line-height:1.6">Se qualcosa non è (più) corretto, potrai modificarlo nel passaggio successivo.</p>
+
+    <button class="btn-send" id="psr-continue-btn" onclick="continueToMainForm()">Continua</button>
     <button class="btn-retry" style="width:100%;margin-top:10px" onclick="backToPrescreen()">← Correggi email/telefono</button>
   </div>
 </div>
@@ -702,6 +721,18 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
       </div>
 
       <div id="ph-err">Carica entrambe le foto richieste</div>
+      <p id="ph-refresh-note" style="display:none;font-size:11px;color:var(--amber);background:rgba(143,106,48,0.08);border:1px solid rgba(143,106,48,0.25);border-radius:var(--r);padding:10px 12px;margin-top:12px;line-height:1.6">
+        ⚠ Le tue foto in archivio risalgono a più di 6 mesi fa: per restare aggiornate, carica due foto nuove.
+      </p>
+    </div>
+
+    <!-- ── PRIVACY ── -->
+    <div class="sec">
+      <label class="cbox-row">
+        <input type="checkbox" id="gdpr-consent">
+        <span>Acconsento al trattamento dei miei dati personali e delle mie foto per finalità di casting, in conformità al GDPR. *</span>
+      </label>
+      <div id="gdpr-err" style="color:var(--red);font-size:10px;margin-top:6px;display:none">Devi accettare per procedere.</div>
     </div>
 
     <button class="btn-send" id="btn-send" onclick="doSubmit()">Invia candidatura</button>
@@ -714,7 +745,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 </div><!-- /form-wrapper -->
 
 <script>
-// ── Landing → Form transition ─────────────────────────────
+// ── Landing → Scelta nuovo/già registrato ──────────────────
 function goToForm() {
   const landing = document.getElementById('landing');
   const wrapper = document.getElementById('form-wrapper');
@@ -722,9 +753,34 @@ function goToForm() {
   setTimeout(() => {
     landing.style.display = 'none';
     wrapper.style.display = 'block';
-    document.getElementById('prescreen').style.display = 'block';
+    document.getElementById('choice').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, 380);
+}
+
+let isNewFlow = false;
+
+function chooseNew() {
+  isNewFlow = true;
+  document.getElementById('ps-title').textContent = 'I tuoi contatti';
+  document.getElementById('ps-sub').textContent = 'Ci servono per ricontattarti e per riconoscerti se ti ricandidi in futuro';
+  document.getElementById('ps-btn').textContent = 'Continua →';
+  document.getElementById('choice').style.display = 'none';
+  document.getElementById('prescreen').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+function chooseExisting() {
+  isNewFlow = false;
+  document.getElementById('ps-title').textContent = 'Verifica il tuo profilo';
+  document.getElementById('ps-sub').textContent = "Inserisci gli stessi dati usati l'ultima volta: email e/o telefono";
+  document.getElementById('ps-btn').textContent = 'Verifica profilo →';
+  document.getElementById('choice').style.display = 'none';
+  document.getElementById('prescreen').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+function backToChoice() {
+  document.getElementById('prescreen').style.display = 'none';
+  document.getElementById('choice').style.display = 'block';
 }
 
 // ── Foto a 2 slot fissi ───────────────────────────────────
@@ -821,7 +877,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   buildSizeGrid('grid-sup', 'ts');
   buildSizeGrid('grid-inf', 'ti');
   const agency = (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
-  ['hdr-agency','ps-agency','psr-agency'].forEach(id=>{
+  ['hdr-agency','ch-agency','ps-agency','psr-agency'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.textContent = agency;
   });
@@ -896,7 +952,7 @@ function renderLanding(ev) {
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── STEP 1→2: Verifica profilo esistente (via telefono/email) ──
+// ── STEP 1→2: Contatti + verifica profilo (solo per chi si è già candidato) ──
 let psTelefono = '', psEmail = '';
 
 async function doPrescreenCheck() {
@@ -907,6 +963,15 @@ async function doPrescreenCheck() {
   if (!telefono) { setE('ps-telefono'); return; }
 
   psTelefono = telefono; psEmail = email;
+
+  if (isNewFlow) {
+    // Ha già dichiarato di essere nuovo: nessuna verifica, si passa dritti al form
+    foundPersona = null;
+    document.getElementById('prescreen').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    return;
+  }
 
   const btn = document.getElementById('ps-btn');
   btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Verifica in corso…';
@@ -931,21 +996,43 @@ function showPrescreenResult(persona) {
   window.scrollTo({ top:0, behavior:'instant' });
 
   const card = document.getElementById('psr-card');
+  const photoNote = document.getElementById('psr-photo-note');
+
   if (persona) {
     document.getElementById('psr-title').textContent = `Bentornata/o${persona.nome ? ' '+persona.nome : ''}!`;
-    document.getElementById('psr-sub').textContent = 'Abbiamo trovato il tuo profilo: controlla che i dati siano corretti prima di continuare.';
+    document.getElementById('psr-sub').textContent = 'Abbiamo trovato il tuo profilo. Ecco tutti i dati che troverai pre-compilati:';
     const photoUrl = (persona.photo_urls||[])[0];
     document.getElementById('psr-photo').src = photoUrl || '';
     document.getElementById('psr-photo').style.display = photoUrl ? 'block' : 'none';
     document.getElementById('psr-name').textContent = `${persona.nome||''} ${persona.cognome||''}`.trim();
-    document.getElementById('psr-meta').textContent = [
+    document.getElementById('psr-sub-meta').textContent = [
       persona.eta ? persona.eta+' anni' : '', persona.instagram || '',
     ].filter(Boolean).join(' · ');
-    card.style.display = 'flex';
+
+    // Dati estesi in sola lettura: tutto quello che sta per essere pre-compilato
+    const righe = [
+      ['Altezza', persona.altezza_cm ? persona.altezza_cm+' cm' : '—'],
+      ['Taglia sopra', persona.taglia_sup || '—'],
+      ['Taglia sotto', persona.taglia_inf || '—'],
+      ['Maggiorenne', persona.maggiorenne ? 'Sì' : 'No'],
+      ['Tatuaggi', persona.tatuaggi ? 'Sì' : 'No'],
+      ['Piercing', persona.piercing ? 'Sì' : 'No'],
+      ['Orario arrivo', persona.orario_arrivo || '—'],
+      ['Note', persona.note || '—'],
+    ];
+    document.getElementById('psr-details').innerHTML = righe.map(([lbl,val])=>`
+      <div>
+        <div style="font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">${lbl}</div>
+        <div style="font-size:13px;color:var(--ink)">${esc(String(val))}</div>
+      </div>`).join('');
+
+    photoNote.style.display = persona.foto_scadute ? 'block' : 'none';
+    card.style.display = 'block';
   } else {
     document.getElementById('psr-title').textContent = 'Nessun profilo trovato';
     document.getElementById('psr-sub').textContent = 'Nessun problema: procediamo con una candidatura nuova.';
     card.style.display = 'none';
+    photoNote.style.display = 'none';
   }
 }
 
@@ -954,9 +1041,7 @@ function backToPrescreen() {
   document.getElementById('prescreen').style.display = 'block';
 }
 
-function continueToForm() {
-  clrE('gdpr');
-  if (!document.getElementById('gdpr-consent').checked) { setE('gdpr'); return; }
+function continueToMainForm() {
   document.getElementById('prescreen-result').style.display = 'none';
   document.getElementById('main').style.display = 'block';
   window.scrollTo({ top:0, behavior:'instant' });
@@ -973,9 +1058,12 @@ function fillFromPersona(p) {
   if (p.tatuaggi) document.getElementById('tatuaggi').checked = true;
   if (p.piercing) document.getElementById('piercing').checked = true;
 
-  const urls = p.photo_urls || [];
+  // Foto: riusate solo se aggiornate negli ultimi 6 mesi (foto_scadute=false
+  // e quindi già filtrate lato server); altrimenti si richiedono foto nuove.
+  const urls = p.foto_scadute ? [] : (p.photo_urls || []);
   existingPhotoUrls = [urls[0]||null, urls[1]||null];
   document.getElementById('foto-sec-title').textContent = urls.length ? 'Foto (già in archivio)' : 'Foto *';
+  document.getElementById('ph-refresh-note').style.display = p.foto_scadute ? 'block' : 'none';
   renderSlot(0); renderSlot(1);
 }
 function setVal(id, val) {
@@ -1024,6 +1112,11 @@ function validate() {
     if (!photos[1] && !existingPhotoUrls[1]) document.getElementById('slot-1').classList.add('has-error');
     ok = false;
   }
+
+  const gdprErr = document.getElementById('gdpr-err');
+  if (!document.getElementById('gdpr-consent').checked) { gdprErr.classList.add('show'); ok = false; }
+  else gdprErr.classList.remove('show');
+
   return ok;
 }
 
@@ -1043,7 +1136,8 @@ async function doSubmit() {
     (document.querySelector('.has-error') ||
      document.querySelector('.size-err.show') ||
      document.querySelector('#consenso-err.show') ||
-     document.querySelector('.foto-slot.has-error'))
+     document.querySelector('.foto-slot.has-error') ||
+     document.querySelector('#gdpr-err.show'))
     ?.scrollIntoView({ behavior:'smooth', block:'center' });
     return;
   }
@@ -1077,7 +1171,13 @@ async function doSubmit() {
     const personaId = r.id;
     setBar(20);
 
-    // Carica solo le foto NUOVE (quelle già in archivio restano quelle che erano)
+    // Se le foto erano scadute (>6 mesi), le svuota prima di ricaricare le
+    // nuove: evita che restino mescolate vecchie e nuove nello stesso profilo.
+    if (foundPersona && foundPersona.foto_scadute) {
+      await post({ action:'resetPhotos', personaId });
+    }
+
+    // Carica solo le foto NUOVE (quelle già in archivio, se ancora valide, restano quelle che erano)
     const toUpload = photos.map((p,i)=>({p,i})).filter(x=>x.p);
     for (let n = 0; n < toUpload.length; n++) {
       const { p, i } = toUpload[n];
