@@ -759,9 +759,11 @@ html,body{
     <h3>Brand</h3>
     <div class="bm-list" id="bm-list"></div>
     <div class="bm-new">
-      <input type="text" id="bm-inp" placeholder="Nome brand…" onkeydown="if(event.key==='Enter')createBrand()">
+      <input type="text" id="bm-inp" list="bm-suggestions" placeholder="Nome brand…" onkeydown="if(event.key==='Enter')createBrand()">
+      <datalist id="bm-suggestions"></datalist>
       <button onclick="createBrand()">Aggiungi</button>
     </div>
+    <p style="font-size:10px;color:var(--ink3);margin-top:-4px;margin-bottom:12px;letter-spacing:0.02em">Suggerimento: se il brand ha già partecipato a un evento passato, comparirà tra i suggerimenti mentre digiti.</p>
     <button class="bm-close" onclick="closeBM()">Chiudi</button>
   </div>
 </div>
@@ -1129,15 +1131,28 @@ function showToast(msg) {
   t._t = setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 2500);
 }
 function selBrand(id){ curBrand=id; renderBrandBar(); loadCandidates(); }
-function openBrandManager(){
+async function openBrandManager(){
   if(appMode!=='eventi' || curEvento==='All'){
     alert('Seleziona prima un evento specifico: i brand sono legati a un evento.');
     return;
   }
   renderBMList();
   document.getElementById('bm-modal').classList.add('open');
+  loadBrandSuggestions();
 }
 function closeBM(){ document.getElementById('bm-modal').classList.remove('open'); }
+
+// Suggerisce nomi di brand già usati in QUALSIASI evento passato, per non
+// doverli ridigitare da zero se lo stesso brand torna a un nuovo evento.
+async function loadBrandSuggestions(){
+  const dl = document.getElementById('bm-suggestions');
+  try{
+    const d = await apiGet({action:'getBrands'}); // senza eventoId = tutti i brand, di ogni evento
+    if(!d.ok) return;
+    const nomiUnici = [...new Set((d.brands||[]).map(b=>b.nome).filter(Boolean))].sort();
+    dl.innerHTML = nomiUnici.map(n=>`<option value="${esc(n)}">`).join('');
+  }catch(err){ console.error(err); }
+}
 function renderBMList(){
   const list=document.getElementById('bm-list');
   if(!brands.length){
