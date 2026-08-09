@@ -408,60 +408,46 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   <div class="landing-inner">
 
     <!-- Presenters -->
-    <div class="landing-tag">Casa delle Stelle × Expose mgmt</div>
+    <div class="landing-tag" id="lnd-tag" style="display:none"></div>
 
     <!-- Titolo -->
     <div class="landing-title-block">
-      <div class="landing-eyebrow">Fashion Show — Brescia 2026</div>
-      <div class="landing-h1"><em>Casa</em> Vantini</div>
-      <div class="landing-h2">Home is where<br>the heart is</div>
+      <div class="landing-eyebrow" id="lnd-eyebrow" style="display:none"></div>
+      <div class="landing-h1" id="lnd-h1">Candidatura</div>
+      <div class="landing-h2" id="lnd-h2" style="display:none"></div>
     </div>
 
     <div class="landing-divider"></div>
 
     <!-- Testo descrittivo -->
-    <div class="landing-body">
-      <p>
-        In occasione della <strong>Festa della Musica 2026</strong>, Casa delle Stelle in collaborazione con Expose mgmt presenta un <strong>fashion show diffuso lungo Via Vantini</strong>: una sfilata dedicata a brand di artigianato, upcycling, custom e vintage research, ispirata al concetto di <strong>HOUSE</strong> e <strong>HOME</strong> come spazi di identità, relazioni e trasformazione.
-      </p>
-      <p>
-        Il progetto prenderà vita attraverso installazioni, ambienti domestici e performance create in collaborazione con realtà e showroom di Via Vantini, tra cui <strong>Maison Cò</strong> e <strong>39 Vantini</strong>, trasformando la strada in una casa aperta, inclusiva e comunitaria.
-      </p>
-      <p>
-        Essendo una realtà indipendente e autofinanziata, siamo alla ricerca di <strong>volontar* e persone disponibili a partecipare alla sfilata</strong>, anche senza esperienza. Nessun requisito richiesto: l'obiettivo è creare uno spazio accogliente dove tutt* possano sentirsi parte del progetto.
-      </p>
-    </div>
+    <div class="landing-body" id="lnd-body"></div>
 
     <!-- Info evento -->
-    <div class="landing-event">
-      <div class="landing-event-row">
+    <div class="landing-event" id="lnd-event-box" style="display:none">
+      <div class="landing-event-row" id="lnd-luogo-row" style="display:none">
         <span class="ev-icon">📍</span>
         <span class="ev-lbl">Dove</span>
-        <span class="ev-val">Via Vantini, <strong>Brescia</strong></span>
+        <span class="ev-val" id="lnd-luogo"></span>
       </div>
-      <div class="landing-event-row">
+      <div class="landing-event-row" id="lnd-data-row" style="display:none">
         <span class="ev-icon">📅</span>
         <span class="ev-lbl">Quando</span>
-        <span class="ev-val"><strong>Sabato 20 Giugno 2026</strong> — ore 20:00</span>
+        <span class="ev-val" id="lnd-data"></span>
       </div>
     </div>
 
     <!-- Nota orario arrivo -->
-    <div class="landing-note">
-      Se ti va di sfilare come modell*, ti dovrai presentare a partire dalle <strong>ore 14:00</strong>. Compila il form qui sotto per candidarti.
-    </div>
+    <div class="landing-note" id="lnd-nota" style="display:none"></div>
 
     <!-- CTA -->
     <button class="landing-cta" onclick="goToForm()">
-      Candidati ora
+      <span id="lnd-cta-text">Candidati ora</span>
       <span class="landing-cta-arrow">→</span>
     </button>
 
   </div>
 
-  <div class="landing-footer">
-    Casa Vantini · Fest della Musica 2026
-  </div>
+  <div class="landing-footer" id="lnd-footer">Candidatura modelli</div>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -475,9 +461,8 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
     <div class="state-sub">
       Grazie per aver inviato il tuo profilo.<br>Ti contatteremo al più presto.
     </div>
-    <a href="https://chat.whatsapp.com/I2lRoDxLI4IEzZMB9YA1zF?mode=gi_t"
-       target="_blank" rel="noopener"
-       style="display:inline-flex;align-items:center;gap:10px;
+    <a id="wa-link" href="#"
+       target="_blank" rel="noopener" style="display:none;align-items:center;gap:10px;
               margin-top:24px;padding:14px 22px;
               background:#25D366;color:#fff;border-radius:4px;
               font-size:12px;font-weight:500;letter-spacing:0.06em;
@@ -791,16 +776,84 @@ function buildSizeGrid(containerId, groupName) {
   }).join('');
 }
 
+let CURRENT_EVENTO = null;
+
 // ── Init ─────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   buildSizeGrid('grid-sup', 'ts');
   buildSizeGrid('grid-inf', 'ti');
   document.getElementById('hdr-agency').textContent =
     (CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
+
   if (!EVENTO_ID) {
     console.warn('EVENTO_ID non impostato: aggiungi ?evento=ID_EVENTO al link, oppure imposta DEFAULT_EVENTO_ID nel file.');
+    return;
   }
+
+  try {
+    const d = await get({ action:'getEventi' });
+    const ev = (d.eventi || []).find(e => e.id === EVENTO_ID);
+    if (!ev) {
+      console.warn('Evento non trovato per EVENTO_ID:', EVENTO_ID);
+      return;
+    }
+    CURRENT_EVENTO = ev;
+    renderLanding(ev);
+    if (ev.stato === 'chiuso') {
+      document.getElementById('landing').innerHTML =
+        `<div class="landing-inner" style="justify-content:center;text-align:center">
+           <div class="landing-h2">Le candidature per questo evento sono chiuse.</div>
+         </div>`;
+    }
+  } catch (err) { console.error(err); }
 });
+
+// Popola la pagina di benvenuto con i testi impostati per l'evento
+// (pannello "📅 Eventi" nella gallery). Ogni campo è facoltativo:
+// se non impostato, la relativa riga resta semplicemente nascosta.
+function renderLanding(ev) {
+  const set = (id, val, html) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (val) { el[html?'innerHTML':'textContent'] = val; el.style.display = ''; }
+  };
+
+  if (ev.tag_label) set('lnd-tag', esc(ev.tag_label));
+  if (ev.cliente)   set('lnd-eyebrow', esc(ev.cliente));
+
+  // Titolo: se il nome ha più parole, la prima va in corsivo per coerenza di stile
+  const parts = (ev.nome || 'Candidatura').trim().split(' ');
+  const h1 = parts.length > 1
+    ? `<em>${esc(parts[0])}</em> ${esc(parts.slice(1).join(' '))}`
+    : esc(parts[0]);
+  document.getElementById('lnd-h1').innerHTML = h1;
+
+  if (ev.sottotitolo) set('lnd-h2', esc(ev.sottotitolo).replace(/\n/g,'<br>'), true);
+
+  const bodyEl = document.getElementById('lnd-body');
+  if (ev.descrizione) {
+    bodyEl.innerHTML = ev.descrizione.split('\n').filter(Boolean)
+      .map(p => `<p>${esc(p)}</p>`).join('');
+  }
+
+  let showEventBox = false;
+  if (ev.luogo)      { set('lnd-luogo', esc(ev.luogo)); document.getElementById('lnd-luogo-row').style.display=''; showEventBox=true; }
+  if (ev.data_testo) { set('lnd-data', esc(ev.data_testo)); document.getElementById('lnd-data-row').style.display=''; showEventBox=true; }
+  if (showEventBox) document.getElementById('lnd-event-box').style.display = '';
+
+  if (ev.nota_arrivo) set('lnd-nota', esc(ev.nota_arrivo));
+  if (ev.cta_testo)   document.getElementById('lnd-cta-text').textContent = ev.cta_testo;
+
+  document.getElementById('lnd-footer').textContent =
+    [ev.nome, ev.cliente].filter(Boolean).join(' · ') || (CONFIG.AGENCY_NAME||'Candidatura modelli');
+
+  if (ev.whatsapp_link) {
+    const wa = document.getElementById('wa-link');
+    wa.href = ev.whatsapp_link;
+    wa.style.display = 'inline-flex';
+  }
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ── Riconoscimento profilo esistente (via telefono/email) ──
 function tryLookup() {

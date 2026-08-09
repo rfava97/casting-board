@@ -519,6 +519,20 @@ html,body{
   padding:20px;backdrop-filter:blur(4px);
 }
 #bm-modal.open{display:flex}
+#ev-modal{
+  position:fixed;inset:0;background:rgba(26,24,20,0.5);
+  z-index:900;display:none;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(4px);
+}
+#ev-modal.open{display:flex}
+.ev-field{margin-bottom:10px}
+.ev-field label{display:block;font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.ev-field input,.ev-field textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--ink);padding:9px 11px;font-size:13px;font-family:var(--sans);
+}
+.ev-field textarea{resize:vertical;line-height:1.5}
+.ev-field input:focus,.ev-field textarea:focus{outline:none;border-color:var(--gold2)}
 .bm-box{
   background:var(--bg2);border:1px solid var(--rule2);
   border-radius:var(--r-lg);padding:24px;width:100%;max-width:360px;
@@ -648,6 +662,7 @@ html,body{
       <span class="topbar-count" id="count-lbl"></span>
     </div>
     <div class="topbar-actions">
+      <button class="tbtn tbtn-ghost" id="db-btn" onclick="toggleDbMode()" title="Tutti i modelli, di ogni evento">🗂 Database</button>
       <select id="f-evento" onchange="onEventoChange()" style="background:var(--bg3);border:1px solid var(--rule2);color:var(--ink);border-radius:var(--r);padding:7px 10px;font-size:11px;font-family:var(--sans);letter-spacing:0.03em;max-width:170px">
         <option value="All">Tutti gli eventi</option>
       </select>
@@ -756,15 +771,39 @@ html,body{
 
 <!-- EVENT MANAGER MODAL -->
 <div id="ev-modal" onclick="if(event.target===this)closeEV()">
-  <div class="bm-box" style="max-width:440px">
-    <h3>Eventi</h3>
-    <div class="bm-list" id="ev-list"></div>
-    <div class="bm-new" style="flex-direction:column;align-items:stretch;gap:8px">
-      <input type="text" id="ev-nome" placeholder="Nome evento…">
-      <input type="text" id="ev-cliente" placeholder="Cliente (facoltativo)…">
-      <button onclick="createEvento()">+ Crea evento</button>
+  <div class="bm-box" style="max-width:480px;max-height:85vh;overflow-y:auto">
+
+    <!-- Vista lista -->
+    <div id="ev-list-view">
+      <h3>Eventi</h3>
+      <div class="bm-list" id="ev-list"></div>
+      <button style="width:100%;padding:10px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:var(--sans);margin-bottom:10px" onclick="openEventForm(null)">+ Nuovo evento</button>
+      <button class="bm-close" onclick="closeEV()">Chiudi</button>
     </div>
-    <button class="bm-close" onclick="closeEV()">Chiudi</button>
+
+    <!-- Vista form crea/modifica -->
+    <div id="ev-form-view" style="display:none">
+      <h3 id="ev-form-title">Nuovo evento</h3>
+      <p style="font-size:11px;color:var(--ink3);margin-bottom:14px;line-height:1.6">
+        Questi testi diventano automaticamente la pagina di benvenuto del modulo di candidatura per questo evento.
+      </p>
+      <div class="ev-field"><label>Nome evento *</label><input type="text" id="evf-nome" placeholder="Es. Fashion Show Brescia 2026"></div>
+      <div class="ev-field"><label>Cliente / organizzatore</label><input type="text" id="evf-cliente" placeholder="Es. Casa delle Stelle"></div>
+      <div class="ev-field"><label>Tag piccolo in alto</label><input type="text" id="evf-tag_label" placeholder="Es. Casa delle Stelle × Expose mgmt"></div>
+      <div class="ev-field"><label>Sottotitolo</label><input type="text" id="evf-sottotitolo" placeholder="Es. Home is where the heart is"></div>
+      <div class="ev-field"><label>Luogo</label><input type="text" id="evf-luogo" placeholder="Es. Via Vantini, Brescia"></div>
+      <div class="ev-field"><label>Data/ora da mostrare</label><input type="text" id="evf-data_testo" placeholder="Es. Sabato 20 Giugno 2026 — ore 20:00"></div>
+      <div class="ev-field"><label>Data evento (per ordinamento)</label><input type="date" id="evf-data_evento"></div>
+      <div class="ev-field"><label>Descrizione</label><textarea id="evf-descrizione" rows="4" placeholder="Testo introduttivo, un paragrafo per riga…"></textarea></div>
+      <div class="ev-field"><label>Nota per chi si candida</label><textarea id="evf-nota_arrivo" rows="2" placeholder="Es. Presentarsi a partire dalle ore 14:00…"></textarea></div>
+      <div class="ev-field"><label>Testo pulsante candidatura</label><input type="text" id="evf-cta_testo" placeholder="Candidati ora"></div>
+      <div class="ev-field"><label>Link gruppo WhatsApp (facoltativo)</label><input type="text" id="evf-whatsapp_link" placeholder="https://chat.whatsapp.com/…"></div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button style="flex:1;padding:10px;background:transparent;border:1px solid var(--rule2);color:var(--ink3);border-radius:var(--r);cursor:pointer;font-size:11px;font-family:var(--sans);letter-spacing:0.06em;text-transform:uppercase" onclick="closeEventForm()">← Indietro</button>
+        <button style="flex:1;padding:10px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:var(--sans)" onclick="saveEventoForm()">Salva</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -839,6 +878,7 @@ let brands      = [];
 let eventi      = [];
 let curBrand    = 'All';
 let curEvento   = 'All';
+let dbMode      = false; // vista "🗂 Database": tutti i modelli, deduplicati, a prescindere dall'evento
 let showSLOnly  = false;
 let showArchived = false;
 let curC        = null;
@@ -896,13 +936,13 @@ function onEventoChange(){
   loadCandidates();
 }
 
-function openEventManager(){ renderEVList(); document.getElementById('ev-modal').classList.add('open'); }
-function closeEV(){ document.getElementById('ev-modal').classList.remove('open'); }
+function openEventManager(){ closeEventForm(); renderEVList(); document.getElementById('ev-modal').classList.add('open'); }
+function closeEV(){ document.getElementById('ev-modal').classList.remove('open'); closeEventForm(); }
 
 function renderEVList(){
   const list = document.getElementById('ev-list');
   if(!eventi.length){
-    list.innerHTML = '<div style="color:var(--ink3);font-size:11px;padding:8px 0;letter-spacing:0.04em">Nessun evento ancora. Creane uno qui sotto.</div>';
+    list.innerHTML = '<div style="color:var(--ink3);font-size:11px;padding:8px 0;letter-spacing:0.04em">Nessun evento ancora. Creane uno col pulsante qui sotto.</div>';
     return;
   }
   list.innerHTML = eventi.map(ev=>`
@@ -911,23 +951,48 @@ function renderEVList(){
         <span>${esc(ev.nome)}${ev.cliente?` <span style="color:var(--ink3)">— ${esc(ev.cliente)}</span>`:''}</span>
         <button class="bm-del" onclick="deleteEvento('${ev.id}','${esc(ev.nome)}')" title="Elimina">×</button>
       </div>
-      <div style="display:flex;gap:6px;align-items:center">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="openEventForm('${ev.id}')">✎ Modifica</button>
         <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="toggleEventoStato('${ev.id}','${ev.stato}')">${ev.stato==='chiuso'?'Riapri':'Chiudi'}</button>
         <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="copyApplyLink('${ev.id}')">🔗 Copia link candidatura</button>
       </div>
     </div>`).join('');
 }
 
-async function createEvento(){
-  const nome = document.getElementById('ev-nome').value.trim();
-  const cliente = document.getElementById('ev-cliente').value.trim();
-  if(!nome) return;
-  const d = await apiPost({action:'createEvento',data:{nome,cliente,stato:'aperto'}});
-  if(d.ok){
-    document.getElementById('ev-nome').value='';
-    document.getElementById('ev-cliente').value='';
-    await loadEventi();
+// ── Form crea/modifica evento ──────────────────────────────
+const EV_FORM_FIELDS = ['nome','cliente','tag_label','sottotitolo','luogo','data_testo','data_evento','descrizione','nota_arrivo','cta_testo','whatsapp_link'];
+let editingEventoId = null;
+
+function openEventForm(eventoId){
+  editingEventoId = eventoId;
+  document.getElementById('ev-list-view').style.display = 'none';
+  document.getElementById('ev-form-view').style.display = 'block';
+  const ev = eventoId ? eventi.find(e=>e.id===eventoId) : null;
+  document.getElementById('ev-form-title').textContent = ev ? `Modifica: ${ev.nome}` : 'Nuovo evento';
+  EV_FORM_FIELDS.forEach(f=>{
+    const el = document.getElementById('evf-'+f);
+    if(el) el.value = ev ? (ev[f]||'') : '';
+  });
+}
+
+function closeEventForm(){
+  editingEventoId = null;
+  document.getElementById('ev-form-view').style.display = 'none';
+  document.getElementById('ev-list-view').style.display = 'block';
+}
+
+async function saveEventoForm(){
+  const data = {};
+  EV_FORM_FIELDS.forEach(f=>{ data[f] = document.getElementById('evf-'+f).value.trim(); });
+  if(!data.nome){ alert('Il nome evento è obbligatorio.'); return; }
+
+  if(editingEventoId){
+    await apiPost({action:'updateEvento', eventoId:editingEventoId, data});
+  } else {
+    await apiPost({action:'createEvento', data:{...data, stato:'aperto'}});
   }
+  await loadEventi();
+  closeEventForm();
 }
 
 async function deleteEvento(id,nome){
@@ -1062,6 +1127,38 @@ async function deleteBrand(id,nome){
 // ============================================================
 async function loadCandidates(){
   document.getElementById('gallery').innerHTML='<div class="state"><span class="spinner"></span> Caricamento…</div>';
+
+  if(dbMode){
+    const d = await apiGet({
+      action:      'getPersone',
+      search:      document.getElementById('q').value.trim(),
+      taglia:      document.getElementById('f-taglia')?.value || 'All',
+      maggiorenne: document.getElementById('f-maggiorenne').value,
+      brand:       curBrand,
+      minH:        document.getElementById('f-minh').value,
+      maxH:        document.getElementById('f-maxh').value,
+    });
+    if(!d.ok){
+      document.getElementById('gallery').innerHTML=
+        `<div class="state"><h3>Errore</h3><p>${esc(d.error||'Risposta non valida dal server')}</p></div>`;
+      console.error('API error:', d);
+      return;
+    }
+    // Normalizza le persone come "candidates" così cardHTML/openDrawer restano compatibili.
+    // In dbMode "id" = persona_id (non esiste una candidatura specifica da mostrare).
+    candidates = (d.persone||[]).map(pe => ({
+      ...pe,
+      id: pe.persona_id,
+      status: null,
+      is_shortlisted: false,
+      brand_ids: pe.brand_ids_storico || [],
+    }));
+    const bn = curBrand!=='All'?(' — '+(brands.find(b=>b.id===curBrand)?.nome||'')):'';
+    document.getElementById('count-lbl').textContent = ` ${d.total} modell${d.total===1?'o':'i'} nel database${bn}`;
+    renderGallery(candidates);
+    return;
+  }
+
   const d = await apiGet({
     action:      'getCandidates',
     evento:      curEvento,
@@ -1085,6 +1182,17 @@ async function loadCandidates(){
   document.getElementById('count-lbl').textContent=
     ` ${d.total} candidat${d.total===1?'o':'i'}${bn}${showSLOnly?' · shortlist':''}`;
   renderGallery(candidates);
+}
+
+function toggleDbMode(){
+  dbMode = !dbMode;
+  document.getElementById('db-btn').className = `tbtn ${dbMode?'tbtn-active':'tbtn-ghost'}`;
+  document.getElementById('f-evento').disabled = dbMode;
+  document.getElementById('sl-btn').style.display = dbMode ? 'none' : '';
+  document.getElementById('arch-btn').style.display = dbMode ? 'none' : '';
+  const statusFilter = document.getElementById('f-status');
+  if(statusFilter) statusFilter.closest('.ff').style.display = dbMode ? 'none' : '';
+  loadCandidates();
 }
 function debounce(){ clearTimeout(debTimer); debTimer=setTimeout(loadCandidates,300); }
 function reload(){ loadCandidates(); }
@@ -1134,10 +1242,14 @@ function cardHTML(c){
       ${cBrands.length
         ? `<div class="card-brand-pills">${cBrands.slice(0,2).map(n=>`<span class="card-brand-pill">${esc(n)}</span>`).join('')}</div>`
         : ''}
-      <button class="star-btn${sl?' on':''}"
-        onclick="event.stopPropagation();toggleSL_card('${c.id}',${sl})"
-        title="${sl?'Rimuovi shortlist':'Aggiungi shortlist'}">★</button>
-      <span class="status-badge s-${c.status||'pending'}">${sLbl}</span>
+      ${dbMode ? `
+        <span class="status-badge" style="background:rgba(58,106,154,0.15);color:var(--blue)">🎪 ${c.totale_eventi||0} event${c.totale_eventi===1?'o':'i'}</span>
+      ` : `
+        <button class="star-btn${sl?' on':''}"
+          onclick="event.stopPropagation();toggleSL_card('${c.id}',${sl})"
+          title="${sl?'Rimuovi shortlist':'Aggiungi shortlist'}">★</button>
+        <span class="status-badge s-${c.status||'pending'}">${sLbl}</span>
+      `}
       ${isMinor ? '<span class="minor-badge">Minorenne</span>' : ''}
     </div>
     <div class="card-info">
@@ -1282,6 +1394,10 @@ function openDrawer(id){
     </div>`:''}
 
     <div class="dr-body">
+      ${dbMode ? `
+      <div style="background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r);padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--ink2);letter-spacing:0.03em">
+        🗂 Profilo database — dati aggregati da ${c.totale_eventi||0} candidatur${c.totale_eventi===1?'a':'e'}. Per gestire status/shortlist/brand apri il profilo dalla lista dell'evento specifico.
+      </div>` : `
       <div class="dr-actions">
         <button class="sl-btn ${sl?'sl-on':'sl-off'}" id="dr-sl-btn" onclick="toggleSL_card('${c.id}',${sl})">
           ${sl?'★ In shortlist':'☆ Shortlist'}
@@ -1304,16 +1420,17 @@ function openDrawer(id){
                  letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s">
           ${c.status==='archived'?'↩ Ripristina':'📦 Archivia'}
         </button>
-        <button
-          onclick="deleteCandidate('${c.id}','${c.persona_id}','${esc(c.nome)} ${esc(c.cognome)}')"
-          style="padding:8px 12px;background:transparent;
-                 border:1px solid rgba(160,64,64,0.3);color:var(--red);
-                 border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
-                 letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
-          title="Elimina definitivamente">
-          🗑 Elimina
-        </button>
-      </div>
+      </div>`}
+
+      <button
+        onclick="deleteCandidate('${c.id}','${c.persona_id}','${esc(c.nome)} ${esc(c.cognome)}')"
+        style="width:100%;margin-bottom:14px;padding:8px 12px;background:transparent;
+               border:1px solid rgba(160,64,64,0.3);color:var(--red);
+               border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
+               letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
+        title="Elimina definitivamente da tutto il sistema">
+        🗑 Elimina definitivamente (tutti gli eventi)
+      </button>
 
       <!-- Dati anagrafici -->
       <div class="icard">
@@ -1354,10 +1471,19 @@ function openDrawer(id){
         </div>
       </div>`:''}
 
+      ${!dbMode ? `
       <div class="icard">
-        <div class="icard-head">Brand assegnati</div>
+        <div class="icard-head">Brand assegnati (per questo evento)</div>
         <div class="icard-body">
           <div class="brand-chips" id="brand-chips"></div>
+        </div>
+      </div>` : ''}
+
+      <!-- Storico candidature: ogni evento a cui si è candidato/a + brand per cui ha sfilato -->
+      <div class="icard">
+        <div class="icard-head">Storico candidature e brand</div>
+        <div class="icard-body" id="dr-storico">
+          <p style="font-size:11px;color:var(--ink3)">Caricamento storico…</p>
         </div>
       </div>
 
@@ -1372,12 +1498,41 @@ function openDrawer(id){
         ↓ Esporta scheda PDF
       </button>
 
-      <div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>
+      ${!dbMode ? `<div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>` : ''}
     </div>`;
 
-  renderBrandChips(c.id);
+  if(!dbMode) renderBrandChips(c.id);
+  loadStorico(c.persona_id);
   document.getElementById('drawer').classList.add('open');
   document.getElementById('ov').classList.add('open');
+}
+
+// Carica lo storico candidature+brand di una persona nel drawer
+async function loadStorico(personaId){
+  const box = document.getElementById('dr-storico');
+  if(!box) return;
+  try{
+    const d = await apiGet({action:'getPersonaStorico', personaId});
+    if(!d.ok || !d.storico || !d.storico.length){
+      box.innerHTML = '<p style="font-size:11px;color:var(--ink3)">Nessuna candidatura precedente registrata.</p>';
+      return;
+    }
+    const statusLbl = {pending:'In attesa',shortlisted:'Shortlist',booked:'Confermato',rejected:'Rifiutato',archived:'Archiviato'};
+    box.innerHTML = d.storico.map(s=>`
+      <div style="padding:8px 0;border-bottom:1px solid var(--rule)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:500">${esc(s.evento_nome)}</span>
+          <span style="font-size:9px;color:var(--ink3)">${new Date(s.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'})}</span>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:9px;padding:2px 7px;border-radius:2px;background:var(--bg3);color:var(--ink2)">${statusLbl[s.status]||s.status}</span>
+          ${(s.brand_nomi||[]).map(bn=>`<span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(58,106,154,0.1);color:var(--blue)">${esc(bn)}</span>`).join('')}
+        </div>
+      </div>`).join('');
+  }catch(err){
+    box.innerHTML = '<p style="font-size:11px;color:var(--ink3)">Impossibile caricare lo storico.</p>';
+    console.error(err);
+  }
 }
 
 function switchPhoto(idx){
