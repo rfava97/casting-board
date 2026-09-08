@@ -139,6 +139,20 @@ html,body{
   .topbar{padding:0 14px}
   .topbar-brand{font-size:16px}
 }
+@media(max-width:600px){
+  .topbar{
+    height:auto;min-height:56px;flex-wrap:wrap;
+    padding:10px 12px;gap:10px;row-gap:8px;
+  }
+  .topbar-count{display:none}
+  .mode-switch{order:3;width:100%}
+  .mode-btn{flex:1;padding:8px 10px}
+  .topbar-right{margin-left:auto}
+  .context-bar{padding:10px 12px}
+  .brand-bar{padding:0 12px}
+  .searchbar{padding:8px 12px}
+  #filter-panel{padding:10px 12px}
+}
 
 /* ---- CONTEXT BAR (livello 2: cambia in base a Database/Eventi) ---- */
 .context-bar{
