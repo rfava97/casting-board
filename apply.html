@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Casa Vantini — Candidatura Modelli</title>
+<title>Candidatura Modelli</title>
 <script>
 // ── CONFIG ─────────────────────────────────────────────────
 const CONFIG = {
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz7YjkcflYr9KXoYZmLVrKTIcnP9HHo9u5FBKIlrQCIP4gNJWKRlQqmL3pIPZHjt-hS/exec',
   TOKEN: 'CastingModelsFDS',
-  AGENCY_NAME: 'Casa Vantini',
+  AGENCY_NAME: 'Casting Studio', // ripiego: usato solo se il campo "Cliente" dell'evento è vuoto
 };
 
 const SIZE_INFO = {
@@ -51,6 +51,25 @@ const EVENTO_ID = new URLSearchParams(location.search).get('evento') || DEFAULT_
   --sh:0 1px 3px rgba(15,15,13,0.07);
 }
 html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ══════════════════════════════════════════════
+   BARRA DI CARICAMENTO
+   ══════════════════════════════════════════════ */
+#page-loading-bar{
+  position:fixed;top:0;left:0;width:100%;height:2.5px;
+  background:transparent;z-index:9999;overflow:hidden;
+}
+#page-loading-bar::after{
+  content:'';position:absolute;top:0;left:-35%;height:100%;width:35%;
+  background:var(--gold);
+  animation:loadingSlide 1.15s ease-in-out infinite;
+}
+#page-loading-bar.done{display:none}
+@keyframes loadingSlide{
+  0%{left:-35%}
+  50%{left:55%}
+  100%{left:130%}
+}
 
 /* ══════════════════════════════════════════════
    LANDING SCREEN
@@ -402,6 +421,9 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 <body>
 <div id="pbar"></div>
 
+<!-- Barra di caricamento: visibile finché non arrivano i testi dell'evento -->
+<div id="page-loading-bar"></div>
+
 <!-- ══════════════════════════════════════════════
      LANDING SCREEN
      ══════════════════════════════════════════════ -->
@@ -600,6 +622,19 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
         <span class="err">Obbligatorio</span>
       </div>
 
+      <div class="grid-2" style="margin-bottom:12px">
+        <div class="field" id="f-telefono">
+          <label>Numero di cellulare *</label>
+          <input id="telefono" type="tel" placeholder="+39 333 0001234" autocomplete="tel" inputmode="tel">
+          <span class="err">Obbligatorio</span>
+        </div>
+        <div class="field" id="f-email">
+          <label>Email (facoltativa)</label>
+          <input id="email" type="email" placeholder="sofia@email.com" autocomplete="email">
+          <span class="err">Email non valida</span>
+        </div>
+      </div>
+
       <div class="grid-2">
         <div class="field" id="f-eta">
           <label>Età *</label>
@@ -763,22 +798,13 @@ function goToForm() {
   }, 380);
 }
 
-let isNewFlow = false;
-
 function chooseNew() {
-  isNewFlow = true;
-  document.getElementById('ps-title').textContent = 'I tuoi contatti';
-  document.getElementById('ps-sub').textContent = 'Ci servono per ricontattarti e per riconoscerti se ti ricandidi in futuro';
-  document.getElementById('ps-btn').textContent = 'Continua →';
+  foundPersona = null;
   document.getElementById('choice').style.display = 'none';
-  document.getElementById('prescreen').style.display = 'block';
+  document.getElementById('main').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 function chooseExisting() {
-  isNewFlow = false;
-  document.getElementById('ps-title').textContent = 'Verifica il tuo profilo';
-  document.getElementById('ps-sub').textContent = "Inserisci gli stessi dati usati l'ultima volta: email e/o telefono";
-  document.getElementById('ps-btn').textContent = 'Verifica profilo →';
   document.getElementById('choice').style.display = 'none';
   document.getElementById('prescreen').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'instant' });
@@ -876,6 +902,7 @@ function buildSizeGrid(containerId, groupName) {
 }
 
 let CURRENT_EVENTO = null;
+function hideLoadingBar(){ document.getElementById('page-loading-bar')?.classList.add('done'); }
 
 // ── Init ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -889,6 +916,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!EVENTO_ID) {
     console.warn('EVENTO_ID non impostato: aggiungi ?evento=ID_EVENTO al link, oppure imposta DEFAULT_EVENTO_ID nel file.');
+    hideLoadingBar();
     return;
   }
 
@@ -907,7 +935,11 @@ document.addEventListener('DOMContentLoaded', async () => {
            <div class="landing-h2">Le candidature per questo evento sono chiuse.</div>
          </div>`;
     }
-  } catch (err) { console.error(err); }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    hideLoadingBar();
+  }
 });
 
 // Popola la pagina di benvenuto con i testi impostati per l'evento
@@ -954,6 +986,19 @@ function renderLanding(ev) {
     wa.href = ev.whatsapp_link;
     wa.style.display = 'inline-flex';
   }
+
+  // Titolo scheda del browser: aggiornato con il nome dell'EVENTO corrente,
+  // non più fisso su un evento passato.
+  document.title = `${ev.nome || 'Candidatura'} — Candidatura Modelli`;
+
+  // Tag piccolo in alto su ogni schermata: preferisce il cliente/organizzatore
+  // dell'evento corrente; usa CONFIG.AGENCY_NAME solo come ripiego se il
+  // campo "Cliente" dell'evento non è stato compilato.
+  const headerLabel = (ev.cliente || CONFIG.AGENCY_NAME || 'Casting Studio').toUpperCase();
+  ['hdr-agency','ch-agency','ps-agency','psr-agency'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.textContent = headerLabel;
+  });
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -969,15 +1014,6 @@ async function doPrescreenCheck() {
   if (!telefono) { setE('ps-telefono'); return; }
 
   psTelefono = telefono; psEmail = email;
-
-  if (isNewFlow) {
-    // Ha già dichiarato di essere nuovo: nessuna verifica, si passa dritti al form
-    foundPersona = null;
-    document.getElementById('prescreen').style.display = 'none';
-    document.getElementById('main').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    return;
-  }
 
   const btn = document.getElementById('ps-btn');
   btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Verifica in corso…';
@@ -1051,6 +1087,7 @@ function continueToMainForm() {
   document.getElementById('prescreen-result').style.display = 'none';
   document.getElementById('main').style.display = 'block';
   window.scrollTo({ top:0, behavior:'instant' });
+  setVal('telefono', psTelefono); setVal('email', psEmail);
   if (foundPersona) fillFromPersona(foundPersona);
 }
 
@@ -1092,9 +1129,13 @@ function isChecked(id) { return document.getElementById(id)?.checked || false; }
 // ── Validazione ───────────────────────────────────────────
 function validate() {
   let ok = true;
-  ['nome','cognome','instagram','eta','altezza_cm'].forEach(f => {
+  ['nome','cognome','instagram','telefono','eta','altezza_cm'].forEach(f => {
     clrE(f); if (!g(f)) { setE(f, 'Obbligatorio'); ok = false; }
   });
+  clrE('email');
+  const email = g('email');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setE('email'); ok = false; }
+
   const eta = parseInt(g('eta'));
   if (g('eta') && (isNaN(eta) || eta < 14 || eta > 70)) { setE('eta', 'Età: 14–70'); ok = false; }
 
@@ -1157,8 +1198,8 @@ async function doSubmit() {
     nome:            g('nome'),
     cognome:         g('cognome'),
     instagram:       g('instagram'),
-    telefono:        psTelefono,
-    email:           psEmail,
+    telefono:        g('telefono'),
+    email:           g('email'),
     eta,
     maggiorenne:     eta >= 18,
     altezza_cm:      parseFloat(g('altezza_cm')),
