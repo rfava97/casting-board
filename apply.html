@@ -26,8 +26,8 @@ const SIZES = ['XS','S','M','L','XL','XXL'];
 // Questa pagina è dedicata a un evento specifico: l'id evento va
 // passato nel link che condividi (es. WhatsApp, bio Instagram)
 // aggiungendo ?evento=ID_EVENTO in fondo all'URL della pagina.
-// L'ID si ottiene dal pannello "📅 Eventi" nella gallery, con
-// "🔗 Copia link candidatura" — oppure incollalo qui come default
+// L'ID si ottiene dal pannello "Eventi" nella gallery, con
+// "Copia link candidatura" — oppure incollalo qui come default
 // così il link resta pulito anche senza il parametro.
 const DEFAULT_EVENTO_ID = '';
 const EVENTO_ID = new URLSearchParams(location.search).get('evento') || DEFAULT_EVENTO_ID;
@@ -37,19 +37,10 @@ const EVENTO_ID = new URLSearchParams(location.search).get('evento') || DEFAULT_
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
+<link rel="stylesheet" href="theme.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f7f7f6; --bg2:#ffffff; --bg3:#f0efed; --bg4:#e4e2df;
-  --rule:rgba(15,15,13,0.08); --rule2:rgba(15,15,13,0.14); --rule3:rgba(15,15,13,0.24);
-  --ink:#121210; --ink2:#47453f; --ink3:#8b8983;
-  --gold:#83693f; --gold2:#65502f; --gold3:rgba(131,105,63,0.10);
-  --green:#3d6b52; --red:#8f4640; --amber:#8f6a30;
-  --r:4px; --r-lg:10px;
-  --serif:'Cormorant Garamond',Georgia,serif;
-  --sans:'DM Sans',-apple-system,sans-serif;
-  --sh:0 1px 3px rgba(15,15,13,0.07);
-}
+
 html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;min-height:100vh;-webkit-font-smoothing:antialiased}
 
 /* ══════════════════════════════════════════════
@@ -65,7 +56,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 #page-loading-overlay.done{opacity:0;visibility:hidden;pointer-events:none}
 .loading-ring{
   width:36px;height:36px;
-  border:3px solid rgba(247,247,246,0.15);
+  border:3px solid rgba(var(--paper-rgb),0.15);
   border-top-color:var(--gold);
   border-radius:50%;
   animation:ringSpin 0.85s linear infinite;
@@ -73,7 +64,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 @keyframes ringSpin{to{transform:rotate(360deg)}}
 .loading-text{
   font-family:var(--sans);font-size:11px;font-weight:500;
-  letter-spacing:0.18em;text-transform:uppercase;color:rgba(247,247,246,0.5);
+  letter-spacing:0.18em;text-transform:uppercase;color:rgba(var(--paper-rgb),0.5);
 }
 
 /* ══════════════════════════════════════════════
@@ -116,15 +107,15 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 /* Presenters tag */
 .landing-tag{
   font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
-  color:rgba(154,123,79,0.9);font-weight:400;
+  color:rgba(var(--gold-rgb),0.9);font-weight:400;
   display:flex;align-items:center;gap:10px;margin-bottom:0;
 }
 .landing-tag::before,.landing-tag::after{
   content:'';flex:1;height:1px;
-  background:linear-gradient(90deg,rgba(154,123,79,0.4),transparent);
+  background:linear-gradient(90deg,rgba(var(--gold-rgb),0.4),transparent);
 }
 .landing-tag::after{
-  background:linear-gradient(270deg,rgba(154,123,79,0.4),transparent);
+  background:linear-gradient(270deg,rgba(var(--gold-rgb),0.4),transparent);
 }
 
 /* Main title block */
@@ -133,7 +124,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 }
 .landing-eyebrow{
   font-family:var(--sans);font-size:10px;letter-spacing:0.25em;
-  text-transform:uppercase;color:rgba(245,242,238,0.45);
+  text-transform:uppercase;color:rgba(var(--paper-rgb),0.45);
   margin-bottom:12px;
 }
 .landing-h1{
@@ -141,7 +132,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   font-size:clamp(38px,10vw,58px);
   font-weight:300;line-height:1.0;
   letter-spacing:-0.02em;
-  color:#f5f2ee;
+  color:var(--bg3);
   margin-bottom:6px;
 }
 .landing-h1 em{font-style:italic;font-weight:300;color:var(--gold)}
@@ -150,7 +141,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   font-size:clamp(15px,4.5vw,22px);
   font-weight:300;line-height:1.3;
   letter-spacing:0.04em;
-  color:rgba(245,242,238,0.6);
+  color:rgba(var(--paper-rgb),0.6);
   text-transform:uppercase;
   margin-top:8px;
 }
@@ -170,19 +161,19 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 }
 .landing-body p{
   font-size:14px;line-height:1.75;
-  color:rgba(245,242,238,0.72);
+  color:rgba(var(--paper-rgb),0.72);
   font-weight:300;
   letter-spacing:0.01em;
 }
 .landing-body p strong{
-  color:rgba(245,242,238,0.92);
+  color:rgba(var(--paper-rgb),0.92);
   font-weight:500;
 }
 
 /* Event info card */
 .landing-event{
-  background:rgba(245,242,238,0.05);
-  border:1px solid rgba(154,123,79,0.3);
+  background:rgba(var(--paper-rgb),0.05);
+  border:1px solid rgba(var(--gold-rgb),0.3);
   border-radius:var(--r-lg);
   padding:20px 22px;
   margin-bottom:28px;
@@ -192,24 +183,24 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   font-size:13px;margin-bottom:10px;
 }
 .landing-event-row:last-child{margin-bottom:0}
-.ev-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.ev-icon{flex-shrink:0;width:18px;text-align:center;display:inline-flex;align-items:center;justify-content:center}
 .ev-lbl{
   font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;
-  color:rgba(154,123,79,0.8);min-width:72px;flex-shrink:0;
+  color:rgba(var(--gold-rgb),0.8);min-width:72px;flex-shrink:0;
 }
-.ev-val{color:#f5f2ee;font-weight:300;line-height:1.4}
+.ev-val{color:var(--bg3);font-weight:300;line-height:1.4}
 .ev-val strong{font-weight:500}
 
 /* Nota arrivo */
 .landing-note{
-  background:rgba(154,123,79,0.1);
+  background:rgba(var(--gold-rgb),0.1);
   border-left:2px solid var(--gold);
   border-radius:0 var(--r) var(--r) 0;
   padding:12px 16px;
-  font-size:12px;color:rgba(245,242,238,0.75);
+  font-size:12px;color:rgba(var(--paper-rgb),0.75);
   line-height:1.6;margin-bottom:28px;
 }
-.landing-note strong{color:rgba(245,242,238,0.92)}
+.landing-note strong{color:rgba(var(--paper-rgb),0.92)}
 
 /* CTA button */
 .landing-cta{
@@ -231,7 +222,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 .landing-footer{
   text-align:center;padding:20px 28px 28px;
   font-size:10px;letter-spacing:0.08em;
-  color:rgba(245,242,238,0.2);text-transform:uppercase;
+  color:rgba(var(--paper-rgb),0.2);text-transform:uppercase;
 }
 
 /* Transition out */
@@ -283,11 +274,11 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 
 /* ── Età badge ── */
 #eta-badge{display:none;margin-top:4px;padding:4px 10px;border-radius:var(--r);font-size:10px;font-weight:500;letter-spacing:0.06em;width:fit-content}
-#eta-badge.over{background:rgba(61,138,98,0.1);color:var(--green);display:inline-block}
-#eta-badge.under{background:rgba(176,120,48,0.1);color:var(--amber);display:inline-block}
+#eta-badge.over{background:rgba(var(--green-rgb),0.1);color:var(--green);display:inline-block}
+#eta-badge.under{background:rgba(var(--amber-rgb),0.1);color:var(--amber);display:inline-block}
 
 /* ── Consenso minorenni ── */
-#consenso-box{display:none;background:rgba(154,123,79,0.07);border:1px solid rgba(154,123,79,0.22);border-radius:var(--r-lg);padding:16px;margin-top:8px}
+#consenso-box{display:none;background:rgba(var(--gold-rgb),0.07);border:1px solid rgba(var(--gold-rgb),0.22);border-radius:var(--r-lg);padding:16px;margin-top:8px}
 #consenso-box.show{display:block}
 #consenso-box p{font-size:12px;color:var(--gold2);line-height:1.65;margin-bottom:12px}
 .cbox-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
@@ -318,7 +309,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 .toggle-thumb{
   position:absolute;top:3px;left:3px;
   width:16px;height:16px;border-radius:50%;
-  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.15);
+  background:#fff;box-shadow:0 1px 3px rgba(var(--ink-rgb),0.15);
   transition:transform 0.2s;
 }
 .toggle-switch input:checked ~ .toggle-track{background:var(--gold);border-color:var(--gold2)}
@@ -346,7 +337,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   background:var(--ink);color:#fff;
   font-size:10px;line-height:1.55;padding:8px 11px;border-radius:var(--r);
   pointer-events:none;opacity:0;transition:opacity 0.15s;
-  box-shadow:0 4px 16px rgba(0,0,0,0.18);z-index:20;
+  box-shadow:0 4px 16px rgba(var(--ink-rgb),0.18);z-index:20;
   min-width:180px;max-width:240px;white-space:normal;text-align:left;
 }
 .sopt label .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink)}
@@ -385,21 +376,22 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   cursor:pointer;transition:border-color 0.2s,background 0.2s;
   background:var(--bg3);overflow:hidden;position:relative;
 }
-.foto-slot:hover,.foto-slot.drag-over{border-color:var(--gold);background:rgba(154,123,79,0.04)}
+.foto-slot:hover,.foto-slot.drag-over{border-color:var(--gold);background:rgba(var(--gold-rgb),0.04)}
 .foto-slot.has-photo{border-style:solid;border-color:var(--rule)}
 .foto-slot.has-error{border-color:var(--red)}
-.foto-slot-icon{font-size:24px;opacity:0.3}
+.foto-slot-icon{opacity:0.3}
+.foto-slot-icon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.5}
 .foto-slot-label{font-size:11px;color:var(--ink3);letter-spacing:0.03em;text-align:center;padding:0 8px}
 .foto-slot-badge{
   position:absolute;top:6px;left:6px;
-  background:rgba(154,123,79,0.9);color:#fff;
+  background:rgba(var(--gold-rgb),0.9);color:#fff;
   font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
   letter-spacing:0.08em;text-transform:uppercase;
 }
 .foto-slot img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
 .foto-slot .rm-photo{
   position:absolute;top:5px;right:5px;z-index:2;
-  background:rgba(26,24,20,0.65);color:#fff;border:none;border-radius:50%;
+  background:rgba(var(--ink-rgb),0.65);color:#fff;border:none;border-radius:50%;
   width:22px;height:22px;font-size:13px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
 }
@@ -417,7 +409,8 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 
 /* ── States ── */
 .state{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center}
-.state-icon{font-size:38px;opacity:0.55;margin-bottom:18px}
+.state-icon{opacity:0.55;margin-bottom:18px}
+.state-icon svg{width:38px;height:38px;stroke-width:1.3}
 .state-title{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:8px}
 .state-sub{font-size:13px;color:var(--ink3);line-height:1.8}
 .btn-retry{margin-top:20px;padding:10px 24px;background:transparent;color:var(--ink);border:1px solid var(--rule2);border-radius:var(--r);cursor:pointer;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--sans)}
@@ -456,12 +449,12 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
     <!-- Info evento -->
     <div class="landing-event" id="lnd-event-box" style="display:none">
       <div class="landing-event-row" id="lnd-luogo-row" style="display:none">
-        <span class="ev-icon">📍</span>
+        <span class="ev-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
         <span class="ev-lbl">Dove</span>
         <span class="ev-val" id="lnd-luogo"></span>
       </div>
       <div class="landing-event-row" id="lnd-data-row" style="display:none">
-        <span class="ev-icon">📅</span>
+        <span class="ev-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 9h18M4 5h16a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg></span>
         <span class="ev-lbl">Quando</span>
         <span class="ev-val" id="lnd-data"></span>
       </div>
@@ -552,7 +545,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
     </div>
 
     <p id="psr-photo-note" style="display:none;font-size:11px;color:var(--amber);background:rgba(143,106,48,0.08);border:1px solid rgba(143,106,48,0.25);border-radius:var(--r);padding:10px 12px;margin-bottom:16px;line-height:1.6">
-      ⚠ Le tue foto risalgono a più di 6 mesi fa: nel passaggio successivo ti chiederemo di ricaricarle.
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg> Le tue foto risalgono a più di 6 mesi fa: nel passaggio successivo ti chiederemo di ricaricarle.
     </p>
 
     <p style="font-size:11px;color:var(--ink3);margin-bottom:16px;line-height:1.6">Se qualcosa non è (più) corretto, potrai modificarlo nel passaggio successivo.</p>
@@ -564,7 +557,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 
 <div id="state-ok" class="state" style="display:none">
   <div>
-    <div class="state-icon">✓</div>
+    <div class="state-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
     <div class="state-title" style="color:var(--green)">Candidatura inviata</div>
     <div class="state-sub">
       Grazie per aver inviato il tuo profilo.<br>Ti contatteremo al più presto.
@@ -659,7 +652,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 
       <!-- Consenso genitori — solo per minorenni -->
       <div id="consenso-box">
-        <p>⚠ Hai meno di 18 anni. È necessario il consenso di un genitore o tutore legale.</p>
+        <p><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg> Hai meno di 18 anni. È necessario il consenso di un genitore o tutore legale.</p>
         <label class="cbox-row">
           <input type="checkbox" id="consenso-check">
           <span>Confermo di avere il consenso di un genitore o tutore legale, consapevole di questa candidatura.</span>
@@ -734,7 +727,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
       <!-- Istruzioni chiare -->
       <div class="foto-guide">
         <div class="foto-guide-title">
-          <span>📷</span> Come caricare le foto
+          <span><svg class="icon" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg></span> Come caricare le foto
         </div>
         <ul>
           <li><strong>2 foto richieste:</strong> un primo piano frontale e una foto mezzo busto di profilo (lato)</li>
@@ -753,7 +746,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
         <div class="foto-slot" id="slot-0"
           onclick="document.getElementById('phi-0').click()"
           ondragover="onSlotDO(event,0)" ondragleave="onSlotDL(0)" ondrop="onSlotDP(event,0)">
-          <div class="foto-slot-icon">👤</div>
+          <div class="foto-slot-icon"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg></div>
           <div class="foto-slot-label">Primo piano<br><strong>frontale</strong></div>
         </div>
         <input type="file" id="phi-0" accept="image/*" style="display:none" onchange="setSlotPhoto(0,this.files[0])">
@@ -770,7 +763,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 
       <div id="ph-err">Carica entrambe le foto richieste</div>
       <p id="ph-refresh-note" style="display:none;font-size:11px;color:var(--amber);background:rgba(143,106,48,0.08);border:1px solid rgba(143,106,48,0.25);border-radius:var(--r);padding:10px 12px;margin-top:12px;line-height:1.6">
-        ⚠ Le tue foto in archivio risalgono a più di 6 mesi fa: per restare aggiornate, carica due foto nuove.
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg> Le tue foto in archivio risalgono a più di 6 mesi fa: per restare aggiornate, carica due foto nuove.
       </p>
     </div>
 
@@ -828,7 +821,7 @@ let existingPhotoUrls = [null, null]; // foto già in archivio (se profilo ricon
 let foundPersona = null; // profilo trovato dalla verifica, o null se nuovo
 
 const SLOT_LABELS = [
-  { icon:'👤', label:'Primo piano<br><strong>frontale</strong>', badge:'Frontale' },
+  { icon:'<svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>', label:'Primo piano<br><strong>frontale</strong>', badge:'Frontale' },
   { icon:'↙',  label:'Foto mezzo busto di profilo<br><strong>(lato, occhi)</strong>', badge:'Profilo' },
 ];
 
@@ -890,8 +883,8 @@ function onEta(val) {
   const badge = document.getElementById('eta-badge');
   const cbox  = document.getElementById('consenso-box');
   if (!val || isNaN(n)) { badge.className = ''; cbox.classList.remove('show'); return; }
-  if (n >= 18) { badge.textContent='✓ Maggiorenne'; badge.className='over'; cbox.classList.remove('show'); }
-  else         { badge.textContent='⚠ Minorenne';  badge.className='under'; cbox.classList.add('show'); }
+  if (n >= 18) { badge.innerHTML='<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Maggiorenne'; badge.className='over'; cbox.classList.remove('show'); }
+  else         { badge.innerHTML='<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg> Minorenne';  badge.className='under'; cbox.classList.add('show'); }
 }
 
 // ── Taglie ────────────────────────────────────────────────
@@ -951,7 +944,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Popola la pagina di benvenuto con i testi impostati per l'evento
-// (pannello "📅 Eventi" nella gallery). Ogni campo è facoltativo:
+// (pannello "Eventi" nella gallery). Ogni campo è facoltativo:
 // se non impostato, la relativa riga resta semplicemente nascosta.
 function renderLanding(ev) {
   const set = (id, val, html) => {

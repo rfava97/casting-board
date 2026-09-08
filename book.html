@@ -20,6 +20,7 @@ const CONFIG = {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
+<link rel="stylesheet" href="theme.css">
 <style>
 /* ============================================================
    CASTING BOOK — stile stampabile
@@ -27,29 +28,12 @@ const CONFIG = {
    Print:  una scheda per pagina, ottimizzato per A4
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:   #f7f7f6;
-  --bg2:  #ffffff;
-  --bg3:  #f0efed;
-  --bg4:  #e4e2df;
-  --rule: rgba(15,15,13,0.08);
-  --rule2:rgba(15,15,13,0.15);
-  --ink:  #121210;
-  --ink2: #47453f;
-  --ink3: #8b8983;
-  --gold: #83693f;
-  --gold2:#65502f;
-  --green:#3d6b52;
-  --red:  #8f4640;
-  --blue: #3d5a72;
-  --serif:'Cormorant Garamond',Georgia,serif;
-  --sans: 'DM Sans',-apple-system,sans-serif;
-}
+
 html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
 
 /* ── LOGIN ── */
 #login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
-.login-box{background:var(--bg2);border:1px solid var(--rule2);border-radius:12px;padding:40px 32px;width:100%;max-width:300px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.1)}
+.login-box{background:var(--bg2);border:1px solid var(--rule2);border-radius:12px;padding:40px 32px;width:100%;max-width:300px;text-align:center;box-shadow:0 12px 40px rgba(var(--ink-rgb),0.1)}
 .login-logo{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:18px}
 .login-box h2{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:4px}
 .login-box p{color:var(--ink3);font-size:12px;margin-bottom:22px}
@@ -65,18 +49,18 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   background:var(--bg2);border-bottom:1px solid var(--rule);
   padding:10px 20px;display:flex;align-items:center;gap:12px;
   flex-wrap:wrap;position:sticky;top:0;z-index:100;
-  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  box-shadow:0 1px 3px rgba(var(--ink-rgb),0.06);
 }
 .ctrl-brand{font-family:var(--serif);font-size:16px;font-weight:300;color:var(--ink);letter-spacing:0.02em}
 .ctrl-sep{color:var(--rule2);font-size:16px}
 .ctrl-count{font-size:11px;color:var(--ink3);letter-spacing:0.04em}
 .ctrl-actions{display:flex;gap:6px;margin-left:auto;align-items:center;flex-wrap:wrap}
-.cbtn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:4px;font-size:11px;font-weight:400;letter-spacing:0.06em;cursor:pointer;border:none;font-family:var(--sans);text-transform:uppercase;transition:all 0.15s;white-space:nowrap}
+.cbtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:10px 14px;border-radius:4px;font-size:11px;font-weight:400;letter-spacing:0.06em;cursor:pointer;border:none;font-family:var(--sans);text-transform:uppercase;transition:all 0.15s;white-space:nowrap}
 .cbtn-ghost{background:transparent;color:var(--ink3);border:1px solid var(--rule2)}
 .cbtn-ghost:hover{color:var(--ink);background:var(--bg3);border-color:var(--rule2)}
 .cbtn-gold{background:var(--gold);color:#fff;font-weight:500}
 .cbtn-gold:hover{background:var(--gold2)}
-.brand-sel{background:var(--bg3);border:1px solid var(--rule2);border-radius:4px;color:var(--ink);padding:7px 10px;font-size:12px;font-family:var(--sans);cursor:pointer}
+.brand-sel{background:var(--bg3);border:1px solid var(--rule2);border-radius:4px;color:var(--ink);padding:9px 10px;min-height:38px;font-size:12px;font-family:var(--sans);cursor:pointer}
 
 /* ── LOADING / EMPTY ── */
 .loading-state,.empty-state{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;min-height:300px;color:var(--ink3)}
@@ -94,7 +78,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   border-radius:0;
   margin-bottom:24px;
   overflow:hidden;
-  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  box-shadow:0 2px 12px rgba(var(--ink-rgb),0.06);
   position:relative;
   page-break-inside:avoid;
   break-inside:avoid;
@@ -114,16 +98,15 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   display:inline-flex;align-items:center;gap:6px;
   font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
   padding:4px 10px;border-radius:2px;
-  background:rgba(58,106,154,0.1);color:var(--blue);border:1px solid rgba(58,106,154,0.2);
+  background:rgba(var(--blue-rgb),0.1);color:var(--blue);border:1px solid rgba(var(--blue-rgb),0.2);
 }
 .scheda-status{
   font-size:8px;font-weight:500;padding:3px 8px;border-radius:2px;
   text-transform:uppercase;letter-spacing:0.1em;
 }
-.s-shortlisted{background:rgba(154,123,79,0.15);color:var(--gold2)}
-.s-booked{background:rgba(61,138,98,0.15);color:var(--green)}
-.s-pending{background:rgba(0,0,0,0.06);color:var(--ink3)}
-.s-rejected{background:rgba(160,64,64,0.12);color:var(--red)}
+.s-booked{background:rgba(var(--green-rgb),0.15);color:var(--green)}
+.s-pending{background:rgba(var(--ink-rgb),0.06);color:var(--ink3)}
+.s-rejected{background:rgba(var(--red-rgb),0.12);color:var(--red)}
 
 /* Body scheda — 2 colonne */
 .scheda-body{display:grid;grid-template-columns:200px 1fr;min-height:280px}
@@ -177,7 +160,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 .minore-badge{
   display:inline-block;font-size:8px;font-weight:500;
   padding:2px 7px;border-radius:2px;
-  background:rgba(176,120,48,0.12);color:#b07830;
+  background:rgba(var(--amber-rgb),0.12);color:var(--amber);
   letter-spacing:0.08em;text-transform:uppercase;margin-left:6px;vertical-align:middle;
 }
 
@@ -296,7 +279,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   .scheda-footer{ flex-shrink:0; padding:6px 14px !important; }
 }
 .brand-hero{
-  background:var(--ink);color:#f5f2ee;
+  background:var(--ink);color:var(--bg3);
   padding:36px 28px 28px;
   border-bottom:2px solid var(--gold);
   display:none; /* mostrato solo in modalità link */
@@ -310,7 +293,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   font-weight:300;letter-spacing:-0.02em;margin-bottom:6px;
 }
 .brand-hero-meta{
-  font-size:12px;color:rgba(245,242,238,0.5);letter-spacing:0.04em;
+  font-size:12px;color:rgba(var(--paper-rgb),0.5);letter-spacing:0.04em;
 }
 /* Nascondi controlli admin in modalità link */
 .brand-link-mode .controls{ display:none !important; }
@@ -457,12 +440,12 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
       </select>
       <select class="brand-sel" id="status-sel" onchange="filterByStatus(this.value)">
         <option value="All">Tutti gli status</option>
-        <option value="shortlisted">Shortlist</option>
         <option value="booked">Confermati</option>
-        <option value="pending">In attesa</option>
+        <option value="pending">In valutazione</option>
+        <option value="rejected">Non selezionati</option>
       </select>
-      <button class="cbtn cbtn-ghost" onclick="window.print()">🖨 Stampa / PDF</button>
-      <button class="cbtn cbtn-ghost" onclick="toggleView()">⊞ Raggruppa per brand</button>
+      <button class="cbtn cbtn-ghost" onclick="window.print()"><svg class="icon" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6v-7Z"/></svg> Stampa / PDF</button>
+      <button class="cbtn cbtn-ghost" onclick="toggleView()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg> Raggruppa per brand</button>
     </div>
   </div>
 
@@ -483,7 +466,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
                transition:background 0.15s;margin-top:4px"
         onmouseover="this.style.background='var(--gold2)'"
         onmouseout="this.style.background='var(--gold)'">
-        🖨 Stampa / PDF
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6v-7Z"/></svg> Stampa / PDF
       </button>
     </div>
   </div>
@@ -562,7 +545,7 @@ async function init() {
     // Modalità link brand — lock sul brand dell'URL
     if (IS_BRAND_LINK) {
       curBrand = URL_BRAND;
-      curStatus = 'All'; // mostra tutti gli status (shortlisted + booked)
+      curStatus = 'All'; // mostra tutti gli status
 
       const brand = allBrands.find(b => b.id === URL_BRAND);
       const brandName = brand?.nome || 'Brand';
@@ -618,7 +601,9 @@ function filterByStatus(val) { curStatus = val; render(); }
 function toggleView() {
   groupByBrand = !groupByBrand;
   const btn = document.querySelector('[onclick="toggleView()"]');
-  btn.textContent = groupByBrand ? '⊟ Vista lineare' : '⊞ Raggruppa per brand';
+  btn.innerHTML = groupByBrand
+    ? '<svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg> Vista lineare'
+    : '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg> Raggruppa per brand';
   render();
 }
 
@@ -713,7 +698,7 @@ function schedaHTML(c, forceBrand) {
   const tagliaInf = c.taglia_inf || '—';
   const ig        = c.instagram ? c.instagram.replace('@', '') : null;
 
-  const sLbl = { pending:'In attesa', shortlisted:'Shortlist', booked:'Confermato', rejected:'Rifiutato' }[c.status] || c.status;
+  const sLbl = { pending:'In valutazione', booked:'Confermato', rejected:'Non selezionato', archived:'Archiviato' }[c.status] || c.status;
   const sCls = `s-${c.status || 'pending'}`;
 
   const cBrands = forceBrand
@@ -773,8 +758,8 @@ function schedaHTML(c, forceBrand) {
           <!-- Tag -->
           ${(c.tatuaggi || c.piercing) ? `
           <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-            ${c.tatuaggi ? `<span style="font-size:10px;padding:3px 9px;border-radius:2px;background:rgba(0,0,0,0.06);color:var(--ink2)">Tatuaggi</span>` : ''}
-            ${c.piercing ? `<span style="font-size:10px;padding:3px 9px;border-radius:2px;background:rgba(0,0,0,0.06);color:var(--ink2)">Piercing</span>` : ''}
+            ${c.tatuaggi ? `<span style="font-size:10px;padding:3px 9px;border-radius:2px;background:rgba(var(--ink-rgb),0.06);color:var(--ink2)">Tatuaggi</span>` : ''}
+            ${c.piercing ? `<span style="font-size:10px;padding:3px 9px;border-radius:2px;background:rgba(var(--ink-rgb),0.06);color:var(--ink2)">Piercing</span>` : ''}
           </div>` : ''}
 
           <!-- Note -->

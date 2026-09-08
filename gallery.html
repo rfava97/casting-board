@@ -21,52 +21,14 @@ const CONFIG = {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
+<link rel="stylesheet" href="theme.css">
 <style>
 /* ============================================================
    CASTING BOARD — Light editorial theme
    Palette: warm white / sand / slate
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  /* Backgrounds — bianco/grigio pulito, meno "beige boutique" */
-  --bg:   #f7f7f6;
-  --bg2:  #ffffff;
-  --bg3:  #f0efed;
-  --bg4:  #e4e2df;
 
-  /* Borders */
-  --rule: rgba(15,15,13,0.08);
-  --rule2:rgba(15,15,13,0.14);
-  --rule3:rgba(15,15,13,0.24);
-
-  /* Text — quasi nero, meno cast marrone, più contrasto editoriale */
-  --ink:  #121210;
-  --ink2: #47453f;
-  --ink3: #8b8983;
-
-  /* Accenti — champagne profondo al posto del tan/oro chiaro, più "quiet luxury" */
-  --gold: #83693f;
-  --gold2:#65502f;
-  --gold3:rgba(131,105,63,0.10);
-  --green:#3d6b52;
-  --red:  #8f4640;
-  --blue: #3d5a72;
-  --amber:#8f6a30;
-
-  /* Radii */
-  --r:    4px;
-  --r-md: 8px;
-  --r-lg: 12px;
-
-  /* Fonts */
-  --serif:'Cormorant Garamond',Georgia,serif;
-  --sans: 'DM Sans',-apple-system,sans-serif;
-
-  /* Shadows */
-  --sh-sm: 0 1px 3px rgba(15,15,13,0.07);
-  --sh-md: 0 4px 16px rgba(15,15,13,0.09);
-  --sh-lg: 0 12px 40px rgba(15,15,13,0.13);
-}
 
 html,body{
   background:var(--bg);color:var(--ink);
@@ -145,7 +107,7 @@ html,body{
 }
 .mode-btn{
   border:none;background:none;cursor:pointer;
-  padding:7px 18px;border-radius:999px;
+  min-height:32px;padding:8px 18px;border-radius:999px;
   font-family:var(--sans);font-size:11px;font-weight:500;
   letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);
   transition:all 0.18s;white-space:nowrap;
@@ -157,8 +119,8 @@ html,body{
 
 /* Buttons */
 .tbtn{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:7px 12px;border-radius:var(--r);
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:38px;padding:10px 14px;border-radius:var(--r);
   font-size:11px;font-weight:400;letter-spacing:0.05em;
   cursor:pointer;border:none;font-family:var(--sans);
   text-transform:uppercase;transition:all 0.15s;white-space:nowrap;
@@ -169,7 +131,7 @@ html,body{
 .tbtn-outline:hover{background:var(--bg3);border-color:var(--rule3)}
 .tbtn-gold{background:var(--gold);color:#fff;font-weight:500}
 .tbtn-gold:hover{background:var(--gold2)}
-.tbtn-active{background:var(--gold3);color:var(--gold2);border:1px solid rgba(154,123,79,0.25)}
+.tbtn-active{background:var(--gold3);color:var(--gold2);border:1px solid rgba(var(--gold-rgb),0.25)}
 .tbtn-sep{width:1px;height:18px;background:var(--rule);margin:0 4px}
 
 @media(max-width:760px){
@@ -294,7 +256,7 @@ html,body{
 }
 .card-overlay{
   position:absolute;bottom:0;left:0;right:0;height:45%;
-  background:linear-gradient(to top,rgba(26,24,20,0.55),transparent);
+  background:linear-gradient(to top,rgba(var(--ink-rgb),0.55),transparent);
   pointer-events:none;
 }
 .status-badge{
@@ -302,8 +264,8 @@ html,body{
   font-size:8px;font-weight:500;padding:3px 7px;border-radius:2px;
   text-transform:uppercase;letter-spacing:0.1em;
 }
-.s-booked{background:rgba(61,138,98,0.9);color:#fff}
-.s-rejected{background:rgba(160,64,64,0.85);color:#fff}
+.s-booked{background:rgba(var(--green-rgb),0.9);color:#fff}
+.s-rejected{background:rgba(var(--red-rgb),0.85);color:#fff}
 .s-archived{background:rgba(100,100,100,0.7);color:#ddd}
 .card.archived-card{opacity:0.45;filter:grayscale(0.4)}
 .card-brand-pills{
@@ -312,7 +274,7 @@ html,body{
 }
 .card-brand-pill{
   font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
-  background:rgba(58,106,154,0.85);color:#fff;
+  background:rgba(var(--blue-rgb),0.85);color:#fff;
   letter-spacing:0.06em;text-transform:uppercase;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
@@ -320,7 +282,7 @@ html,body{
 .minor-badge{
   position:absolute;bottom:7px;right:7px;
   font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;
-  background:rgba(176,120,48,0.85);color:#fff;
+  background:rgba(var(--amber-rgb),0.85);color:#fff;
   letter-spacing:0.07em;text-transform:uppercase;
 }
 .card-info{padding:11px 13px 13px}
@@ -356,13 +318,13 @@ html,body{
    LIGHTBOX
    ============================================================ */
 #lb{
-  position:fixed;inset:0;background:rgba(10,10,10,0.95);
+  position:fixed;inset:0;background:rgba(var(--ink-rgb),0.95);
   z-index:700;display:none;align-items:center;justify-content:center;
 }
 #lb.open{display:flex}
 #lb-img{
   max-height:90vh;max-width:90vw;object-fit:contain;
-  border-radius:2px;box-shadow:0 32px 80px rgba(0,0,0,0.6);
+  border-radius:2px;box-shadow:0 32px 80px rgba(var(--ink-rgb),0.6);
 }
 .lb-nav{
   position:fixed;top:50%;transform:translateY(-50%);
@@ -390,7 +352,7 @@ html,body{
    DRAWER
    ============================================================ */
 #ov{
-  position:fixed;inset:0;background:rgba(26,24,20,0.4);
+  position:fixed;inset:0;background:rgba(var(--ink-rgb),0.4);
   z-index:399;display:none;backdrop-filter:blur(2px);
 }
 #ov.open{display:block}
@@ -400,7 +362,7 @@ html,body{
   background:var(--bg2);border-left:1px solid var(--rule2);
   z-index:400;overflow-y:auto;
   transition:right 0.28s cubic-bezier(0.4,0,0.2,1);
-  box-shadow:-8px 0 32px rgba(0,0,0,0.1);
+  box-shadow:-8px 0 32px rgba(var(--ink-rgb),0.1);
 }
 #drawer.open{right:0}
 
@@ -435,7 +397,7 @@ html,body{
 .dr-hero-badge{
   position:absolute;bottom:10px;right:10px;
   font-size:9px;letter-spacing:0.07em;text-transform:uppercase;
-  color:rgba(255,255,255,0.8);background:rgba(26,24,20,0.55);
+  color:rgba(255,255,255,0.8);background:rgba(var(--ink-rgb),0.55);
   padding:3px 8px;border-radius:2px;backdrop-filter:blur(4px);
 }
 .dr-strip{
@@ -485,7 +447,7 @@ html,body{
   font-weight:400;letter-spacing:0.05em;text-transform:uppercase;
   cursor:pointer;border:1px solid;transition:all 0.15s;font-family:var(--sans);
 }
-.bchip-on{background:rgba(58,106,154,0.1);color:var(--blue);border-color:rgba(58,106,154,0.3)}
+.bchip-on{background:rgba(var(--blue-rgb),0.1);color:var(--blue);border-color:rgba(var(--blue-rgb),0.3)}
 .bchip-off{background:transparent;color:var(--ink3);border-color:var(--rule2)}
 .bchip-off:hover{color:var(--ink);border-color:var(--rule3)}
 
@@ -518,13 +480,13 @@ html,body{
    BRAND MANAGER MODAL
    ============================================================ */
 #bm-modal{
-  position:fixed;inset:0;background:rgba(26,24,20,0.5);
+  position:fixed;inset:0;background:rgba(var(--ink-rgb),0.5);
   z-index:900;display:none;align-items:center;justify-content:center;
   padding:20px;backdrop-filter:blur(4px);
 }
 #bm-modal.open{display:flex}
 #ev-modal{
-  position:fixed;inset:0;background:rgba(26,24,20,0.5);
+  position:fixed;inset:0;background:rgba(var(--ink-rgb),0.5);
   z-index:900;display:none;align-items:center;justify-content:center;
   padding:20px;backdrop-filter:blur(4px);
 }
@@ -575,7 +537,7 @@ html,body{
    POPUP TAGLIE — tooltip con tabella misure
    ============================================================ */
 #size-popup{
-  position:fixed;inset:0;background:rgba(26,24,20,0.5);
+  position:fixed;inset:0;background:rgba(var(--ink-rgb),0.5);
   z-index:950;display:none;align-items:center;justify-content:center;
   padding:20px;backdrop-filter:blur(4px);
 }
@@ -630,7 +592,7 @@ html,body{
    PDF OVERLAY
    ============================================================ */
 #pdf-overlay{
-  position:fixed;inset:0;background:rgba(247,245,242,0.92);
+  position:fixed;inset:0;background:rgba(var(--paper-rgb),0.92);
   z-index:1000;display:none;align-items:center;justify-content:center;
   backdrop-filter:blur(6px);
 }
@@ -719,7 +681,7 @@ html,body{
       <label>Alt. max (cm)</label>
       <input type="number" id="f-maxh" placeholder="es. 185" oninput="debounce()">
     </div>
-    <button class="clear-btn" onclick="clearFilters()">✕ Azzera</button>
+    <button class="clear-btn" onclick="clearFilters()"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg> Azzera</button>
   </div>
 
   <!-- Gallery -->
@@ -958,7 +920,7 @@ function renderContextBar(){
         Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="tbtn tbtn-outline" onclick="startPdfExport()">↓ Esporta Book</button>
+        <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> Esporta Book</button>
       </div>`;
     if(ffStatus) ffStatus.style.display = 'none';
   } else {
@@ -967,15 +929,15 @@ function renderContextBar(){
       <select id="f-evento" class="evento-select" onchange="onEventoChange()">
         <option value="All">Tutti gli eventi</option>
       </select>
-      <button class="tbtn tbtn-ghost" onclick="openEventManager()">✎ Gestisci eventi</button>
+      <button class="tbtn tbtn-ghost" onclick="openEventManager()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Gestisci eventi</button>
       <div class="tbtn-sep"></div>
       <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
         Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
-      <button class="tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati">📦 Archivio</button>
+      <button class="tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6M4 3h16a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Z"/></svg> Archivio</button>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" id="link-btn" style="display:none">🔗 Link candidatura</button>
-        <button class="tbtn tbtn-outline" onclick="startPdfExport()">↓ PDF</button>
+        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" id="link-btn" style="display:none"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg> Link candidatura</button>
+        <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> PDF</button>
       </div>`;
     renderEventoSelect();
     if(ffStatus) ffStatus.style.display = '';
@@ -1012,9 +974,9 @@ function renderEVList(){
         <button class="bm-del" onclick="deleteEvento('${ev.id}','${esc(ev.nome)}')" title="Elimina">×</button>
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="openEventForm('${ev.id}')">✎ Modifica</button>
+        <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="openEventForm('${ev.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Modifica</button>
         <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="toggleEventoStato('${ev.id}','${ev.stato}')">${ev.stato==='chiuso'?'Riapri':'Chiudi'}</button>
-        <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="copyApplyLink('${ev.id}')">🔗 Copia link candidatura</button>
+        <button class="tbtn tbtn-ghost" style="font-size:9px;padding:4px 8px" onclick="copyApplyLink('${ev.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg> Copia link candidatura</button>
       </div>
     </div>`).join('');
 }
@@ -1113,7 +1075,7 @@ async function copyBrandLink(brandId, brandNome) {
   const url = brandBookUrl(brandId);
   try {
     await navigator.clipboard.writeText(url);
-    showToast(`Link per "${brandNome}" copiato! ✓`);
+    showToast(`Link per "${brandNome}" copiato!`);
   } catch(e) {
     prompt(`Copia questo link per ${brandNome}:`, url);
   }
@@ -1122,7 +1084,7 @@ function showToast(msg) {
   let t = document.getElementById('_toast');
   if (!t) {
     t = document.createElement('div'); t.id = '_toast';
-    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--bg2);padding:10px 18px;border-radius:var(--r);font-size:12px;font-family:var(--sans);letter-spacing:0.04em;z-index:9999;opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.2);white-space:nowrap;';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--bg2);padding:10px 18px;border-radius:var(--r);font-size:12px;font-family:var(--sans);letter-spacing:0.04em;z-index:9999;opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;box-shadow:0 4px 16px rgba(var(--ink-rgb),0.2);white-space:nowrap;';
     document.body.appendChild(t);
   }
   t.textContent = msg;
@@ -1171,7 +1133,7 @@ function renderBMList(){
                transition:all 0.15s;white-space:nowrap"
         onmouseover="this.style.color='var(--ink)';this.style.borderColor='var(--rule3)'"
         onmouseout="this.style.color='var(--ink3)';this.style.borderColor='var(--rule2)'">
-        🔗 Link
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg> Link
       </button>
       <button class="bm-del" onclick="deleteBrand('${b.id}','${esc(b.nome)}')" title="Elimina">×</button>
     </div>`).join('');
@@ -1299,7 +1261,7 @@ function cardHTML(c){
         ? `<div class="card-brand-pills">${cBrands.slice(0,2).map(n=>`<span class="card-brand-pill">${esc(n)}</span>`).join('')}</div>`
         : ''}
       ${appMode==='database'
-        ? `<span class="status-badge" style="background:rgba(58,106,154,0.15);color:var(--blue)">🎪 ${c.totale_eventi||0} event${c.totale_eventi===1?'o':'i'}</span>`
+        ? `<span class="status-badge" style="background:rgba(var(--blue-rgb),0.15);color:var(--blue)"><svg class="icon" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/></svg> ${c.totale_eventi||0} event${c.totale_eventi===1?'o':'i'}</span>`
         : (sLbl ? `<span class="status-badge s-${c.status}">${sLbl}</span>` : '')}
       ${isMinor ? '<span class="minor-badge">Minorenne</span>' : ''}
     </div>
@@ -1379,7 +1341,7 @@ function renderBrandChips(cid){
     const on=(c.brand_ids||[]).includes(b.id);
     return`<button class="bchip ${on?'bchip-on':'bchip-off'}"
       onclick="toggleBrandAssign('${cid}','${b.id}',${on})">
-      ${on?'✓':'+'}  ${esc(b.nome)}
+      ${on?'<svg class="icon" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>':'+'}  ${esc(b.nome)}
     </button>`;
   }).join('');
 }
@@ -1425,7 +1387,7 @@ function openDrawer(id){
     <div class="dr-body">
       ${appMode==='database' ? `
       <div style="background:var(--bg3);border:1px solid var(--rule);border-radius:var(--r);padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--ink2);letter-spacing:0.03em">
-        🗂 Profilo database — dati aggregati da ${c.totale_eventi||0} candidatur${c.totale_eventi===1?'a':'e'}. Per gestire status/brand apri il profilo dalla lista dell'evento specifico.
+        <svg class="icon" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/></svg> Profilo database — dati aggregati da ${c.totale_eventi||0} candidatur${c.totale_eventi===1?'a':'e'}. Per gestire status/brand apri il profilo dalla lista dell'evento specifico.
       </div>` : `
       <div class="dr-actions">
         <select class="status-sel" onchange="updateStatus('${c.id}',this.value)">
@@ -1439,30 +1401,30 @@ function openDrawer(id){
       <div style="display:flex;gap:6px;margin-bottom:14px">
         <button
           onclick="archiveCandidate('${c.id}',${c.status==='archived'})"
-          style="flex:1;padding:8px;background:${c.status==='archived'?'rgba(154,123,79,0.1)':'transparent'};
-                 border:1px solid ${c.status==='archived'?'rgba(154,123,79,0.3)':'var(--rule2)'};
+          style="flex:1;padding:8px;background:${c.status==='archived'?'rgba(var(--gold-rgb),0.1)':'transparent'};
+                 border:1px solid ${c.status==='archived'?'rgba(var(--gold-rgb),0.3)':'var(--rule2)'};
                  color:${c.status==='archived'?'var(--gold2)':'var(--ink3)'};
                  border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
                  letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s">
-          ${c.status==='archived'?'↩ Ripristina':'📦 Archivia'}
+          ${c.status==='archived'?'<svg class="icon" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-1"/></svg> Ripristina':'<svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6M4 3h16a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Z"/></svg> Archivia'}
         </button>
       </div>`}
 
       <button
         onclick="deleteCandidate('${c.id}','${c.persona_id}','${esc(c.nome)} ${esc(c.cognome)}')"
         style="width:100%;margin-bottom:14px;padding:8px 12px;background:transparent;
-               border:1px solid rgba(160,64,64,0.3);color:var(--red);
+               border:1px solid rgba(var(--red-rgb),0.3);color:var(--red);
                border-radius:var(--r);cursor:pointer;font-size:10px;font-family:var(--sans);
                letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s"
         title="Elimina definitivamente da tutto il sistema">
-        🗑 Elimina definitivamente (tutti gli eventi)
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7h12ZM10 11v6M14 11v6"/></svg> Elimina definitivamente (tutti gli eventi)
       </button>
 
       <!-- Dati anagrafici -->
       <div class="icard">
         <div class="icard-head">
           Dati personali
-          ${isMinor?'<span style="background:rgba(176,120,48,0.15);color:var(--amber);font-size:9px;padding:2px 7px;border-radius:2px;font-weight:500;letter-spacing:0.07em">MINORENNE</span>':''}
+          ${isMinor?'<span style="background:rgba(var(--amber-rgb),0.15);color:var(--amber);font-size:9px;padding:2px 7px;border-radius:2px;font-weight:500;letter-spacing:0.07em">MINORENNE</span>':''}
         </div>
         <div class="icard-body">
           ${c.eta?`<div class="irow"><span class="lbl">Età</span><span class="val">${c.eta} anni</span></div>`:''}
@@ -1521,7 +1483,7 @@ function openDrawer(id){
                letter-spacing:0.08em;text-transform:uppercase;transition:all 0.15s"
         onmouseover="this.style.color='var(--ink)';this.style.borderColor='var(--rule3)'"
         onmouseout="this.style.color='var(--ink3)';this.style.borderColor='var(--rule2)'">
-        ↓ Esporta scheda PDF
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> Esporta scheda PDF
       </button>
 
       ${appMode!=='database' ? `<div class="dr-meta">Candidatura: ${new Date(c.created_at).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>` : ''}
@@ -1552,7 +1514,7 @@ async function loadStorico(personaId){
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
           <span style="font-size:9px;padding:2px 7px;border-radius:2px;background:var(--bg3);color:var(--ink2)">${statusLbl[s.status]||s.status}</span>
-          ${(s.brand_nomi||[]).map(bn=>`<span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(58,106,154,0.1);color:var(--blue)">${esc(bn)}</span>`).join('')}
+          ${(s.brand_nomi||[]).map(bn=>`<span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(var(--blue-rgb),0.1);color:var(--blue)">${esc(bn)}</span>`).join('')}
         </div>
       </div>`).join('');
   }catch(err){
@@ -1790,13 +1752,14 @@ async function startPdfExport(list){
       }
 
       // Status (in modalità Database mostra il numero di eventi invece dello status,
-      // che non ha senso su un profilo aggregato)
-      const sc = appMode==='database' ? [240,237,233,90,88,86] : ({
-        pending:[240,237,233,138,135,133],
-        booked:[232,244,238,61,138,98],
-        rejected:[244,234,234,160,64,64],
-        archived:[230,230,230,120,120,120],
-      }[c.status]||[240,237,233,138,135,133]);
+      // che non ha senso su un profilo aggregato). Colori qui in forma numerica
+      // perché jsPDF vuole RGB diretto, non CSS var() — allineati a theme.css.
+      const sc = appMode==='database' ? [240,239,237,87,85,79] : ({
+        pending:[240,239,237,87,85,79],
+        booked:[228,237,232,47,107,79],
+        rejected:[240,229,228,143,70,64],
+        archived:[230,230,230,87,85,79],
+      }[c.status]||[240,239,237,87,85,79]);
       const sLbl = appMode==='database'
         ? `${c.totale_eventi||0} EVENT${c.totale_eventi===1?'O':'I'}`
         : ({pending:'IN VALUTAZIONE',booked:'CONFERMATO',rejected:'NON SELEZIONATO',archived:'ARCHIVIATO'}[c.status]||'—');

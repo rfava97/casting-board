@@ -1,0 +1,100 @@
+/* ============================================================
+   CASTING BOARD — DESIGN TOKENS (unica fonte di verità)
+   ------------------------------------------------------------
+   Caricato da apply.html, gallery.html e book.html tramite:
+     <link rel="stylesheet" href="theme.css">
+   Se cambi un colore, cambialo SOLO qui: si aggiorna ovunque.
+   Non copiare mai questi valori a mano dentro un file HTML.
+   ============================================================ */
+
+:root{
+  /* ---- Superfici ---- */
+  --bg:   #f7f7f6;
+  --bg2:  #ffffff;
+  --bg3:  #f0efed;
+  --bg4:  #e4e2df;
+
+  /* ---- Bordi (in scala di grigio neutro, senza tinta) ---- */
+  --rule:  rgba(15,15,13,0.08);
+  --rule2: rgba(15,15,13,0.14);
+  --rule3: rgba(15,15,13,0.24);
+  --ink-rgb: 15,15,13;
+
+  /* ---- Testo ----
+     --ink3 è tarato per un contrasto >= 4.5:1 su sfondo bianco
+     (il valore precedente #8b8983 dava ~3.5:1: sotto soglia AA) */
+  --ink:  #121210;
+  --ink2: #47453f;
+  --ink3: #6b6965;
+
+  /* ---- Accento (oro/champagne) ---- */
+  --gold:  #83693f;
+  --gold2: #65502f;
+  --gold-rgb: 131,105,63;
+  --gold-bg:     rgba(var(--gold-rgb), 0.10);
+  --gold-border: rgba(var(--gold-rgb), 0.28);
+
+  /* ---- Colori di stato — stessa tonalità per testo e sfondo tenue,
+     mai due famiglie di colore diverse per lo stesso significato ---- */
+  --green:      #2f6b4f;
+  --green-rgb:  47,107,79;
+  --green-bg:     rgba(var(--green-rgb), 0.12);
+  --green-border: rgba(var(--green-rgb), 0.28);
+
+  --red:      #8f4640;
+  --red-rgb:  143,70,64;
+  --red-bg:     rgba(var(--red-rgb), 0.12);
+  --red-border: rgba(var(--red-rgb), 0.28);
+
+  --blue:      #35597a;
+  --blue-rgb:  53,89,122;
+  --blue-bg:     rgba(var(--blue-rgb), 0.12);
+  --blue-border: rgba(var(--blue-rgb), 0.28);
+
+  --amber:      #8f6a30;
+  --amber-rgb:  143,106,48;
+  --amber-bg:     rgba(var(--amber-rgb), 0.12);
+  --amber-border: rgba(var(--amber-rgb), 0.28);
+
+  --gray:      #57554f;
+  --gray-rgb:  87,85,79;
+  --gray-bg:     rgba(var(--gray-rgb), 0.12);
+
+  /* ---- Overlay chiaro (scrim su sfondo scuro, es. landing) ---- */
+  --paper-rgb: 247,247,246;
+
+  /* ---- Raggi ---- */
+  --r:    4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* ---- Font ---- */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'DM Sans', -apple-system, sans-serif;
+
+  /* ---- Ombre ---- */
+  --sh-sm: 0 1px 3px rgba(var(--ink-rgb), 0.07);
+  --sh-md: 0 4px 16px rgba(var(--ink-rgb), 0.09);
+  --sh-lg: 0 12px 40px rgba(var(--ink-rgb), 0.13);
+}
+
+/* ============================================================
+   COMPONENTI CONDIVISI — badge di stato e bottoni con icona.
+   Solo proprietà di COLORE qui: il posizionamento/dimensione
+   resta nei singoli file, perché cambia in base al contesto
+   (dentro una card, dentro un drawer, ecc).
+   ============================================================ */
+.s-booked{   background:var(--green-bg); color:var(--green); }
+.s-rejected{ background:var(--red-bg);   color:var(--red);   }
+.s-archived{ background:var(--gray-bg);  color:var(--gray);  }
+.s-info{     background:var(--blue-bg);  color:var(--blue);  }
+
+/* Icona SVG inline standard: 15x15, eredita il colore del testo
+   circostante (currentColor) invece di essere un emoji con resa
+   diversa su ogni sistema operativo. */
+.icon{
+  width:15px; height:15px; flex:none; vertical-align:-3px;
+  stroke:currentColor; fill:none; stroke-width:1.8;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.icon-sm{ width:13px; height:13px; }
