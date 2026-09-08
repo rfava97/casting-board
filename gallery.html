@@ -267,6 +267,7 @@ html,body{
 .s-booked{background:rgba(var(--green-rgb),0.9);color:#fff}
 .s-rejected{background:rgba(var(--red-rgb),0.85);color:#fff}
 .s-archived{background:rgba(100,100,100,0.7);color:#ddd}
+.s-info{background:rgba(var(--blue-rgb),0.88);color:#fff}
 .card.archived-card{opacity:0.45;filter:grayscale(0.4)}
 .card-brand-pills{
   position:absolute;top:7px;left:7px;display:flex;flex-direction:column;gap:3px;
@@ -1261,7 +1262,7 @@ function cardHTML(c){
         ? `<div class="card-brand-pills">${cBrands.slice(0,2).map(n=>`<span class="card-brand-pill">${esc(n)}</span>`).join('')}</div>`
         : ''}
       ${appMode==='database'
-        ? `<span class="status-badge" style="background:rgba(var(--blue-rgb),0.15);color:var(--blue)"><svg class="icon" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/></svg> ${c.totale_eventi||0} event${c.totale_eventi===1?'o':'i'}</span>`
+        ? `<span class="status-badge s-info"><svg class="icon" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/></svg> ${c.totale_eventi||0} event${c.totale_eventi===1?'o':'i'}</span>`
         : (sLbl ? `<span class="status-badge s-${c.status}">${sLbl}</span>` : '')}
       ${isMinor ? '<span class="minor-badge">Minorenne</span>' : ''}
     </div>
