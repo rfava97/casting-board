@@ -30,6 +30,7 @@
   /* ---- Accento (oro/champagne) ---- */
   --gold:  #83693f;
   --gold2: #65502f;
+  --gold-light: #b08d5f;
   --gold-rgb: 131,105,63;
   --gold-bg:     rgba(var(--gold-rgb), 0.10);
   --gold-border: rgba(var(--gold-rgb), 0.28);
