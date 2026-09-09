@@ -51,10 +51,9 @@ html,body{
   z-index:999;padding:20px;
 }
 .login-box{
-  background:var(--bg2);border:1px solid var(--rule2);
+  background:var(--bg2);border:1px solid var(--rule);
   border-radius:var(--r-lg);padding:40px 32px;
   width:100%;max-width:320px;text-align:center;
-  box-shadow:var(--sh-lg);
 }
 .login-logo{
   font-family:var(--sans);font-size:9px;letter-spacing:0.35em;
@@ -642,8 +641,8 @@ html,body{
     </div>
 
     <div class="mode-switch">
-      <button class="mode-btn active" id="mode-db-btn" onclick="setMode('database')">Database</button>
-      <button class="mode-btn" id="mode-ev-btn" onclick="setMode('eventi')">Eventi</button>
+      <button class="mode-btn" id="mode-db-btn" onclick="setMode('database')">Database</button>
+      <button class="mode-btn active" id="mode-ev-btn" onclick="setMode('eventi')">Eventi</button>
     </div>
 
     <div class="topbar-right">
@@ -901,7 +900,7 @@ function doLogin(){
 // ============================================================
 async function init(){
   await loadEventi();
-  setMode('database');
+  setMode('eventi');
 }
 
 // ============================================================
@@ -969,14 +968,14 @@ function renderContextBar(){
       <button class="tbtn tbtn-ghost" onclick="backToEventiGrid()"><svg class="icon" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Eventi</button>
       <span class="context-label" style="margin-left:4px">${ev?esc(ev.nome):''}</span>
       <div class="tbtn-sep"></div>
-      <button class="tbtn tbtn-ghost" onclick="openEventForm(curEvento)"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Modifica evento</button>
+      <button class="tbtn tbtn-ghost" onclick="openEventForm(curEvento)" title="Modifica evento"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
       <div class="tbtn-sep"></div>
       <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
         Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
-      <button class="tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6M4 3h16a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Z"/></svg> Archivio</button>
+      <button class="tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6M4 3h16a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Z"/></svg></button>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg> Link candidatura</button>
+        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" title="Copia link candidatura"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg></button>
         <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> PDF</button>
       </div>`;
     if(ffStatus) ffStatus.style.display = '';
@@ -989,6 +988,7 @@ async function refreshBrandBar(){
   const bar = document.getElementById('brand-bar');
   const showBar = appMode==='eventi' && curEvento!=='All';
   bar.style.display = showBar ? 'flex' : 'none';
+  document.getElementById('context-bar').style.borderBottom = showBar ? 'none' : '1px solid var(--rule)';
   if(showBar){
     await loadBrands(curEvento);
   } else {
