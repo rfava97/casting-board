@@ -767,6 +767,21 @@ html,body{
         Questi testi diventano automaticamente la pagina di benvenuto del modulo di candidatura per questo evento.
       </p>
       <div class="ev-field"><label>Nome evento *</label><input type="text" id="evf-nome" placeholder="Es. Fashion Show Brescia 2026"></div>
+
+      <div class="ev-field">
+        <label>Foto di copertina (facoltativa)</label>
+        <div id="ev-photo-slot"
+          style="aspect-ratio:16/9;border:1.5px dashed var(--rule2);border-radius:var(--r-md);
+                 display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                 cursor:pointer;overflow:hidden;position:relative;background:var(--bg3)"
+          onclick="document.getElementById('ev-photo-input').click()">
+          <div id="ev-photo-placeholder">
+            <svg class="icon" style="width:22px;height:22px;color:var(--ink3)" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          </div>
+        </div>
+        <input type="file" id="ev-photo-input" accept="image/*" style="display:none" onchange="setEventoPhoto(this.files[0])">
+      </div>
+
       <div class="ev-field"><label>Cliente / organizzatore</label><input type="text" id="evf-cliente" placeholder="Es. Casa delle Stelle"></div>
       <div class="ev-field"><label>Tag piccolo in alto</label><input type="text" id="evf-tag_label" placeholder="Es. Casa delle Stelle × Expose mgmt"></div>
       <div class="ev-field"><label>Sottotitolo</label><input type="text" id="evf-sottotitolo" placeholder="Es. Home is where the heart is"></div>
@@ -896,23 +911,22 @@ async function loadEventi(){
   const d = await apiGet({action:'getEventi'});
   if(!d.ok) return;
   eventi = d.eventi||[];
-  renderEventoSelect();
   renderEVList();
 }
 
-function renderEventoSelect(){
-  const sel = document.getElementById('f-evento');
-  if (!sel) return;
-  const cur = curEvento;
-  sel.innerHTML = '<option value="All">Tutti gli eventi</option>' +
-    eventi.map(ev=>`<option value="${ev.id}">${esc(ev.nome)}${ev.stato==='chiuso'?' (chiuso)':''}</option>`).join('');
-  sel.value = cur;
+async function enterEvento(eventoId){
+  curEvento = eventoId;
+  curBrand = 'All';
+  renderContextBar();
+  await refreshBrandBar();
+  loadCandidates();
 }
 
-async function onEventoChange(){
-  curEvento = document.getElementById('f-evento').value;
+function backToEventiGrid(){
+  curEvento = 'All';
   curBrand = 'All';
-  await refreshBrandBar();
+  renderContextBar();
+  refreshBrandBar();
   loadCandidates();
 }
 
@@ -941,25 +955,31 @@ function renderContextBar(){
         <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> Esporta Book</button>
       </div>`;
     if(ffStatus) ffStatus.style.display = 'none';
-  } else {
+  } else if (curEvento === 'All') {
+    // Vista griglia eventi: solo gestione, niente filtri/brand (non hanno senso qui)
     bar.innerHTML = `
-      <span class="context-label">Evento</span>
-      <select id="f-evento" class="evento-select" onchange="onEventoChange()">
-        <option value="All">Tutti gli eventi</option>
-      </select>
-      <button class="tbtn tbtn-ghost" onclick="openEventManager()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Gestisci eventi</button>
+      <button class="tbtn tbtn-ghost" onclick="openEventForm(null)"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Nuovo evento</button>
+      <div style="margin-left:auto">
+        <button class="tbtn tbtn-ghost" onclick="openEventManager()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Gestisci eventi</button>
+      </div>`;
+    if(ffStatus) ffStatus.style.display = 'none';
+  } else {
+    const ev = eventi.find(e=>e.id===curEvento);
+    bar.innerHTML = `
+      <button class="tbtn tbtn-ghost" onclick="backToEventiGrid()"><svg class="icon" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Eventi</button>
+      <span class="context-label" style="margin-left:4px">${ev?esc(ev.nome):''}</span>
+      <div class="tbtn-sep"></div>
+      <button class="tbtn tbtn-ghost" onclick="openEventForm(curEvento)"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Modifica evento</button>
       <div class="tbtn-sep"></div>
       <button class="tbtn tbtn-ghost" id="filter-btn" onclick="toggleFilters()">
         Filtri<span id="fbadge" style="display:none" class="filter-dot">0</span>
       </button>
       <button class="tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6M4 3h16a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Z"/></svg> Archivio</button>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" id="link-btn" style="display:none"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg> Link candidatura</button>
+        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg> Link candidatura</button>
         <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> PDF</button>
       </div>`;
-    renderEventoSelect();
     if(ffStatus) ffStatus.style.display = '';
-    document.getElementById('link-btn').style.display = curEvento==='All' ? 'none' : '';
   }
 }
 
@@ -987,8 +1007,13 @@ function renderEVList(){
   }
   list.innerHTML = eventi.map(ev=>`
     <div class="bm-item" style="flex-direction:column;align-items:stretch;gap:6px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span>${esc(ev.nome)}${ev.cliente?` <span style="color:var(--ink3)">— ${esc(ev.cliente)}</span>`:''}</span>
+      <div style="display:flex;align-items:center;gap:10px;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px;overflow:hidden">
+          ${ev.foto_url
+            ? `<img src="${ev.foto_url}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0">`
+            : `<div style="width:32px;height:32px;border-radius:4px;background:var(--bg3);flex-shrink:0"></div>`}
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ev.nome)}${ev.cliente?` <span style="color:var(--ink3)">— ${esc(ev.cliente)}</span>`:''}</span>
+        </div>
         <button class="bm-del" onclick="deleteEvento('${ev.id}','${esc(ev.nome)}')" title="Elimina">×</button>
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
@@ -1003,8 +1028,11 @@ function renderEVList(){
 const EV_FORM_FIELDS = ['nome','cliente','tag_label','sottotitolo','luogo','data_testo','data_evento','descrizione','nota_arrivo','cta_testo','whatsapp_link'];
 let editingEventoId = null;
 
+const EV_PHOTO_PLACEHOLDER = `<div id="ev-photo-placeholder"><svg class="icon" style="width:22px;height:22px;color:var(--ink3)" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg></div>`;
+
 function openEventForm(eventoId){
   editingEventoId = eventoId;
+  document.getElementById('ev-modal').classList.add('open');
   document.getElementById('ev-list-view').style.display = 'none';
   document.getElementById('ev-form-view').style.display = 'block';
   const ev = eventoId ? eventi.find(e=>e.id===eventoId) : null;
@@ -1013,6 +1041,19 @@ function openEventForm(eventoId){
     const el = document.getElementById('evf-'+f);
     if(el) el.value = ev ? (ev[f]||'') : '';
   });
+  eventoPhotoFile = null;
+  const slot = document.getElementById('ev-photo-slot');
+  slot.innerHTML = (ev && ev.foto_url)
+    ? `<img src="${ev.foto_url}" style="width:100%;height:100%;object-fit:cover">`
+    : EV_PHOTO_PLACEHOLDER;
+}
+
+let eventoPhotoFile = null;
+function setEventoPhoto(file){
+  if(!file) return;
+  eventoPhotoFile = file;
+  const slot = document.getElementById('ev-photo-slot');
+  slot.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover">`;
 }
 
 function closeEventForm(){
@@ -1026,13 +1067,35 @@ async function saveEventoForm(){
   EV_FORM_FIELDS.forEach(f=>{ data[f] = document.getElementById('evf-'+f).value.trim(); });
   if(!data.nome){ alert('Il nome evento è obbligatorio.'); return; }
 
-  if(editingEventoId){
-    await apiPost({action:'updateEvento', eventoId:editingEventoId, data});
+  let eventoId = editingEventoId;
+  if(eventoId){
+    await apiPost({action:'updateEvento', eventoId, data});
   } else {
-    await apiPost({action:'createEvento', data:{...data, stato:'aperto'}});
+    const r = await apiPost({action:'createEvento', data:{...data, stato:'aperto'}});
+    eventoId = r.id;
   }
+
+  if(eventoPhotoFile && eventoId){
+    const b64 = await fileToB64(eventoPhotoFile);
+    const ext = eventoPhotoFile.name.split('.').pop() || 'jpg';
+    await apiPost({
+      action:'uploadEventoFoto', eventoId,
+      fileName:`copertina-${Date.now()}.${ext}`,
+      mimeType:eventoPhotoFile.type, base64Data:b64,
+    });
+  }
+
   await loadEventi();
   closeEventForm();
+  loadCandidates();
+}
+
+function fileToB64(file){
+  return new Promise(resolve=>{
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result.split(',')[1]);
+    fr.readAsDataURL(file);
+  });
 }
 
 async function deleteEvento(id,nome){
@@ -1047,6 +1110,7 @@ async function toggleEventoStato(id,statoAttuale){
   const nuovo = statoAttuale==='chiuso' ? 'aperto' : 'chiuso';
   await apiPost({action:'updateEvento',eventoId:id,data:{stato:nuovo}});
   await loadEventi();
+  loadCandidates();
 }
 
 function copyApplyLink(id){
@@ -1205,6 +1269,11 @@ async function loadCandidates(){
     return;
   }
 
+  if(appMode==='eventi' && curEvento==='All'){
+    renderEventiGrid();
+    return;
+  }
+
   const d = await apiGet({
     action:      'getCandidates',
     evento:      curEvento,
@@ -1235,6 +1304,41 @@ function reload(){ loadCandidates(); }
 // ============================================================
 // GALLERY RENDER
 // ============================================================
+// ============================================================
+// GRIGLIA EVENTI — vista di ingresso della modalità Eventi
+// ============================================================
+function renderEventiGrid(){
+  document.getElementById('count-lbl').textContent = ` ${eventi.length} event${eventi.length===1?'o':'i'}`;
+  if(!eventi.length){
+    document.getElementById('gallery').innerHTML=
+      '<div class="state"><h3>Nessun evento ancora</h3><p>Creane uno dal pulsante "+ Nuovo evento" qui sopra.</p></div>';
+    return;
+  }
+  document.getElementById('gallery').innerHTML = eventi.map(eventCardHTML).join('');
+}
+
+function eventCardHTML(ev){
+  const isChiuso = ev.stato === 'chiuso';
+  const n = ev.totale_candidature || 0;
+  return `
+  <div class="card${isChiuso?' archived-card':''}" onclick="enterEvento('${ev.id}')">
+    <div class="card-photo">
+      ${ev.foto_url
+        ? `<img src="${ev.foto_url}" loading="lazy" alt="${esc(ev.nome)}"
+             onerror="this.parentElement.innerHTML='<div class=no-ph>Nessuna foto</div>'">`
+        : '<div class="no-ph"><svg class="icon" style="width:22px;height:22px;opacity:0.35" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 9h18M4 5h16a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg></div>'
+      }
+      <div class="card-overlay"></div>
+      <span class="status-badge s-info">${n} candidat${n===1?'o':'i'}</span>
+      ${isChiuso?'<span class="minor-badge">Chiuso</span>':''}
+    </div>
+    <div class="card-info">
+      <div class="card-name">${esc(ev.nome||'')}</div>
+      <div class="card-sub">${esc(ev.cliente||'')}</div>
+    </div>
+  </div>`;
+}
+
 function renderGallery(list){
   if(!list.length){
     document.getElementById('gallery').innerHTML=
