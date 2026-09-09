@@ -89,11 +89,11 @@ html,body{
 /* ---- TOPBAR (livello 1: brand, switch modalità, azioni globali) ---- */
 .topbar{
   background:var(--bg2);border-bottom:1px solid var(--rule);
-  padding:0 24px;height:60px;
-  display:flex;align-items:center;justify-content:space-between;gap:20px;
-  position:sticky;top:0;z-index:200;box-shadow:var(--sh-sm);
+  padding:22px 28px 18px;
+  display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+  position:sticky;top:0;z-index:200;
 }
-.topbar-left{display:flex;align-items:baseline;gap:12px;white-space:nowrap;flex-shrink:0}
+.topbar-left{display:flex;align-items:baseline;gap:14px;white-space:nowrap;flex-shrink:0}
 .topbar-brand{
   font-family:var(--serif);font-size:19px;font-weight:400;
   letter-spacing:0.01em;color:var(--ink);
@@ -102,17 +102,16 @@ html,body{
 
 /* Segmented control Database / Eventi */
 .mode-switch{
-  display:flex;align-items:center;background:var(--bg3);
-  border:1px solid var(--rule2);border-radius:999px;padding:3px;flex-shrink:0;
+  display:flex;align-items:center;gap:26px;flex-shrink:0;
 }
 .mode-btn{
   border:none;background:none;cursor:pointer;
-  min-height:32px;padding:8px 18px;border-radius:999px;
+  min-height:32px;padding:0 0 4px;border-bottom:1.5px solid transparent;
   font-family:var(--sans);font-size:11px;font-weight:500;
   letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);
   transition:all 0.18s;white-space:nowrap;
 }
-.mode-btn.active{background:var(--ink);color:#fff;box-shadow:var(--sh-sm)}
+.mode-btn.active{color:var(--ink);border-bottom-color:var(--gold)}
 .mode-btn:not(.active):hover{color:var(--ink)}
 
 .topbar-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
@@ -157,7 +156,7 @@ html,body{
 /* ---- CONTEXT BAR (livello 2: cambia in base a Database/Eventi) ---- */
 .context-bar{
   background:var(--bg2);border-bottom:1px solid var(--rule);
-  padding:10px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:14px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
 }
 .evento-select{
   background:var(--bg3);border:1px solid var(--rule2);color:var(--ink);
@@ -168,8 +167,8 @@ html,body{
 
 /* ---- BRAND BAR (solo dentro un evento specifico) ---- */
 .brand-bar{
-  background:var(--bg3);border-bottom:1px solid var(--rule);
-  padding:0 24px;display:flex;align-items:stretch;gap:0;
+  background:none;border-bottom:1px solid var(--rule);
+  padding:0 28px;display:flex;align-items:stretch;gap:0;
   overflow-x:auto;scrollbar-width:none;
 }
 .brand-bar::-webkit-scrollbar{display:none}
@@ -199,7 +198,7 @@ html,body{
 /* ---- SEARCH + FILTERS ---- */
 .searchbar{
   background:var(--bg2);border-bottom:1px solid var(--rule);
-  padding:8px 16px;display:flex;gap:8px;align-items:center;
+  padding:14px 28px;display:flex;gap:8px;align-items:center;
 }
 .search-input{
   flex:1;max-width:380px;background:var(--bg3);
@@ -211,7 +210,7 @@ html,body{
 
 #filter-panel{
   background:var(--bg2);border-bottom:1px solid var(--rule);
-  padding:10px 16px;display:none;flex-wrap:wrap;gap:10px;align-items:flex-end;
+  padding:16px 28px;display:none;flex-wrap:wrap;gap:14px;align-items:flex-end;
 }
 #filter-panel.open{display:flex}
 .ff{display:flex;flex-direction:column;gap:4px}
@@ -240,24 +239,23 @@ html,body{
    GALLERY GRID
    ============================================================ */
 #gallery{
-  padding:22px 24px;
+  padding:28px 32px;
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
-  gap:18px;
+  gap:26px;
 }
 @media(max-width:480px){
-  #gallery{grid-template-columns:repeat(2,1fr);gap:10px;padding:12px}
+  #gallery{grid-template-columns:repeat(2,1fr);gap:14px;padding:14px}
 }
 
 /* ---- CARD ---- */
 .card{
-  background:var(--bg2);border:1px solid var(--rule);
-  border-radius:var(--r-md);overflow:hidden;cursor:pointer;
-  transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;
-  box-shadow:var(--sh-sm);
+  background:none;border:none;
+  border-radius:0;overflow:visible;cursor:pointer;
+  transition:transform 0.2s;
 }
-.card:hover{transform:translateY(-3px);box-shadow:var(--sh-lg);border-color:var(--rule2)}
-.card-photo{position:relative;aspect-ratio:4/5;background:var(--bg4);overflow:hidden}
+.card:hover{transform:translateY(-2px)}
+.card-photo{position:relative;aspect-ratio:4/5;background:var(--bg4);overflow:hidden;border-radius:3px}
 .card-photo img{
   width:100%;height:100%;object-fit:cover;display:block;
   transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
@@ -300,7 +298,7 @@ html,body{
   background:rgba(var(--amber-rgb),0.85);color:#fff;
   letter-spacing:0.07em;text-transform:uppercase;
 }
-.card-info{padding:11px 13px 13px}
+.card-info{padding:10px 0 0}
 .card-name{
   font-family:var(--serif);font-size:16px;font-weight:400;letter-spacing:-0.005em;
   color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -649,7 +647,12 @@ html,body{
     </div>
 
     <div class="topbar-right">
-      <button class="tbtn tbtn-ghost" onclick="reload()" title="Aggiorna">↻</button>
+      <button class="tbtn tbtn-ghost" id="search-toggle-btn" onclick="toggleSearch()" title="Cerca">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+      <button class="tbtn tbtn-ghost" onclick="reload()" title="Aggiorna">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M3 12a9 9 0 0 0 15 6.7L21 16M21 8V3M21 8h-5M3 16v5M3 16h5"/></svg>
+      </button>
     </div>
   </div>
 
@@ -664,8 +667,8 @@ html,body{
     </div>
   </div>
 
-  <!-- Search -->
-  <div class="searchbar">
+  <!-- Search: nascosta di default, si apre cliccando l'icona lente -->
+  <div class="searchbar" id="searchbar" style="display:none">
     <input type="search" class="search-input" id="q" placeholder="Cerca nome, cognome, instagram…" oninput="debounce()">
   </div>
 
@@ -1585,6 +1588,19 @@ function closeSizePopup(){ document.getElementById('size-popup').classList.remov
 // ============================================================
 // FILTERS
 // ============================================================
+function toggleSearch(){
+  const bar = document.getElementById('searchbar');
+  const btn = document.getElementById('search-toggle-btn');
+  const isOpen = bar.style.display !== 'none';
+  if (isOpen && !document.getElementById('q').value.trim()) {
+    bar.style.display = 'none';
+    btn.className = 'tbtn tbtn-ghost';
+  } else {
+    bar.style.display = 'flex';
+    btn.className = 'tbtn tbtn-active';
+    document.getElementById('q').focus();
+  }
+}
 function toggleFilters(){
   filtersOpen=!filtersOpen;
   document.getElementById('filter-panel').classList.toggle('open',filtersOpen);
