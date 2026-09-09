@@ -28,12 +28,13 @@
   --ink3: #6b6965;
 
   /* ---- Accento (oro/champagne) ---- */
-  --gold:  #83693f;
-  --gold2: #65502f;
-  --gold-light: #b08d5f;
-  --gold-rgb: 131,105,63;
-  --gold-bg:     rgba(var(--gold-rgb), 0.10);
-  --gold-border: rgba(var(--gold-rgb), 0.28);
+  /* ---- Accento (monocromatico: nero/grigio, niente colore decorativo) ---- */
+  --gold:  #121210;
+  --gold2: #000000;
+  --gold-light: #333331;
+  --gold-rgb: 18,18,16;
+  --gold-bg:     rgba(var(--gold-rgb), 0.06);
+  --gold-border: rgba(var(--gold-rgb), 0.22);
 
   /* ---- Colori di stato — stessa tonalità per testo e sfondo tenue,
      mai due famiglie di colore diverse per lo stesso significato ---- */
