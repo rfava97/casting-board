@@ -1552,6 +1552,8 @@ function openDrawer(id){
           ${c.eta?`<div class="irow"><span class="lbl">Età</span><span class="val">${c.eta} anni</span></div>`:''}
           ${c.altezza_cm?`<div class="irow"><span class="lbl">Altezza</span><span class="val val-big">${c.altezza_cm} cm</span></div>`:''}
           ${c.instagram?`<div class="irow"><span class="lbl">Instagram</span><span class="val"><a href="https://instagram.com/${esc(ig)}" target="_blank">${esc(c.instagram)}</a></span></div>`:''}
+          ${c.telefono?`<div class="irow"><span class="lbl">Telefono</span><span class="val"><a href="tel:${esc(c.telefono)}">${esc(formatPhone(c.telefono))}</a></span></div>`:''}
+          ${c.email?`<div class="irow"><span class="lbl">Email</span><span class="val"><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></span></div>`:''}
         </div>
       </div>
 
@@ -2023,6 +2025,23 @@ async function apiGet(params){
 }
 function esc(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Formatta il telefono per la visualizzazione: riconosce un cellulare
+// italiano (con o senza prefisso internazionale 39, con o senza spazi)
+// e lo mostra come "+39 333 123 4567". Se non riconosce il formato,
+// mostra il valore originale così com'è salvato, senza inventare nulla.
+function formatPhone(raw){
+  let digits = String(raw||'').replace(/[^\d]/g,'');
+  if(!digits) return raw;
+  if(digits.length > 10 && digits.startsWith('39')){
+    const rest = digits.slice(2);
+    if(rest.length === 10 && rest.startsWith('3')) digits = rest;
+  }
+  if(digits.length === 10 && digits.startsWith('3')){
+    return `+39 ${digits.slice(0,3)} ${digits.slice(3,6)} ${digits.slice(6)}`;
+  }
+  return raw;
 }
 </script>
 </body>
