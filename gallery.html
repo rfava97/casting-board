@@ -297,6 +297,15 @@ html,body{
   background:rgba(var(--amber-rgb),0.85);color:#fff;
   letter-spacing:0.07em;text-transform:uppercase;
 }
+/* Segno di presenza check-in (angolo alto-destra della foto card) */
+.presence-check{
+  position:absolute;top:7px;right:7px;
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(var(--green-rgb),0.92);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 1px 3px rgba(0,0,0,0.25);
+}
+.presence-check svg{width:13px;height:13px;color:#fff;stroke-width:3;stroke:#fff;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .card-info{padding:10px 0 0}
 .card-name{
   font-family:var(--serif);font-size:16px;font-weight:400;letter-spacing:-0.005em;
@@ -503,6 +512,12 @@ html,body{
   padding:20px;backdrop-filter:blur(4px);
 }
 #ev-modal.open{display:flex}
+#ci-modal{
+  position:fixed;inset:0;background:rgba(var(--ink-rgb),0.5);
+  z-index:900;display:none;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(4px);
+}
+#ci-modal.open{display:flex}
 .ev-field{margin-bottom:10px}
 .ev-field label{display:block;font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
 .ev-field input,.ev-field textarea{
@@ -682,6 +697,14 @@ html,body{
         <option value="rejected">Non selezionato</option>
       </select>
     </div>
+    <div class="ff" id="ff-presenza">
+      <label>Presenza</label>
+      <select id="f-presenza" onchange="debounce()">
+        <option value="All">Tutti</option>
+        <option value="si">Presenti</option>
+        <option value="no">Assenti</option>
+      </select>
+    </div>
     <div class="ff">
       <label>Età</label>
       <select id="f-maggiorenne" onchange="debounce()">
@@ -853,6 +876,24 @@ html,body{
   </div>
 </div>
 
+<!-- CHECK-IN MODAL: link + QR per l'ingresso evento -->
+<div id="ci-modal" onclick="if(event.target===this)closeCheckinModal()">
+  <div class="bm-box" style="max-width:340px;text-align:center">
+    <h3>Check-in evento</h3>
+    <p style="font-size:11px;color:var(--ink3);margin-bottom:16px;line-height:1.6">
+      Chi arriva scansiona il QR, inserisce telefono e nome per confermare la presenza.
+    </p>
+    <div id="ci-qr-wrap" style="background:#fff;border-radius:var(--r-md);padding:16px;display:inline-block;margin-bottom:14px">
+      <img id="ci-qr-img" src="" alt="QR check-in" style="display:block;width:220px;height:220px">
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="tbtn tbtn-outline" style="flex:1;justify-content:center" onclick="copyCheckinLink()">Copia link</button>
+      <button class="tbtn tbtn-outline" style="flex:1;justify-content:center" onclick="printCheckinQR()">Stampa QR</button>
+    </div>
+    <button class="bm-close" onclick="closeCheckinModal()">Chiudi</button>
+  </div>
+</div>
+
 <!-- PDF PROGRESS -->
 <div id="pdf-overlay">
   <div class="pdf-box">
@@ -954,6 +995,8 @@ function renderContextBar(){
         <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> Esporta Book</button>
       </div>`;
     if(ffStatus) ffStatus.style.display = 'none';
+    const ffPresenza = document.getElementById('ff-presenza');
+    if(ffPresenza) ffPresenza.style.display = 'none';
   } else if (curEvento === 'All') {
     // Vista griglia eventi: solo gestione, niente filtri/brand (non hanno senso qui)
     bar.innerHTML = `
@@ -962,6 +1005,7 @@ function renderContextBar(){
         <button class="tbtn tbtn-ghost" onclick="openEventManager()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Gestisci eventi</button>
       </div>`;
     if(ffStatus) ffStatus.style.display = 'none';
+    { const ffPresenza = document.getElementById('ff-presenza'); if(ffPresenza) ffPresenza.style.display = 'none'; }
   } else {
     const ev = eventi.find(e=>e.id===curEvento);
     bar.innerHTML = `
@@ -976,9 +1020,11 @@ function renderContextBar(){
       <button class="tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6M4 3h16a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Z"/></svg></button>
       <div style="margin-left:auto;display:flex;gap:6px">
         <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" title="Copia link candidatura"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg></button>
+        <button class="tbtn tbtn-ghost" onclick="openCheckinModal(curEvento)" title="Check-in: link e QR code per l'ingresso"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3h7v7H3V3Zm11 0h7v7h-7V3ZM3 14h7v7H3v-7Zm14 0h1v1h-1v-1Zm3 0h1v4h-4v-1h3v-3Zm-4 4h1v3h-1v-3Zm-3-4h4v1h-4v-1Z"/></svg></button>
         <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> PDF</button>
       </div>`;
     if(ffStatus) ffStatus.style.display = '';
+    { const ffPresenza = document.getElementById('ff-presenza'); if(ffPresenza) ffPresenza.style.display = ''; }
   }
 }
 
@@ -1119,6 +1165,46 @@ function copyApplyLink(id){
   navigator.clipboard.writeText(url.toString()).then(()=>{
     showToast('Link copiato negli appunti');
   }).catch(()=>{ prompt('Copia questo link:', url.toString()); });
+}
+
+// ============================================================
+// CHECK-IN — link + QR per il registro presenze in ingresso
+// ============================================================
+function checkinUrl(id){
+  const url = new URL('checkin.html', location.href);
+  url.searchParams.set('evento', id);
+  return url.toString();
+}
+function openCheckinModal(id){
+  const url = checkinUrl(id);
+  const qr  = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=8&data=' + encodeURIComponent(url);
+  document.getElementById('ci-qr-img').src = qr;
+  document.getElementById('ci-modal').classList.add('open');
+}
+function closeCheckinModal(){ document.getElementById('ci-modal').classList.remove('open'); }
+function copyCheckinLink(){
+  const url = checkinUrl(curEvento);
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast('Link check-in copiato negli appunti');
+  }).catch(()=>{ prompt('Copia questo link:', url); });
+}
+function printCheckinQR(){
+  const src = document.getElementById('ci-qr-img').src;
+  const ev  = eventi.find(e=>e.id===curEvento);
+  const w   = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>QR Check-in</title><style>
+      body{font-family:sans-serif;text-align:center;padding:60px 20px}
+      h1{font-weight:300;margin-bottom:6px}
+      p{color:#777;margin-bottom:30px}
+      img{width:320px;height:320px}
+    </style></head><body>
+      <h1>${esc(ev?ev.nome:'')}</h1>
+      <p>Inquadra per confermare la tua presenza</p>
+      <img src="${src}">
+    </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(), 400);
 }
 
 
@@ -1280,6 +1366,7 @@ async function loadCandidates(){
     search:      document.getElementById('q').value.trim(),
     status:      document.getElementById('f-status').value,
     maggiorenne: document.getElementById('f-maggiorenne').value,
+    presente:    document.getElementById('f-presenza').value,
     brand:       curBrand,
     minH:        document.getElementById('f-minh').value,
     maxH:        document.getElementById('f-maxh').value,
@@ -1293,8 +1380,9 @@ async function loadCandidates(){
   }
   candidates = d.candidates||[];
   const bn = curBrand!=='All'?(' — '+(brands.find(b=>b.id===curBrand)?.nome||'')):'';
+  const presentiN = candidates.filter(c=>c.presente).length;
   document.getElementById('count-lbl').textContent=
-    ` ${d.total} candidat${d.total===1?'o':'i'}${bn}`;
+    ` ${d.total} candidat${d.total===1?'o':'i'}${bn} · ${presentiN} presente${presentiN===1?'':'i'}`;
   renderGallery(candidates);
 }
 
@@ -1385,6 +1473,7 @@ function cardHTML(c){
       ${appMode==='database'
         ? `<span class="status-badge s-info"><svg class="icon" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/></svg> ${c.totale_eventi||0} event${c.totale_eventi===1?'o':'i'}</span>`
         : (sLbl ? `<span class="status-badge s-${c.status}">${sLbl}</span>` : '')}
+      ${appMode!=='database' && c.presente ? '<span class="presence-check" title="Presente"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>' : ''}
       ${isMinor ? '<span class="minor-badge">Minorenne</span>' : ''}
     </div>
     <div class="card-info">
@@ -1398,6 +1487,42 @@ async function updateStatus(id,status){
   candidates=candidates.map(c=>c.id===id?{...c,status}:c);
   renderGallery(candidates);
   await apiPost({action:'updateStatus',candidateId:id,status});
+}
+function presenzaBoxHTML(c){
+  return `
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 10px;
+               background:${c.presente?'rgba(var(--green-rgb),0.08)':'var(--bg3)'};
+               border:1px solid ${c.presente?'rgba(var(--green-rgb),0.25)':'var(--rule)'};
+               border-radius:var(--r)">
+    <span style="font-size:11px;color:${c.presente?'rgb(var(--green-rgb))':'var(--ink3)'};letter-spacing:0.02em;flex:1">
+      ${c.presente
+        ? `<svg class="icon" style="width:12px;height:12px;vertical-align:-1px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Presente${c.check_in_at?' · '+new Date(c.check_in_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):''}`
+        : 'Non ancora arrivat*'}
+    </span>
+    <button
+      onclick="togglePresenza('${c.id}',${!c.presente})"
+      style="padding:6px 10px;background:transparent;border:1px solid var(--rule2);color:var(--ink3);
+             border-radius:var(--r);cursor:pointer;font-size:9px;font-family:var(--sans);
+             letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;transition:all 0.15s">
+      ${c.presente?'Segna assente':'Segna presente'}
+    </button>
+  </div>`;
+}
+
+async function togglePresenza(id, value){
+  const checkInAt = value ? new Date().toISOString() : null;
+  candidates = candidates.map(c=>c.id===id?{...c, presente:value, check_in_at:checkInAt}:c);
+  if(curC?.id===id){
+    curC.presente = value; curC.check_in_at = checkInAt;
+    const box = document.getElementById('dr-presenza-box');
+    if(box) box.innerHTML = presenzaBoxHTML(curC);
+  }
+  renderGallery(candidates);
+  await apiPost({action:'setPresenza', candidaturaId:id, value});
+  const presentiN = candidates.filter(c=>c.presente).length;
+  const bn = curBrand!=='All'?(' — '+(brands.find(b=>b.id===curBrand)?.nome||'')):'';
+  document.getElementById('count-lbl').textContent=
+    ` ${candidates.length} candidat${candidates.length===1?'o':'i'}${bn} · ${presentiN} presente${presentiN===1?'':'i'}`;
 }
 function toggleArchived(){
   showArchived=!showArchived;
@@ -1520,7 +1645,7 @@ function openDrawer(id){
       </div>
 
       <!-- Azioni rapide archivia / elimina -->
-      <div style="display:flex;gap:6px;margin-bottom:14px">
+      <div style="display:flex;gap:6px;margin-bottom:8px">
         <button
           onclick="archiveCandidate('${c.id}',${c.status==='archived'})"
           style="flex:1;padding:8px;background:${c.status==='archived'?'rgba(var(--gold-rgb),0.1)':'transparent'};
@@ -1530,7 +1655,10 @@ function openDrawer(id){
                  letter-spacing:0.07em;text-transform:uppercase;transition:all 0.15s">
           ${c.status==='archived'?'<svg class="icon" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-1"/></svg> Ripristina':'<svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6M4 3h16a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Z"/></svg> Archivia'}
         </button>
-      </div>`}
+      </div>
+
+      <!-- Check-in: stato presenza + override manuale -->
+      <div id="dr-presenza-box">${presenzaBoxHTML(c)}</div>`}
 
       <button
         onclick="deleteCandidate('${c.id}','${c.persona_id}','${esc(c.nome)} ${esc(c.cognome)}')"
@@ -1716,6 +1844,7 @@ function toggleFilters(){
 function updateFBadge(){
   const n=[
     document.getElementById('f-status').value!=='All',
+    document.getElementById('f-presenza').value!=='All',
     document.getElementById('f-maggiorenne').value!=='All',
     !!document.getElementById('f-minh').value,
     !!document.getElementById('f-maxh').value,
@@ -1726,12 +1855,13 @@ function updateFBadge(){
 }
 function clearFilters(){
   document.getElementById('f-status').value='All';
+  document.getElementById('f-presenza').value='All';
   document.getElementById('f-maggiorenne').value='All';
   document.getElementById('f-minh').value='';
   document.getElementById('f-maxh').value='';
   updateFBadge(); loadCandidates();
 }
-['f-status','f-maggiorenne','f-minh','f-maxh'].forEach(id=>{
+['f-status','f-presenza','f-maggiorenne','f-minh','f-maxh'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change',updateFBadge);
   document.getElementById(id)?.addEventListener('input',updateFBadge);
 });
