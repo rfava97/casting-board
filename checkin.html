@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Check-in</title>
+
+<!-- ============================================================
+     CONFIG — modifica solo questo blocco
+     (inlineato: un config.js esterno dà "CONFIG not defined" su
+     GitHub Pages)
+     ============================================================ -->
+<script>
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz7YjkcflYr9KXoYZmLVrKTIcnP9HHo9u5FBKIlrQCIP4gNJWKRlQqmL3pIPZHjt-hS/exec',
+  TOKEN: 'CastingModelsFDS',
+  AGENCY_NAME: 'Casting Board',
+};
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- theme.css deve stare nella stessa cartella di questo file su GitHub Pages -->
+<link rel="stylesheet" href="theme.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.6;
+  min-height:100vh;-webkit-font-smoothing:antialiased;
+}
+#wrap{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px 18px;
+}
+.box{width:100%;max-width:380px}
+
+.tag{
+  font-family:var(--sans);font-size:10px;letter-spacing:0.28em;
+  text-transform:uppercase;color:var(--gold);display:block;
+  text-align:center;margin-bottom:10px;
+}
+h1{
+  font-family:var(--serif);font-weight:300;font-size:30px;
+  text-align:center;color:var(--ink);margin-bottom:4px;
+}
+.sub{
+  text-align:center;color:var(--ink3);font-size:12px;
+  letter-spacing:0.02em;margin-bottom:28px;line-height:1.6;
+}
+
+/* ---- FORM ---- */
+.field{margin-bottom:14px}
+.field label{
+  display:block;font-size:10px;font-weight:500;color:var(--ink3);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;
+}
+.field input{
+  width:100%;background:var(--bg3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--ink);padding:13px 14px;
+  font-size:15px;font-family:var(--sans);letter-spacing:0.01em;
+  transition:border-color 0.2s;
+}
+.field input:focus{outline:none;border-color:var(--gold2)}
+
+.btn{
+  width:100%;padding:15px;background:var(--gold);color:#fff;
+  border:none;border-radius:var(--r);font-size:12px;font-weight:500;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;
+  font-family:var(--sans);transition:background 0.15s;margin-top:6px;
+}
+.btn:hover{background:var(--gold2)}
+.btn:disabled{opacity:0.5;cursor:default}
+.btn-outline{
+  width:100%;padding:13px;background:transparent;color:var(--ink3);
+  border:1px solid var(--rule2);border-radius:var(--r);font-size:11px;
+  font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+  cursor:pointer;font-family:var(--sans);margin-top:10px;transition:all 0.15s;
+}
+.btn-outline:hover{color:var(--ink);border-color:var(--rule3)}
+
+.err{
+  color:var(--red);font-size:12px;text-align:center;
+  margin-top:14px;line-height:1.6;display:none;
+}
+
+/* ---- STATO: caricamento ---- */
+.state{text-align:center;padding:40px 0}
+.spinner{
+  width:22px;height:22px;border:2px solid var(--rule2);
+  border-top-color:var(--gold);border-radius:50%;
+  display:inline-block;animation:spin 0.7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- CONFERMA IDENTITÀ ---- */
+.confirm-photo{
+  width:120px;height:120px;border-radius:50%;overflow:hidden;
+  margin:0 auto 18px;background:var(--bg3);border:1px solid var(--rule2);
+  display:flex;align-items:center;justify-content:center;
+}
+.confirm-photo img{width:100%;height:100%;object-fit:cover}
+.confirm-name{
+  font-family:var(--serif);font-size:24px;font-weight:300;
+  text-align:center;color:var(--ink);margin-bottom:24px;
+}
+.confirm-actions{display:flex;gap:10px}
+.confirm-actions .btn{margin-top:0}
+.btn-no{
+  flex:1;padding:15px;background:transparent;color:var(--ink3);
+  border:1px solid var(--rule2);border-radius:var(--r);font-size:12px;
+  font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+  cursor:pointer;font-family:var(--sans);transition:all 0.15s;
+}
+.btn-no:hover{color:var(--ink);border-color:var(--rule3)}
+.btn-yes{flex:1.4}
+
+/* ---- STATO: successo / già presente / errore ---- */
+.result-icon{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 20px;
+  display:flex;align-items:center;justify-content:center;
+}
+.result-icon svg{width:28px;height:28px;stroke-width:2.5}
+.result-icon.ok{background:rgba(var(--green-rgb),0.12)}
+.result-icon.ok svg{color:rgb(var(--green-rgb));stroke:rgb(var(--green-rgb));fill:none;stroke-linecap:round;stroke-linejoin:round}
+.result-icon.warn{background:var(--gold-bg)}
+.result-icon.warn svg{color:var(--gold2);stroke:var(--gold2);fill:none;stroke-linecap:round;stroke-linejoin:round}
+.result-icon.err{background:rgba(var(--red-rgb),0.1)}
+.result-icon.err svg{color:var(--red);stroke:var(--red);fill:none;stroke-linecap:round;stroke-linejoin:round}
+.result-title{
+  font-family:var(--serif);font-size:24px;font-weight:300;
+  text-align:center;color:var(--ink);margin-bottom:8px;
+}
+.result-text{
+  text-align:center;color:var(--ink3);font-size:12.5px;
+  line-height:1.7;margin-bottom:26px;
+}
+</style>
+</head>
+<body>
+
+<div id="wrap"><div class="box">
+
+  <!-- STATO: caricamento evento -->
+  <div id="s-loading" class="state">
+    <span class="spinner"></span>
+  </div>
+
+  <!-- STATO: evento non trovato / link non valido -->
+  <div id="s-noevento" style="display:none">
+    <div class="result-icon err">
+      <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </div>
+    <div class="result-title">Link non valido</div>
+    <div class="result-text">Questo link di check-in non è collegato a nessun evento. Contatta lo staff.</div>
+  </div>
+
+  <!-- STATO: form telefono/nome -->
+  <div id="s-form" style="display:none">
+    <span class="tag" id="f-tag"></span>
+    <h1>Check-in</h1>
+    <p class="sub" id="f-evento-nome"></p>
+
+    <div class="field">
+      <label>Numero di cellulare</label>
+      <input type="tel" id="f-telefono" placeholder="333 123 4567" inputmode="tel" autocomplete="tel">
+    </div>
+    <div class="field">
+      <label>Nome</label>
+      <input type="text" id="f-nome" placeholder="Il tuo nome" autocomplete="given-name">
+    </div>
+    <div class="field">
+      <label>Cognome</label>
+      <input type="text" id="f-cognome" placeholder="Il tuo cognome" autocomplete="family-name">
+    </div>
+
+    <button class="btn" id="f-submit" onclick="doLookup()">Verifica</button>
+    <div class="err" id="f-err"></div>
+  </div>
+
+  <!-- STATO: verifica in corso -->
+  <div id="s-checking" class="state" style="display:none">
+    <span class="spinner"></span>
+  </div>
+
+  <!-- STATO: conferma identità "Sei tu?" -->
+  <div id="s-confirm" style="display:none">
+    <div class="confirm-photo" id="c-photo-wrap">
+      <svg viewBox="0 0 24 24" style="width:40px;height:40px;color:var(--ink3)"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+    </div>
+    <p class="sub" style="margin-bottom:6px">Sei tu?</p>
+    <div class="confirm-name" id="c-name"></div>
+    <div class="confirm-actions">
+      <button class="btn-no" onclick="backToForm()">No</button>
+      <button class="btn btn-yes" onclick="doConfirm()">Sì, sono io</button>
+    </div>
+  </div>
+
+  <!-- STATO: presenza confermata ora -->
+  <div id="s-success" style="display:none">
+    <div class="result-icon ok">
+      <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <div class="result-title">Presenza confermata</div>
+    <div class="result-text">Benvenut* — buona sfilata!</div>
+  </div>
+
+  <!-- STATO: già segnato presente in precedenza -->
+  <div id="s-already" style="display:none">
+    <div class="result-icon warn">
+      <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <div class="result-title">Sei già registrat*</div>
+    <div class="result-text" id="already-text">Risultavi già presente.</div>
+  </div>
+
+  <!-- STATO: candidatura non trovata -->
+  <div id="s-notfound" style="display:none">
+    <div class="result-icon err">
+      <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </div>
+    <div class="result-title">Non ti troviamo</div>
+    <div class="result-text" id="notfound-text">Controlla di aver scritto bene il numero, oppure contatta lo staff all'ingresso.</div>
+    <button class="btn-outline" onclick="backToForm()">Riprova</button>
+  </div>
+
+</div></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let eventoId   = null;
+let eventoNome = '';
+let lookupResult = null;
+
+const qs = new URLSearchParams(location.search);
+eventoId = qs.get('evento');
+
+function show(id){
+  ['s-loading','s-noevento','s-form','s-checking','s-confirm','s-success','s-already','s-notfound']
+    .forEach(s => document.getElementById(s).style.display = (s===id ? '' : 'none'));
+}
+
+// ============================================================
+// INIT — carica il nome evento per l'intestazione
+// ============================================================
+async function init(){
+  if(!eventoId){ show('s-noevento'); return; }
+  try{
+    const d = await apiGet({ action:'getEventi' });
+    const ev = (d.eventi||[]).find(e => e.id === eventoId);
+    if(!ev){ show('s-noevento'); return; }
+    eventoNome = ev.nome || '';
+    document.getElementById('f-tag').textContent = CONFIG.AGENCY_NAME || '';
+    document.getElementById('f-evento-nome').textContent = eventoNome;
+    show('s-form');
+  }catch(err){
+    show('s-noevento');
+  }
+}
+init();
+
+// ============================================================
+// LOOKUP — cerca la candidatura per telefono
+// ============================================================
+async function doLookup(){
+  const telefono = document.getElementById('f-telefono').value.trim();
+  const nome     = document.getElementById('f-nome').value.trim();
+  const cognome  = document.getElementById('f-cognome').value.trim();
+  const errEl    = document.getElementById('f-err');
+  errEl.style.display = 'none';
+
+  if(!telefono || !nome || !cognome){
+    errEl.textContent = 'Compila telefono, nome e cognome.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('f-submit').disabled = true;
+  show('s-checking');
+
+  try{
+    const d = await apiGet({ action:'checkinLookup', eventoId, telefono });
+    document.getElementById('f-submit').disabled = false;
+
+    if(!d.ok || !d.found){
+      const reason = d.reason;
+      document.getElementById('notfound-text').textContent =
+        reason === 'no_candidatura'
+          ? 'Il tuo numero risulta nel sistema ma non tra le candidature per questo evento. Contatta lo staff.'
+          : 'Controlla di aver scritto bene il numero di telefono usato in candidatura, oppure contatta lo staff all\'ingresso.';
+      show('s-notfound');
+      return;
+    }
+
+    lookupResult = d;
+
+    if(d.gia_presente){
+      document.getElementById('already-text').textContent =
+        d.check_in_at
+          ? `Risultavi già presente dalle ${new Date(d.check_in_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}.`
+          : 'Risultavi già presente.';
+      show('s-already');
+      return;
+    }
+
+    document.getElementById('c-name').textContent = `${d.nome||''} ${d.cognome||''}`.trim();
+    const photoWrap = document.getElementById('c-photo-wrap');
+    photoWrap.innerHTML = d.cover_url
+      ? `<img src="${d.cover_url}" alt="">`
+      : '<svg viewBox="0 0 24 24" style="width:40px;height:40px;color:var(--ink3)"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>';
+    show('s-confirm');
+  }catch(err){
+    document.getElementById('f-submit').disabled = false;
+    document.getElementById('notfound-text').textContent =
+      'Errore di connessione. Riprova, o contatta lo staff se il problema continua.';
+    show('s-notfound');
+  }
+}
+
+function backToForm(){
+  lookupResult = null;
+  show('s-form');
+}
+
+// ============================================================
+// CONFIRM — segna la candidatura come presente
+// ============================================================
+async function doConfirm(){
+  if(!lookupResult) return;
+  show('s-checking');
+  try{
+    await apiPost({ action:'setPresenza', candidaturaId: lookupResult.candidaturaId, value: true });
+    show('s-success');
+  }catch(err){
+    document.getElementById('notfound-text').textContent =
+      'Errore di connessione durante la conferma. Riprova, o contatta lo staff.';
+    show('s-notfound');
+  }
+}
+
+// ============================================================
+// API
+// ============================================================
+async function apiGet(params){
+  const qs2 = new URLSearchParams({...params, token: CONFIG.TOKEN}).toString();
+  const res = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${qs2}`);
+  return res.json();
+}
+async function apiPost(payload){
+  const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({...payload, token: CONFIG.TOKEN}),
+    headers: {'Content-Type':'text/plain'},
+  });
+  return res.json();
+}
+</script>
+</body>
+</html>
