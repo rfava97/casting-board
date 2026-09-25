@@ -282,24 +282,50 @@ h1{
       <label>Email</label>
       <input type="email" id="d-email" placeholder="nome@esempio.it" autocomplete="email">
     </div>
-    <div class="field" id="d-ruolo-wrap">
-      <label>Ruolo coperto in giornata</label>
-      <select id="d-ruolo" onchange="onRuoloChange()">
-        <option value="" disabled selected>— Seleziona —</option>
-        <option value="Modell*">Modell*</option>
-        <option value="Volontario/a">Volontario/a</option>
-        <option value="Espositore/Espositrice">Espositore/Espositrice</option>
-        <option value="Musicista">Musicista</option>
-        <option value="Fotografo/Video maker">Fotografo / Video maker</option>
-        <option value="Truccatrice/Make-up artist">Truccatrice / Make-up artist</option>
-        <option value="Assistente backstage">Assistente backstage</option>
-        <option value="Staff organizzazione">Staff organizzazione</option>
-        <option value="Altro">Altro</option>
-      </select>
+    <div class="field">
+      <label>Ruolo/i coperti in giornata</label>
+      <div id="d-ruolo-list">
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Modell*" onchange="updateConsentBtn()">
+          <span>Modell*</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Volontario/a" onchange="updateConsentBtn()">
+          <span>Volontario/a</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Espositore/Espositrice" onchange="updateConsentBtn()">
+          <span>Espositore/Espositrice</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Musicista" onchange="updateConsentBtn()">
+          <span>Musicista</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Fotografo/Video maker" onchange="updateConsentBtn()">
+          <span>Fotografo / Video maker</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Truccatrice/Make-up artist" onchange="updateConsentBtn()">
+          <span>Truccatrice / Make-up artist</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Assistente backstage" onchange="updateConsentBtn()">
+          <span>Assistente backstage</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Staff organizzazione" onchange="updateConsentBtn()">
+          <span>Staff organizzazione</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px;border-bottom:none">
+          <input type="checkbox" id="d-ruolo-altro-check" onchange="onRuoloAltroToggle()">
+          <span>Altro</span>
+        </label>
+      </div>
     </div>
     <div class="field" id="d-ruolo-altro-wrap" style="display:none">
       <label>Specifica ruolo</label>
-      <input type="text" id="d-ruolo-altro" placeholder="Es. Accompagnatore/trice">
+      <input type="text" id="d-ruolo-altro" placeholder="Es. Accompagnatore/trice" oninput="updateConsentBtn()">
     </div>
 
     <button class="btn" onclick="goToConsent()">Continua</button>
@@ -651,8 +677,7 @@ function goToDetails(){
   document.getElementById('d-comune').value         = lookupResult.residenza_comune || '';
   document.getElementById('d-cf').value              = lookupResult.codice_fiscale || '';
   document.getElementById('d-email').value            = lookupResult.email || '';
-  document.getElementById('d-ruolo').value             = lookupResult.ruolo || '';
-  document.getElementById('d-ruolo-altro-wrap').style.display = 'none';
+  precompilaRuoli(lookupResult.ruolo || '');
   cfCalcolatoAutomaticamente = '';
   document.getElementById('d-cf-hint').textContent = '';
   document.getElementById('d-err').style.display = 'none';
@@ -660,9 +685,35 @@ function goToDetails(){
   tryCalcolaCF();
 }
 
-function onRuoloChange(){
-  const altro = document.getElementById('d-ruolo').value === 'Altro';
-  document.getElementById('d-ruolo-altro-wrap').style.display = altro ? '' : 'none';
+// ============================================================
+// RUOLI (multi-selezione) — una persona pu\u00f2 coprire pi\u00f9 ruoli lo
+// stesso giorno (es. una MUA che fa anche da modell*). Salvati come
+// stringa con pipe "|", stesso schema gi\u00e0 usato per brand_ids.
+// ============================================================
+function ruoliNoti(){
+  return Array.from(document.querySelectorAll('.ruolo-check')).map(el => el.value);
+}
+function precompilaRuoli(ruoloStr){
+  const valori = ruoloStr ? ruoloStr.split('|').filter(Boolean) : [];
+  const noti = ruoliNoti();
+  document.querySelectorAll('.ruolo-check').forEach(el => { el.checked = valori.includes(el.value); });
+  const extra = valori.filter(v => !noti.includes(v));
+  document.getElementById('d-ruolo-altro-check').checked = extra.length > 0;
+  document.getElementById('d-ruolo-altro').value = extra.join(', ');
+  document.getElementById('d-ruolo-altro-wrap').style.display = extra.length ? '' : 'none';
+}
+function getRuoliSelezionati(){
+  const scelti = Array.from(document.querySelectorAll('.ruolo-check:checked')).map(el => el.value);
+  if(document.getElementById('d-ruolo-altro-check').checked){
+    const testo = document.getElementById('d-ruolo-altro').value.trim();
+    if(testo) scelti.push(testo);
+  }
+  return scelti;
+}
+function onRuoloAltroToggle(){
+  const checked = document.getElementById('d-ruolo-altro-check').checked;
+  document.getElementById('d-ruolo-altro-wrap').style.display = checked ? '' : 'none';
+  updateConsentBtn();
 }
 
 function calcolaEta(dataNascitaStr, riferimentoStr){
@@ -679,8 +730,8 @@ function goToConsent(){
   const sesso = document.getElementById('d-sesso').value;
   const cf = document.getElementById('d-cf').value.trim();
   const errEl = document.getElementById('d-err');
-  if(!document.getElementById('d-ruolo').value){
-    errEl.textContent = 'Seleziona il ruolo coperto in giornata.';
+  if(!getRuoliSelezionati().length){
+    errEl.textContent = 'Seleziona almeno un ruolo coperto in giornata.';
     errEl.style.display = 'block';
     return;
   }
@@ -832,11 +883,7 @@ async function onMinorFileSelected(evt, tipo){
 // ============================================================
 async function doFinalConfirm(){
   if(!lookupResult) return;
-  const ruoloSel = document.getElementById('d-ruolo').value;
-  const ruoloEvento = ruoloSel === 'Altro'
-    ? (document.getElementById('d-ruolo-altro').value.trim() || 'Altro')
-    : ruoloSel;
-
+  const ruoloEvento = getRuoliSelezionati().join('|');
   const email = document.getElementById('d-email').value.trim();
 
   show('s-checking');

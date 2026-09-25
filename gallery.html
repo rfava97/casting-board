@@ -1458,9 +1458,25 @@ function eventCardHTML(ev){
   </div>`;
 }
 
+// Ruoli multipli: c.ruolo_evento \u00e8 un array (una persona pu\u00f2 coprire
+// pi\u00f9 ruoli lo stesso giorno, es. una MUA che fa anche da modell*).
+// Un array vuoto = candidatura pre-esistente senza ruolo mai impostato:
+// per compatibilit\u00e0 la trattiamo come modell* (comportamento storico).
+function isModella(c){
+  const ruoli = c.ruolo_evento || [];
+  return ruoli.length === 0 || ruoli.includes('Modell*');
+}
+function isAltraFigura(c){
+  const ruoli = c.ruolo_evento || [];
+  return ruoli.some(r => r !== 'Modell*');
+}
+function fmtRuoli(c){
+  const ruoli = c.ruolo_evento || [];
+  return ruoli.length ? ruoli.join(', ') : '—';
+}
+
 function renderGallery(list){
   const inEventView = appMode==='eventi' && curEvento!=='All';
-  const isAltraFigura = c => c.ruolo_evento && c.ruolo_evento !== 'Modell*';
 
   if(inEventView && curSubView==='altre'){
     document.getElementById('gallery').style.display = 'none';
@@ -1471,7 +1487,7 @@ function renderGallery(list){
   document.getElementById('gallery').style.display = '';
   document.getElementById('altre-figure-panel').style.display = 'none';
 
-  const gridList = inEventView ? list.filter(c => !isAltraFigura(c)) : list;
+  const gridList = inEventView ? list.filter(isModella) : list;
 
   if(!gridList.length){
     document.getElementById('gallery').innerHTML=
@@ -1509,7 +1525,7 @@ function renderAltreFigurePanel(list){
         <div style="font-weight:500;color:var(--ink)">${esc(c.nome)} ${esc(c.cognome)}</div>
         <div style="font-size:10px;color:var(--ink3)">${esc(formatPhone(c.telefono))}${c.email?' · '+esc(c.email):''}</div>
       </td>
-      <td>${esc(c.ruolo_evento)||'—'}${isMinorC?' <span class="minor-badge" style="position:static;display:inline-block;margin-left:4px">Minorenne</span>':''}</td>
+      <td>${esc(fmtRuoli(c))}${isMinorC?' <span class="minor-badge" style="position:static;display:inline-block;margin-left:4px">Minorenne</span>':''}</td>
       <td>
         ${c.presente
           ? `<span style="color:rgb(var(--green-rgb))"><svg class="icon" style="width:11px;height:11px;vertical-align:-1px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Presente${c.check_in_at?' · '+new Date(c.check_in_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):''}</span>`
@@ -1622,7 +1638,7 @@ function presenzaBoxHTML(c){
     ${c.presente ? `
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid ${c.presente?'rgba(var(--green-rgb),0.2)':'var(--rule)'};
                  display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--ink3)">
-      ${c.ruolo_evento ? `<span>Ruolo: ${esc(c.ruolo_evento)}</span>` : ''}
+      ${(c.ruolo_evento&&c.ruolo_evento.length) ? `<span>Ruolo/i: ${esc(fmtRuoli(c))}</span>` : ''}
       <span style="color:${consensiOk?'rgb(var(--green-rgb))':'var(--red)'}">
         Consensi: ${consensiOk ? 'completi' : 'incompleti'}
       </span>
@@ -2354,7 +2370,7 @@ async function addModuloPage(pdf, c, isFirstPage){
   pdf.text('Presto il consenso al trattamento dei dati: ' + (c.consenso_privacy ? 'S\u00cc' : 'NO'), M, y); y+=9;
 
   pdf.setFont('helvetica','normal');
-  pdf.text(`NOTE (figura per cui si collabora): ${c.ruolo_evento||'\u2014'}`, M, y); y+=9;
+  pdf.text(`NOTE (figura per cui si collabora): ${fmtRuoli(c)}`, M, y); y+=9;
   pdf.text(`Luogo e Data: Brescia, ${c.check_in_at ? new Date(c.check_in_at).toLocaleDateString('it-IT') : eventoDataStr}`, M, y); y+=13;
 
   pdf.text('Firma (leggibile):', M, y);
@@ -2414,10 +2430,9 @@ async function downloadModuloSingolo(candidaturaId){
 }
 
 async function downloadModuliEvento(subset){
-  const isAltraFigura = c => c.ruolo_evento && c.ruolo_evento !== 'Modell*';
   let pool = candidates.filter(c=>c.presente);
   if(subset==='altre')   pool = pool.filter(isAltraFigura);
-  if(subset==='modelle') pool = pool.filter(c=>!isAltraFigura(c));
+  if(subset==='modelle') pool = pool.filter(isModella);
   if(!pool.length){ alert('Nessun presente da esportare.'); return; }
   const overlay=document.getElementById('pdf-overlay');
   overlay.classList.add('open');

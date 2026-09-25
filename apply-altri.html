@@ -65,6 +65,14 @@ h1{
 .field input:focus, .field select:focus{outline:none;border-color:var(--gold2)}
 .field .hint{font-size:10px;color:var(--ink3);margin-top:5px}
 
+.role-row{
+  display:flex;align-items:center;gap:12px;padding:11px 4px;
+  border-bottom:1px solid var(--rule);cursor:pointer;
+}
+.role-row:last-child{border-bottom:none}
+.role-row input[type=checkbox]{width:20px;height:20px;flex-shrink:0;accent-color:var(--gold)}
+.role-row span{font-size:13px;color:var(--ink2)}
+
 .btn{
   width:100%;padding:15px;background:var(--gold);color:#fff;
   border:none;border-radius:var(--r);font-size:12px;font-weight:500;
@@ -139,18 +147,18 @@ h1{
       <input type="text" id="f-instagram" placeholder="@nomeaccount" autocomplete="off">
     </div>
     <div class="field">
-      <label>Ruolo</label>
-      <select id="f-ruolo">
-        <option value="" disabled selected>— Seleziona —</option>
-        <option value="Volontario/a">Volontario/a</option>
-        <option value="Espositore/Espositrice">Espositore/Espositrice</option>
-        <option value="Musicista">Musicista</option>
-        <option value="Fotografo/Video maker">Fotografo / Video maker</option>
-        <option value="Truccatrice/Make-up artist">Truccatrice / Make-up artist</option>
-        <option value="Assistente backstage">Assistente backstage</option>
-        <option value="Staff organizzazione">Staff organizzazione</option>
-        <option value="Altro">Altro</option>
-      </select>
+      <label>Ruolo/i <span style="text-transform:none;letter-spacing:0">(puoi selezionarne più di uno)</span></label>
+      <div id="f-ruolo-list">
+        <label class="role-row"><input type="checkbox" class="ruolo-check" value="Volontario/a"><span>Volontario/a</span></label>
+        <label class="role-row"><input type="checkbox" class="ruolo-check" value="Espositore/Espositrice"><span>Espositore/Espositrice</span></label>
+        <label class="role-row"><input type="checkbox" class="ruolo-check" value="Musicista"><span>Musicista</span></label>
+        <label class="role-row"><input type="checkbox" class="ruolo-check" value="Fotografo/Video maker"><span>Fotografo / Video maker</span></label>
+        <label class="role-row"><input type="checkbox" class="ruolo-check" value="Truccatrice/Make-up artist"><span>Truccatrice / Make-up artist</span></label>
+        <label class="role-row"><input type="checkbox" class="ruolo-check" value="Assistente backstage"><span>Assistente backstage</span></label>
+        <label class="role-row"><input type="checkbox" class="ruolo-check" value="Staff organizzazione"><span>Staff organizzazione</span></label>
+        <label class="role-row"><input type="checkbox" class="ruolo-check" value="Modell*"><span>Modell* (anche se non è il ruolo principale)</span></label>
+        <label class="role-row"><input type="checkbox" id="f-ruolo-altro-check"><span>Altro</span></label>
+      </div>
     </div>
     <div class="field" id="f-ruolo-altro-wrap" style="display:none">
       <label>Specifica ruolo</label>
@@ -206,24 +214,31 @@ async function init(){
 }
 init();
 
-document.getElementById('f-ruolo').addEventListener('change', function(){
-  document.getElementById('f-ruolo-altro-wrap').style.display = (this.value==='Altro') ? '' : 'none';
+document.getElementById('f-ruolo-altro-check').addEventListener('change', function(){
+  document.getElementById('f-ruolo-altro-wrap').style.display = this.checked ? '' : 'none';
 });
+
+function getRuoliSelezionati(){
+  const scelti = Array.from(document.querySelectorAll('.ruolo-check:checked')).map(el => el.value);
+  if(document.getElementById('f-ruolo-altro-check').checked){
+    const testo = document.getElementById('f-ruolo-altro').value.trim();
+    if(testo) scelti.push(testo);
+  }
+  return scelti;
+}
 
 async function doSubmit(){
   const nome      = document.getElementById('f-nome').value.trim();
   const cognome   = document.getElementById('f-cognome').value.trim();
   const telefono  = document.getElementById('f-telefono').value.trim();
   const instagram = document.getElementById('f-instagram').value.trim();
-  const ruoloSel  = document.getElementById('f-ruolo').value;
-  const ruolo     = ruoloSel === 'Altro'
-    ? (document.getElementById('f-ruolo-altro').value.trim() || 'Altro')
-    : ruoloSel;
+  const ruoli     = getRuoliSelezionati();
+  const ruolo     = ruoli.join('|');
   const errEl = document.getElementById('f-err');
   errEl.style.display = 'none';
 
-  if(!nome || !cognome || !telefono || !ruolo){
-    errEl.textContent = 'Compila nome, cognome, telefono e ruolo.';
+  if(!nome || !cognome || !telefono || !ruoli.length){
+    errEl.textContent = 'Compila nome, cognome, telefono e almeno un ruolo.';
     errEl.style.display = 'block';
     return;
   }
@@ -253,7 +268,7 @@ async function doSubmit(){
     }
 
     document.getElementById('success-text').textContent =
-      `Grazie ${nome}, la tua candidatura come ${ruolo.toLowerCase()} è stata registrata. Ti aspettiamo!`;
+      `Grazie ${nome}, la tua candidatura come ${ruoli.join(', ').toLowerCase()} è stata registrata. Ti aspettiamo!`;
     show('s-success');
   }catch(err){
     document.getElementById('f-submit').disabled = false;
