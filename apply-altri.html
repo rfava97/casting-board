@@ -132,6 +132,10 @@ h1{
       <input type="text" id="f-cognome" placeholder="Il tuo cognome" autocomplete="family-name">
     </div>
     <div class="field">
+      <label>Età</label>
+      <input type="number" id="f-eta" placeholder="Es. 24" inputmode="numeric" min="1" max="120">
+    </div>
+    <div class="field">
       <label>Numero di cellulare</label>
       <input type="tel" id="f-telefono" placeholder="333 123 4567" inputmode="tel" autocomplete="tel">
     </div>
@@ -223,6 +227,7 @@ document.getElementById('f-ruolo').addEventListener('change', function(){
 async function doSubmit(){
   const nome      = document.getElementById('f-nome').value.trim();
   const cognome   = document.getElementById('f-cognome').value.trim();
+  const eta       = document.getElementById('f-eta').value.trim();
   const telefono  = document.getElementById('f-telefono').value.trim();
   const email     = document.getElementById('f-email').value.trim();
   const instagram = document.getElementById('f-instagram').value.trim();
@@ -234,8 +239,8 @@ async function doSubmit(){
   const errEl = document.getElementById('f-err');
   errEl.style.display = 'none';
 
-  if(!nome || !cognome || !telefono || !ruolo){
-    errEl.textContent = 'Compila nome, cognome, telefono e ruolo.';
+  if(!nome || !cognome || !eta || !telefono || !ruolo){
+    errEl.textContent = 'Compila nome, cognome, età, telefono e ruolo.';
     errEl.style.display = 'block';
     return;
   }
@@ -249,7 +254,7 @@ async function doSubmit(){
       eventoId,
       ruolo,
       note,
-      data: { nome, cognome, telefono, email, instagram },
+      data: { nome, cognome, eta, telefono, email, instagram },
     });
     document.getElementById('f-submit').disabled = false;
 

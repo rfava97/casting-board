@@ -702,6 +702,12 @@ function decideEtaPath(){
   if(lookupResult && lookupResult.data_nascita){
     isMinor = calcolaEta(lookupResult.data_nascita, eventoDataRif) < 18;
     goToDetails();
+  } else if(lookupResult && lookupResult.eta && !isNaN(parseInt(lookupResult.eta,10))){
+    // Nessuna data di nascita precisa, ma c'\u00e8 l'et\u00e0 dichiarata in
+    // candidatura (es. da apply-altri.html): sufficiente per decidere
+    // senza dover richiedere di nuovo.
+    isMinor = parseInt(lookupResult.eta,10) < 18;
+    goToDetails();
   } else {
     show('s-eta');
   }
