@@ -245,52 +245,64 @@ h1{
     <div class="confirm-name" id="c-name"></div>
     <div class="confirm-actions">
       <button class="btn-no" onclick="backToForm()">No</button>
-      <button class="btn btn-yes" onclick="goToDetails()">Sì, sono io</button>
+      <button class="btn btn-yes" onclick="decideEtaPath()">Sì, sono io</button>
     </div>
+  </div>
+
+  <!-- STATO: maggiorenne o minorenne — decide quali campi mostrare dopo -->
+  <div id="s-eta" style="display:none">
+    <span class="tag">Check-in</span>
+    <h1 style="font-size:24px">Sei maggiorenne?</h1>
+    <p class="sub">Cambia cosa ti chiediamo nei prossimi passaggi</p>
+    <button class="btn" onclick="sceglieEta(false)" style="margin-top:8px">Sì, sono maggiorenne</button>
+    <button class="btn-outline" onclick="sceglieEta(true)">No, sono minorenne</button>
   </div>
 
   <!-- STATO: dati anagrafici + ruolo -->
   <div id="s-details" style="display:none">
     <span class="tag">Check-in</span>
     <h1 style="font-size:24px">Un attimo ancora</h1>
-    <p class="sub">Conferma questi dati per procedere</p>
+    <p class="sub" id="d-sub">Conferma questi dati per procedere</p>
 
-    <div class="field-row">
-      <div class="field">
-        <label>Data di nascita</label>
-        <input type="date" id="d-nascita" onchange="tryCalcolaCF()">
+    <div id="d-anagrafica-wrap">
+      <div class="field-row">
+        <div class="field">
+          <label>Data di nascita</label>
+          <input type="date" id="d-nascita" onchange="tryCalcolaCF()">
+        </div>
+        <div class="field">
+          <label>Sesso alla nascita</label>
+          <select id="d-sesso" onchange="tryCalcolaCF()">
+            <option value="">—</option>
+            <option value="M">M</option>
+            <option value="F">F</option>
+          </select>
+        </div>
       </div>
       <div class="field">
-        <label>Sesso alla nascita</label>
-        <select id="d-sesso" onchange="tryCalcolaCF()">
-          <option value="">—</option>
-          <option value="M">M</option>
-          <option value="F">F</option>
-        </select>
+        <label>Luogo di nascita</label>
+        <input type="text" id="d-luogo-nascita" placeholder="Inizia a scrivere il comune…" list="d-comuni-list" onchange="tryCalcolaCF()">
+        <datalist id="d-comuni-list"></datalist>
+      </div>
+      <div class="field">
+        <label>Residenza (via e n.)</label>
+        <input type="text" id="d-via" placeholder="Via Roma 12">
+      </div>
+      <div class="field">
+        <label>Località</label>
+        <input type="text" id="d-comune" placeholder="Brescia">
+      </div>
+      <div class="field">
+        <label>Codice Fiscale</label>
+        <input type="text" id="d-cf" placeholder="Calcolato automaticamente" maxlength="16" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+        <div id="d-cf-hint" style="font-size:10px;color:var(--ink3);margin-top:5px;line-height:1.5"></div>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="d-email" placeholder="nome@esempio.it" autocomplete="email">
       </div>
     </div>
-    <div class="field">
-      <label>Luogo di nascita</label>
-      <input type="text" id="d-luogo-nascita" placeholder="Inizia a scrivere il comune…" list="d-comuni-list" onchange="tryCalcolaCF()">
-      <datalist id="d-comuni-list"></datalist>
-    </div>
-    <div class="field">
-      <label>Residenza (via e n.)</label>
-      <input type="text" id="d-via" placeholder="Via Roma 12">
-    </div>
-    <div class="field">
-      <label>Località</label>
-      <input type="text" id="d-comune" placeholder="Brescia">
-    </div>
-    <div class="field">
-      <label>Codice Fiscale</label>
-      <input type="text" id="d-cf" placeholder="Calcolato automaticamente" maxlength="16" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
-      <div id="d-cf-hint" style="font-size:10px;color:var(--ink3);margin-top:5px;line-height:1.5"></div>
-    </div>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="d-email" placeholder="nome@esempio.it" autocomplete="email">
-    </div>
+
     <div class="field">
       <label>Ruolo/i coperti in giornata</label>
       <div id="d-ruolo-list">
@@ -317,6 +329,10 @@ h1{
         <label class="consent-row" style="padding:9px 4px">
           <input type="checkbox" class="ruolo-check" value="Truccatrice/Make-up artist" onchange="updateConsentBtn()">
           <span>Truccatrice / Make-up artist</span>
+        </label>
+        <label class="consent-row" style="padding:9px 4px">
+          <input type="checkbox" class="ruolo-check" value="Hairstylist" onchange="updateConsentBtn()">
+          <span>Hairstylist</span>
         </label>
         <label class="consent-row" style="padding:9px 4px">
           <input type="checkbox" class="ruolo-check" value="Assistente backstage" onchange="updateConsentBtn()">
@@ -370,7 +386,7 @@ h1{
     </div>
 
     <div class="minor-box" id="minor-box" style="display:none">
-      <p>Risulti minorenne: servono la firma di entrambi i genitori/tutori sul modulo e la copia di un documento d'identità di un genitore.</p>
+      <p>Carica una foto del modulo cartaceo già compilato e firmato da entrambi i genitori/tutori, e una foto di un documento d'identità di un genitore.</p>
       <button type="button" class="upload-btn" id="minor-upload-btn-modulo" onclick="document.getElementById('minor-file-modulo').click()" style="margin-bottom:8px">
         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         <span id="minor-upload-label-modulo">Modulo firmato da entrambi i genitori</span>
@@ -435,7 +451,7 @@ const qs = new URLSearchParams(location.search);
 eventoId = qs.get('evento');
 
 function show(id){
-  ['s-loading','s-noevento','s-form','s-checking','s-confirm','s-details','s-consent','s-success','s-already','s-notfound']
+  ['s-loading','s-noevento','s-form','s-checking','s-confirm','s-eta','s-details','s-consent','s-success','s-already','s-notfound']
     .forEach(s => document.getElementById(s).style.display = (s===id ? '' : 'none'));
 }
 
@@ -559,7 +575,7 @@ async function registraSulPosto(){
       check_in_at: null,
       data_nascita: '', luogo_nascita: '', residenza_via: '', residenza_comune: '', codice_fiscale: '', sesso: '',
     };
-    goToDetails();
+    decideEtaPath();
   }catch(err){
     btn.disabled = false;
     document.getElementById('notfound-text').textContent = 'Errore di connessione durante la registrazione. Riprova, o contatta lo staff.';
@@ -677,6 +693,28 @@ function tryCalcolaCF(){
 // STEP DATI ANAGRAFICI — precompila se gi\u00e0 in archivio, poi
 // calcola la minore et\u00e0 rispetto alla data dell'evento
 // ============================================================
+// Se la data di nascita \u00e8 gi\u00e0 a sistema (candidatura originale o un
+// check-in precedente), non ha senso richiederla di nuovo: si calcola
+// subito la minore et\u00e0 e si salta dritti ai dati. La domanda esplicita
+// resta solo per chi non ha ancora questa informazione registrata da
+// nessuna parte (es. registrazione al volo).
+function decideEtaPath(){
+  if(lookupResult && lookupResult.data_nascita){
+    isMinor = calcolaEta(lookupResult.data_nascita, eventoDataRif) < 18;
+    goToDetails();
+  } else {
+    show('s-eta');
+  }
+}
+
+// La minore et\u00e0 non si calcola pi\u00f9 da una data digitata: si chiede
+// direttamente, cos\u00ec per i minorenni si pu\u00f2 saltare tutto il blocco
+// anagrafico (arriva gi\u00e0 scritto a mano sul modulo caricato in foto).
+function sceglieEta(minorenne){
+  isMinor = minorenne;
+  goToDetails();
+}
+
 function goToDetails(){
   if(!lookupResult) return;
   document.getElementById('d-nascita').value       = lookupResult.data_nascita || '';
@@ -690,8 +728,14 @@ function goToDetails(){
   cfCalcolatoAutomaticamente = '';
   document.getElementById('d-cf-hint').textContent = '';
   document.getElementById('d-err').style.display = 'none';
+
+  document.getElementById('d-anagrafica-wrap').style.display = isMinor ? 'none' : '';
+  document.getElementById('d-sub').textContent = isMinor
+    ? 'Seleziona il ruolo — i tuoi dati arrivano dal modulo che carichi al passaggio successivo'
+    : 'Conferma questi dati per procedere';
+
   show('s-details');
-  tryCalcolaCF();
+  if(!isMinor) tryCalcolaCF();
 }
 
 // ============================================================
@@ -735,33 +779,34 @@ function calcolaEta(dataNascitaStr, riferimentoStr){
 }
 
 function goToConsent(){
-  const dataNascita = document.getElementById('d-nascita').value;
-  const sesso = document.getElementById('d-sesso').value;
-  const cf = document.getElementById('d-cf').value.trim();
   const errEl = document.getElementById('d-err');
   if(!getRuoliSelezionati().length){
     errEl.textContent = 'Seleziona almeno un ruolo coperto in giornata.';
     errEl.style.display = 'block';
     return;
   }
-  if(!dataNascita){
-    errEl.textContent = 'Inserisci la data di nascita.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if(!sesso){
-    errEl.textContent = 'Seleziona il sesso alla nascita (serve per il Codice Fiscale).';
-    errEl.style.display = 'block';
-    return;
-  }
-  if(!cf || cf.length !== 16){
-    errEl.textContent = 'Inserisci un Codice Fiscale valido (16 caratteri).';
-    errEl.style.display = 'block';
-    return;
+  if(!isMinor){
+    const dataNascita = document.getElementById('d-nascita').value;
+    const sesso = document.getElementById('d-sesso').value;
+    const cf = document.getElementById('d-cf').value.trim();
+    if(!dataNascita){
+      errEl.textContent = 'Inserisci la data di nascita.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!sesso){
+      errEl.textContent = 'Seleziona il sesso alla nascita (serve per il Codice Fiscale).';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!cf || cf.length !== 16){
+      errEl.textContent = 'Inserisci un Codice Fiscale valido (16 caratteri).';
+      errEl.style.display = 'block';
+      return;
+    }
   }
   errEl.style.display = 'none';
 
-  isMinor = calcolaEta(dataNascita, eventoDataRif) < 18;
   moduloUploaded = false;
   documentoUploaded = false;
   document.getElementById('minor-box').style.display = isMinor ? '' : 'none';

@@ -911,7 +911,7 @@ html,body{
 <!-- PDF PROGRESS -->
 <div id="pdf-overlay">
   <div class="pdf-box">
-    <p>Generazione Book PDF</p>
+    <p id="pdf-title">Generazione Book PDF</p>
     <small id="pdf-status">Preparazione…</small>
     <div class="pdf-progress"><div class="pdf-progress-bar" id="pdf-bar"></div></div>
   </div>
@@ -973,6 +973,7 @@ async function enterEvento(eventoId){
   curEvento = eventoId;
   curBrand = 'All';
   curSubView = 'modelle';
+  altreRuoloFiltro = 'All';
   renderContextBar();
   await refreshBrandBar();
   loadCandidates();
@@ -982,6 +983,7 @@ function backToEventiGrid(){
   curEvento = 'All';
   curBrand = 'All';
   curSubView = 'modelle';
+  altreRuoloFiltro = 'All';
   renderContextBar();
   refreshBrandBar();
   loadCandidates();
@@ -1508,22 +1510,56 @@ function switchSubView(view){
   renderGallery(candidates);
 }
 
+let altreRuoloFiltro = 'All';
+const RUOLI_CON_BRAND = ['Truccatrice/Make-up artist', 'Hairstylist']; // per questi si può assegnare un brand
+
+function brandChipsInlineHTML(c){
+  if(!brands.length) return '<span style="color:var(--ink3);font-size:10px">Nessun brand creato</span>';
+  return brands.map(b=>{
+    const on = (c.brand_ids||[]).includes(b.id);
+    return `<button class="bchip ${on?'bchip-on':'bchip-off'}" style="font-size:9px;padding:3px 8px;margin:0 4px 4px 0"
+      onclick="toggleBrandAssign('${c.id}','${b.id}',${on})">
+      ${on?'✓':'+'} ${esc(b.nome)}
+    </button>`;
+  }).join('');
+}
+
+function onAltreRuoloFiltroChange(){
+  altreRuoloFiltro = document.getElementById('altre-ruolo-filtro').value;
+  renderGallery(candidates);
+}
+
 function renderAltreFigurePanel(list){
   const panel = document.getElementById('altre-figure-panel');
   if(!list.length){
     panel.innerHTML = `<div class="state"><h3>Nessuna altra figura</h3><p>Chi si candida con un ruolo diverso da "Modell*" comparirà qui.</p></div>`;
     return;
   }
-  const presentiN = list.filter(c=>c.presente).length;
-  const rows = list.map(c=>{
+
+  // Ruoli distinti presenti (esclude "Modell*"), per popolare il filtro
+  const ruoliDisponibili = Array.from(new Set(
+    list.flatMap(c => (c.ruolo_evento||[]).filter(r => r!=='Modell*'))
+  )).sort((a,b)=>a.localeCompare(b));
+  if(altreRuoloFiltro!=='All' && !ruoliDisponibili.includes(altreRuoloFiltro)) altreRuoloFiltro='All';
+
+  const filtered = altreRuoloFiltro==='All'
+    ? list
+    : list.filter(c => (c.ruolo_evento||[]).includes(altreRuoloFiltro));
+
+  const presentiN = filtered.filter(c=>c.presente).length;
+  const showBrandCol = filtered.some(c => (c.ruolo_evento||[]).some(r => RUOLI_CON_BRAND.includes(r)));
+
+  const rows = filtered.map(c=>{
     const consensiOk = c.consenso_privacy && c.consenso_foto && c.consenso_accordi;
     const etaCalc = calcolaEtaGallery(c.data_nascita, (eventi.find(e=>e.id===curEvento)||{}).data_evento);
     const isMinorC = etaCalc!==null && etaCalc<18;
+    const needsBrand = (c.ruolo_evento||[]).some(r => RUOLI_CON_BRAND.includes(r));
     return `
     <tr>
       <td>
         <div style="font-weight:500;color:var(--ink)">${esc(c.nome)} ${esc(c.cognome)}</div>
         <div style="font-size:10px;color:var(--ink3)">${esc(formatPhone(c.telefono))}${c.email?' · '+esc(c.email):''}</div>
+        ${c.note_evento?`<div style="font-size:10px;color:var(--ink3);font-style:italic;margin-top:2px;max-width:220px" title="${esc(c.note_evento)}">${esc(c.note_evento.length>60?c.note_evento.slice(0,60)+'…':c.note_evento)}</div>`:''}
       </td>
       <td>${esc(fmtRuoli(c))}${isMinorC?' <span class="minor-badge" style="position:static;display:inline-block;margin-left:4px">Minorenne</span>':''}</td>
       <td>
@@ -1532,6 +1568,7 @@ function renderAltreFigurePanel(list){
           : `<span style="color:var(--ink3)">Non arrivat*</span>`}
       </td>
       <td style="color:${consensiOk?'rgb(var(--green-rgb))':'var(--red)'}">${consensiOk?'Completi':'Incompleti'}</td>
+      ${showBrandCol ? `<td style="min-width:160px">${needsBrand ? brandChipsInlineHTML(c) : '<span style="color:var(--ink3);font-size:10px">—</span>'}</td>` : ''}
       <td style="white-space:nowrap">
         ${c.firma_url?`<a href="${c.firma_url}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Firma</a>`:''}
         ${c.minore_modulo_url?` <a href="${c.minore_modulo_url}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Modulo</a>`:''}
@@ -1542,9 +1579,15 @@ function renderAltreFigurePanel(list){
   }).join('');
 
   panel.innerHTML = `
-    <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:11px;color:var(--ink3)">
-      <span>${list.length} registrat${list.length===1?'o':'i'} · ${presentiN} present${presentiN===1?'e':'i'}</span>
-      ${presentiN?`<a href="javascript:void(0)" onclick="downloadModuliEvento('altre')" style="color:var(--gold2);text-decoration:underline;margin-left:auto">Scarica tutti i moduli ⇓</a>`:''}
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink3)">
+      <span>${filtered.length} registrat${filtered.length===1?'o':'i'} · ${presentiN} present${presentiN===1?'e':'i'}</span>
+      <select id="altre-ruolo-filtro" onchange="onAltreRuoloFiltroChange()"
+        style="margin-left:auto;background:var(--bg3);border:1px solid var(--rule2);border-radius:var(--r);
+               color:var(--ink);padding:6px 10px;font-size:11px;font-family:var(--sans)">
+        <option value="All">Tutti i ruoli</option>
+        ${ruoliDisponibili.map(r=>`<option value="${esc(r)}" ${r===altreRuoloFiltro?'selected':''}>${esc(r)}</option>`).join('')}
+      </select>
+      ${presentiN?`<a href="javascript:void(0)" onclick="downloadModuliEvento('altre')" style="color:var(--gold2);text-decoration:underline">Scarica tutti i moduli ⇓</a>`:''}
     </div>
     <div style="overflow-x:auto;padding:0 16px 24px">
       <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -1554,6 +1597,7 @@ function renderAltreFigurePanel(list){
             <th style="padding:8px 10px">Ruolo</th>
             <th style="padding:8px 10px">Presenza</th>
             <th style="padding:8px 10px">Consensi</th>
+            ${showBrandCol ? '<th style="padding:8px 10px">Brand</th>' : ''}
             <th style="padding:8px 10px">Allegati</th>
           </tr>
         </thead>
@@ -2015,6 +2059,7 @@ async function startPdfExport(list){
   const overlay=document.getElementById('pdf-overlay');
   const bar=document.getElementById('pdf-bar');
   overlay.classList.add('open');
+  setPdfTitle('Generazione Book PDF');
   setPdfP(0,'Inizializzazione…');
 
   try{
@@ -2203,6 +2248,9 @@ async function startPdfExport(list){
 function setPdfP(pct,msg){
   document.getElementById('pdf-bar').style.width=pct+'%';
   document.getElementById('pdf-status').textContent=msg;
+}
+function setPdfTitle(t){
+  document.getElementById('pdf-title').textContent = t;
 }
 
 // ── Carica immagine per jsPDF ────────────────────────────────────────────────
@@ -2415,7 +2463,7 @@ async function downloadModuloSingolo(candidaturaId){
   const c = candidates.find(x=>x.id===candidaturaId);
   if(!c){ showToast('Candidatura non trovata'); return; }
   const overlay=document.getElementById('pdf-overlay');
-  overlay.classList.add('open'); setPdfP(30,'Genero il modulo\u2026');
+  overlay.classList.add('open'); setPdfTitle('Generazione modulo PDF'); setPdfP(30,'Genero il modulo\u2026');
   try{
     const {jsPDF}=window.jspdf;
     const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -2431,11 +2479,15 @@ async function downloadModuloSingolo(candidaturaId){
 
 async function downloadModuliEvento(subset){
   let pool = candidates.filter(c=>c.presente);
-  if(subset==='altre')   pool = pool.filter(isAltraFigura);
+  if(subset==='altre'){
+    pool = pool.filter(isAltraFigura);
+    if(altreRuoloFiltro!=='All') pool = pool.filter(c => (c.ruolo_evento||[]).includes(altreRuoloFiltro));
+  }
   if(subset==='modelle') pool = pool.filter(isModella);
   if(!pool.length){ alert('Nessun presente da esportare.'); return; }
   const overlay=document.getElementById('pdf-overlay');
   overlay.classList.add('open');
+  setPdfTitle('Generazione moduli PDF');
   try{
     const {jsPDF}=window.jspdf;
     const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
