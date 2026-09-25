@@ -70,7 +70,18 @@ h1{
   border-bottom:1px solid var(--rule);cursor:pointer;
 }
 .role-row:last-child{border-bottom:none}
-.role-row input[type=checkbox]{width:20px;height:20px;flex-shrink:0;accent-color:var(--gold)}
+.role-row input[type=checkbox]{
+  -webkit-appearance:none;appearance:none;
+  width:20px;height:20px;flex-shrink:0;margin:0;
+  border:1.5px solid var(--rule2);border-radius:4px;
+  background:var(--bg3);cursor:pointer;position:relative;
+  transition:background 0.15s,border-color 0.15s;
+}
+.role-row input[type=checkbox]:checked{background:var(--gold);border-color:var(--gold)}
+.role-row input[type=checkbox]:checked::after{
+  content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);
+}
 .role-row span{font-size:13px;color:var(--ink2)}
 
 .btn{
@@ -182,9 +193,9 @@ h1{
 
   <!-- STATO: già candidat* -->
   <div id="s-already" style="display:none">
-    <div class="result-icon warn"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
-    <div class="result-title">Sei già registrat*</div>
-    <div class="result-text">Risultavi già candidat* per questo evento — non serve rifare la candidatura.</div>
+    <div class="result-icon ok"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="result-title">Fatto</div>
+    <div class="result-text" id="already-text">Risultavi già candidat* per questo evento — il ruolo indicato è stato aggiunto a quelli già registrati.</div>
   </div>
 
 </div></div>
@@ -263,6 +274,8 @@ async function doSubmit(){
     }
 
     if(res.alreadyApplied){
+      document.getElementById('already-text').textContent =
+        `Risultavi già candidat* per questo evento — ${ruoli.join(', ').toLowerCase()} è stato aggiunto ai ruoli già registrati.`;
       show('s-already');
       return;
     }
