@@ -1489,23 +1489,36 @@ async function updateStatus(id,status){
   await apiPost({action:'updateStatus',candidateId:id,status});
 }
 function presenzaBoxHTML(c){
+  const consensiOk = c.consenso_privacy && c.consenso_foto && c.consenso_accordi;
   return `
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 10px;
+  <div style="margin-bottom:14px;padding:8px 10px;
                background:${c.presente?'rgba(var(--green-rgb),0.08)':'var(--bg3)'};
                border:1px solid ${c.presente?'rgba(var(--green-rgb),0.25)':'var(--rule)'};
                border-radius:var(--r)">
-    <span style="font-size:11px;color:${c.presente?'rgb(var(--green-rgb))':'var(--ink3)'};letter-spacing:0.02em;flex:1">
-      ${c.presente
-        ? `<svg class="icon" style="width:12px;height:12px;vertical-align:-1px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Presente${c.check_in_at?' · '+new Date(c.check_in_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):''}`
-        : 'Non ancora arrivat*'}
-    </span>
-    <button
-      onclick="togglePresenza('${c.id}',${!c.presente})"
-      style="padding:6px 10px;background:transparent;border:1px solid var(--rule2);color:var(--ink3);
-             border-radius:var(--r);cursor:pointer;font-size:9px;font-family:var(--sans);
-             letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;transition:all 0.15s">
-      ${c.presente?'Segna assente':'Segna presente'}
-    </button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:${c.presente?'rgb(var(--green-rgb))':'var(--ink3)'};letter-spacing:0.02em;flex:1">
+        ${c.presente
+          ? `<svg class="icon" style="width:12px;height:12px;vertical-align:-1px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Presente${c.check_in_at?' · '+new Date(c.check_in_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):''}`
+          : 'Non ancora arrivat*'}
+      </span>
+      <button
+        onclick="togglePresenza('${c.id}',${!c.presente})"
+        style="padding:6px 10px;background:transparent;border:1px solid var(--rule2);color:var(--ink3);
+               border-radius:var(--r);cursor:pointer;font-size:9px;font-family:var(--sans);
+               letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;transition:all 0.15s">
+        ${c.presente?'Segna assente':'Segna presente'}
+      </button>
+    </div>
+    ${c.presente ? `
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid ${c.presente?'rgba(var(--green-rgb),0.2)':'var(--rule)'};
+                 display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--ink3)">
+      ${c.ruolo_evento ? `<span>Ruolo: ${esc(c.ruolo_evento)}</span>` : ''}
+      <span style="color:${consensiOk?'rgb(var(--green-rgb))':'var(--red)'}">
+        Consensi: ${consensiOk ? 'completi' : 'incompleti'}
+      </span>
+      ${c.minore_modulo_url ? `<a href="${c.minore_modulo_url}" target="_blank" style="color:var(--gold2);text-decoration:underline">Vedi modulo firmato \u2197</a>` : ''}
+      ${c.minore_documento_url ? `<a href="${c.minore_documento_url}" target="_blank" style="color:var(--gold2);text-decoration:underline">Vedi documento genitore \u2197</a>` : ''}
+    </div>` : ''}
   </div>`;
 }
 
