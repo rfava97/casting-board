@@ -673,6 +673,14 @@ html,body{
   <!-- Context Bar: livello 2 — cambia in base alla modalità -->
   <div class="context-bar" id="context-bar"></div>
 
+  <!-- Sub-vista: Modell* vs Altre figure — solo dentro un evento specifico. Stessi
+       dati di Candidature/Persone, nessuna fetch separata: la scelta filtra
+       client-side ci\u00f2 che \u00e8 gi\u00e0 stato caricato da loadCandidates(). -->
+  <div class="brand-bar" id="subview-bar" style="display:none">
+    <button class="brand-tab active" id="subview-modelle" onclick="switchSubView('modelle')">Modell*</button>
+    <button class="brand-tab" id="subview-altre" onclick="switchSubView('altre')">Altre figure</button>
+  </div>
+
   <!-- Brand Tabs: solo dentro un evento specifico -->
   <div class="brand-bar" id="brand-bar" style="display:none">
     <button class="brand-tab active" data-id="All" onclick="selBrand('All')">Tutti</button>
@@ -705,6 +713,7 @@ html,body{
         <option value="no">Assenti</option>
       </select>
     </div>
+
     <div class="ff">
       <label>Età</label>
       <select id="f-maggiorenne" onchange="debounce()">
@@ -728,6 +737,11 @@ html,body{
   <div id="gallery">
     <div class="state"><span class="spinner"></span> Caricamento…</div>
   </div>
+
+  <!-- Altre figure (staff, MUA, fotograf*, musicist*...) — stessi dati di
+       Candidature/Persone, filtrati per ruolo_evento; vista a tabella
+       invece che a card, perch\u00e9 non hanno foto/misure. -->
+  <div id="altre-figure-panel" style="display:none"></div>
 
 </div><!-- /app -->
 
@@ -915,6 +929,7 @@ let curEvento   = 'All';
 let appMode     = 'database'; // 'database' (default, tutti i modelli) | 'eventi' (per evento, con status/brand)
 let showArchived = false;
 let curC        = null;
+let curSubView  = 'modelle'; // 'modelle' | 'altre' — solo dentro un evento specifico
 let filtersOpen = false;
 let debTimer;
 let lbPhotos=[], lbIdx=0;
@@ -957,6 +972,7 @@ async function loadEventi(){
 async function enterEvento(eventoId){
   curEvento = eventoId;
   curBrand = 'All';
+  curSubView = 'modelle';
   renderContextBar();
   await refreshBrandBar();
   loadCandidates();
@@ -965,6 +981,7 @@ async function enterEvento(eventoId){
 function backToEventiGrid(){
   curEvento = 'All';
   curBrand = 'All';
+  curSubView = 'modelle';
   renderContextBar();
   refreshBrandBar();
   loadCandidates();
@@ -997,6 +1014,7 @@ function renderContextBar(){
     if(ffStatus) ffStatus.style.display = 'none';
     const ffPresenza = document.getElementById('ff-presenza');
     if(ffPresenza) ffPresenza.style.display = 'none';
+    document.getElementById('subview-bar').style.display = 'none';
   } else if (curEvento === 'All') {
     // Vista griglia eventi: solo gestione, niente filtri/brand (non hanno senso qui)
     bar.innerHTML = `
@@ -1006,6 +1024,7 @@ function renderContextBar(){
       </div>`;
     if(ffStatus) ffStatus.style.display = 'none';
     { const ffPresenza = document.getElementById('ff-presenza'); if(ffPresenza) ffPresenza.style.display = 'none'; }
+    document.getElementById('subview-bar').style.display = 'none';
   } else {
     const ev = eventi.find(e=>e.id===curEvento);
     bar.innerHTML = `
@@ -1019,13 +1038,17 @@ function renderContextBar(){
       </button>
       <button class="tbtn ${showArchived?'tbtn-active':'tbtn-ghost'}" id="arch-btn" onclick="toggleArchived()" title="Mostra/nascondi archiviati"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6M4 3h16a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Z"/></svg></button>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" title="Copia link candidatura"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg></button>
+        <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" title="Copia link candidatura modell*"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg></button>
+        <button class="tbtn tbtn-ghost" onclick="copyApplyAltriLink(curEvento)" title="Copia link candidatura altre figure"><svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 0 2 2 4-4"/></svg></button>
         <button class="tbtn tbtn-ghost" onclick="openCheckinModal(curEvento)" title="Check-in: link e QR code per l'ingresso"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3h7v7H3V3Zm11 0h7v7h-7V3ZM3 14h7v7H3v-7Zm14 0h1v1h-1v-1Zm3 0h1v4h-4v-1h3v-3Zm-4 4h1v3h-1v-3Zm-3-4h4v1h-4v-1Z"/></svg></button>
-        <button class="tbtn tbtn-ghost" onclick="downloadModuliEvento()" title="Scarica i moduli di adesione dei presenti (un PDF con tutti)"><svg class="icon" viewBox="0 0 24 24"><path d="M9 12h6M9 16h6M9 8h1M14 3v5h5M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/></svg></button>
+        <button class="tbtn tbtn-ghost" onclick="downloadModuliEvento('modelle')" title="Scarica i moduli di adesione dei modell* presenti (un PDF con tutti)"><svg class="icon" viewBox="0 0 24 24"><path d="M9 12h6M9 16h6M9 8h1M14 3v5h5M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/></svg></button>
         <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> PDF</button>
       </div>`;
     if(ffStatus) ffStatus.style.display = '';
     { const ffPresenza = document.getElementById('ff-presenza'); if(ffPresenza) ffPresenza.style.display = ''; }
+    document.getElementById('subview-bar').style.display = '';
+    document.getElementById('subview-modelle').classList.toggle('active', curSubView==='modelle');
+    document.getElementById('subview-altre').classList.toggle('active', curSubView==='altre');
   }
 }
 
@@ -1165,6 +1188,13 @@ function copyApplyLink(id){
   url.searchParams.set('evento', id);
   navigator.clipboard.writeText(url.toString()).then(()=>{
     showToast('Link copiato negli appunti');
+  }).catch(()=>{ prompt('Copia questo link:', url.toString()); });
+}
+function copyApplyAltriLink(id){
+  const url = new URL('apply-altri.html', location.href);
+  url.searchParams.set('evento', id);
+  navigator.clipboard.writeText(url.toString()).then(()=>{
+    showToast('Link candidatura altre figure copiato');
   }).catch(()=>{ prompt('Copia questo link:', url.toString()); });
 }
 
@@ -1429,12 +1459,91 @@ function eventCardHTML(ev){
 }
 
 function renderGallery(list){
-  if(!list.length){
+  const inEventView = appMode==='eventi' && curEvento!=='All';
+  const isAltraFigura = c => c.ruolo_evento && c.ruolo_evento !== 'Modell*';
+
+  if(inEventView && curSubView==='altre'){
+    document.getElementById('gallery').style.display = 'none';
+    document.getElementById('altre-figure-panel').style.display = '';
+    renderAltreFigurePanel(list.filter(isAltraFigura));
+    return;
+  }
+  document.getElementById('gallery').style.display = '';
+  document.getElementById('altre-figure-panel').style.display = 'none';
+
+  const gridList = inEventView ? list.filter(c => !isAltraFigura(c)) : list;
+
+  if(!gridList.length){
     document.getElementById('gallery').innerHTML=
       '<div class="state"><h3>Nessun candidato</h3><p>Prova a modificare i filtri.</p></div>';
     return;
   }
-  document.getElementById('gallery').innerHTML = list.map(cardHTML).join('');
+  document.getElementById('gallery').innerHTML = gridList.map(cardHTML).join('');
+}
+
+// Cambia tab senza rifare la fetch: i dati sono gi\u00e0 in `candidates`,
+// si tratta solo di scegliere quale sottoinsieme mostrare e in che forma
+// (griglia a card per i modell*, tabella per le altre figure).
+function switchSubView(view){
+  curSubView = view;
+  document.getElementById('subview-modelle').classList.toggle('active', view==='modelle');
+  document.getElementById('subview-altre').classList.toggle('active', view==='altre');
+  document.getElementById('brand-bar').style.display = (view==='modelle') ? '' : 'none';
+  renderGallery(candidates);
+}
+
+function renderAltreFigurePanel(list){
+  const panel = document.getElementById('altre-figure-panel');
+  if(!list.length){
+    panel.innerHTML = `<div class="state"><h3>Nessuna altra figura</h3><p>Chi si candida con un ruolo diverso da "Modell*" comparirà qui.</p></div>`;
+    return;
+  }
+  const presentiN = list.filter(c=>c.presente).length;
+  const rows = list.map(c=>{
+    const consensiOk = c.consenso_privacy && c.consenso_foto && c.consenso_accordi;
+    const etaCalc = calcolaEtaGallery(c.data_nascita, (eventi.find(e=>e.id===curEvento)||{}).data_evento);
+    const isMinorC = etaCalc!==null && etaCalc<18;
+    return `
+    <tr>
+      <td>
+        <div style="font-weight:500;color:var(--ink)">${esc(c.nome)} ${esc(c.cognome)}</div>
+        <div style="font-size:10px;color:var(--ink3)">${esc(formatPhone(c.telefono))}${c.email?' · '+esc(c.email):''}</div>
+      </td>
+      <td>${esc(c.ruolo_evento)||'—'}${isMinorC?' <span class="minor-badge" style="position:static;display:inline-block;margin-left:4px">Minorenne</span>':''}</td>
+      <td>
+        ${c.presente
+          ? `<span style="color:rgb(var(--green-rgb))"><svg class="icon" style="width:11px;height:11px;vertical-align:-1px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Presente${c.check_in_at?' · '+new Date(c.check_in_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):''}</span>`
+          : `<span style="color:var(--ink3)">Non arrivat*</span>`}
+      </td>
+      <td style="color:${consensiOk?'rgb(var(--green-rgb))':'var(--red)'}">${consensiOk?'Completi':'Incompleti'}</td>
+      <td style="white-space:nowrap">
+        ${c.firma_url?`<a href="${c.firma_url}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Firma</a>`:''}
+        ${c.minore_modulo_url?` <a href="${c.minore_modulo_url}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Modulo</a>`:''}
+        ${c.minore_documento_url?` <a href="${c.minore_documento_url}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Documento</a>`:''}
+        ${c.presente?` <a href="javascript:void(0)" onclick="downloadModuloSingolo('${c.id}')" style="color:var(--gold2);text-decoration:underline;font-size:10px">Scarica ⇓</a>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:11px;color:var(--ink3)">
+      <span>${list.length} registrat${list.length===1?'o':'i'} · ${presentiN} present${presentiN===1?'e':'i'}</span>
+      ${presentiN?`<a href="javascript:void(0)" onclick="downloadModuliEvento('altre')" style="color:var(--gold2);text-decoration:underline;margin-left:auto">Scarica tutti i moduli ⇓</a>`:''}
+    </div>
+    <div style="overflow-x:auto;padding:0 16px 24px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="text-align:left;border-bottom:1px solid var(--rule2);color:var(--ink3);font-size:10px;text-transform:uppercase;letter-spacing:0.05em">
+            <th style="padding:8px 10px 8px 0">Nome</th>
+            <th style="padding:8px 10px">Ruolo</th>
+            <th style="padding:8px 10px">Presenza</th>
+            <th style="padding:8px 10px">Consensi</th>
+            <th style="padding:8px 10px">Allegati</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 function cardHTML(c){
@@ -2304,20 +2413,24 @@ async function downloadModuloSingolo(candidaturaId){
   }
 }
 
-async function downloadModuliEvento(){
-  const presenti = candidates.filter(c=>c.presente);
-  if(!presenti.length){ alert('Nessun presente da esportare.'); return; }
+async function downloadModuliEvento(subset){
+  const isAltraFigura = c => c.ruolo_evento && c.ruolo_evento !== 'Modell*';
+  let pool = candidates.filter(c=>c.presente);
+  if(subset==='altre')   pool = pool.filter(isAltraFigura);
+  if(subset==='modelle') pool = pool.filter(c=>!isAltraFigura(c));
+  if(!pool.length){ alert('Nessun presente da esportare.'); return; }
   const overlay=document.getElementById('pdf-overlay');
   overlay.classList.add('open');
   try{
     const {jsPDF}=window.jspdf;
     const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    for(let i=0;i<presenti.length;i++){
-      setPdfP(Math.round(i/presenti.length*95), `Modulo ${i+1}/${presenti.length}: ${presenti[i].nome} ${presenti[i].cognome}`);
-      await addModuloPage(pdf, presenti[i], i===0);
+    for(let i=0;i<pool.length;i++){
+      setPdfP(Math.round(i/pool.length*95), `Modulo ${i+1}/${pool.length}: ${pool[i].nome} ${pool[i].cognome}`);
+      await addModuloPage(pdf, pool[i], i===0);
     }
     const ev = eventi.find(e=>e.id===curEvento);
-    pdf.save(`moduli_${ev?ev.nome:'evento'}.pdf`.replace(/\s+/g,'_'));
+    const suffix = subset==='altre' ? '_altre-figure' : (subset==='modelle' ? '_modelle' : '');
+    pdf.save(`moduli_${ev?ev.nome:'evento'}${suffix}.pdf`.replace(/\s+/g,'_'));
   }catch(err){
     alert('Errore nella generazione dei moduli: '+err.message);
   }finally{

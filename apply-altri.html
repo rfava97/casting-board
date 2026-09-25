@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Candidatura</title>
+
+<!-- ============================================================
+     CONFIG — modifica solo questo blocco
+     (inlineato: un config.js esterno dà "CONFIG not defined" su
+     GitHub Pages)
+     ============================================================ -->
+<script>
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz7YjkcflYr9KXoYZmLVrKTIcnP9HHo9u5FBKIlrQCIP4gNJWKRlQqmL3pIPZHjt-hS/exec',
+  TOKEN: 'CastingModelsFDS',
+  AGENCY_NAME: 'Casting Board',
+};
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- theme.css deve stare nella stessa cartella di questo file su GitHub Pages -->
+<link rel="stylesheet" href="theme.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.6;
+  min-height:100vh;-webkit-font-smoothing:antialiased;
+}
+#wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 18px}
+.box{width:100%;max-width:380px}
+
+.tag{
+  font-family:var(--sans);font-size:10px;letter-spacing:0.28em;
+  text-transform:uppercase;color:var(--gold);display:block;
+  text-align:center;margin-bottom:10px;
+}
+h1{
+  font-family:var(--serif);font-weight:300;font-size:30px;
+  text-align:center;color:var(--ink);margin-bottom:4px;
+}
+.sub{
+  text-align:center;color:var(--ink3);font-size:12px;
+  letter-spacing:0.02em;margin-bottom:28px;line-height:1.6;
+}
+
+.field{margin-bottom:14px}
+.field label{
+  display:block;font-size:10px;font-weight:500;color:var(--ink3);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;
+}
+.field input, .field select{
+  width:100%;background:var(--bg3);border:1px solid var(--rule2);
+  border-radius:var(--r);color:var(--ink);padding:13px 14px;
+  font-size:15px;font-family:var(--sans);letter-spacing:0.01em;
+  transition:border-color 0.2s;
+}
+.field select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8a8a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:16px;
+}
+.field input:focus, .field select:focus{outline:none;border-color:var(--gold2)}
+.field .hint{font-size:10px;color:var(--ink3);margin-top:5px}
+
+.btn{
+  width:100%;padding:15px;background:var(--gold);color:#fff;
+  border:none;border-radius:var(--r);font-size:12px;font-weight:500;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;
+  font-family:var(--sans);transition:background 0.15s;margin-top:6px;
+}
+.btn:hover{background:var(--gold2)}
+.btn:disabled{opacity:0.5;cursor:default}
+
+.err{color:var(--red);font-size:12px;text-align:center;margin-top:14px;line-height:1.6;display:none}
+
+.state{text-align:center;padding:40px 0}
+.spinner{
+  width:22px;height:22px;border:2px solid var(--rule2);
+  border-top-color:var(--gold);border-radius:50%;
+  display:inline-block;animation:spin 0.7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.result-icon{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 20px;
+  display:flex;align-items:center;justify-content:center;
+}
+.result-icon svg{width:28px;height:28px;stroke-width:2.5}
+.result-icon.ok{background:rgba(var(--green-rgb),0.12)}
+.result-icon.ok svg{color:rgb(var(--green-rgb));stroke:rgb(var(--green-rgb));fill:none;stroke-linecap:round;stroke-linejoin:round}
+.result-icon.warn{background:var(--gold-bg)}
+.result-icon.warn svg{color:var(--gold2);stroke:var(--gold2);fill:none;stroke-linecap:round;stroke-linejoin:round}
+.result-icon.err{background:rgba(var(--red-rgb),0.1)}
+.result-icon.err svg{color:var(--red);stroke:var(--red);fill:none;stroke-linecap:round;stroke-linejoin:round}
+.result-title{
+  font-family:var(--serif);font-size:24px;font-weight:300;
+  text-align:center;color:var(--ink);margin-bottom:8px;
+}
+.result-text{text-align:center;color:var(--ink3);font-size:12.5px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div id="wrap"><div class="box">
+
+  <!-- STATO: caricamento evento -->
+  <div id="s-loading" class="state"><span class="spinner"></span></div>
+
+  <!-- STATO: evento non trovato -->
+  <div id="s-noevento" style="display:none">
+    <div class="result-icon err"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <div class="result-title">Link non valido</div>
+    <div class="result-text">Questo link non è collegato a nessun evento. Contatta lo staff.</div>
+  </div>
+
+  <!-- STATO: form candidatura -->
+  <div id="s-form" style="display:none">
+    <span class="tag" id="f-tag"></span>
+    <h1>Candidatura</h1>
+    <p class="sub" id="f-evento-nome"></p>
+
+    <div class="field">
+      <label>Nome</label>
+      <input type="text" id="f-nome" placeholder="Il tuo nome" autocomplete="given-name">
+    </div>
+    <div class="field">
+      <label>Cognome</label>
+      <input type="text" id="f-cognome" placeholder="Il tuo cognome" autocomplete="family-name">
+    </div>
+    <div class="field">
+      <label>Numero di cellulare</label>
+      <input type="tel" id="f-telefono" placeholder="333 123 4567" inputmode="tel" autocomplete="tel">
+    </div>
+    <div class="field">
+      <label>Instagram <span style="text-transform:none;letter-spacing:0">(opzionale)</span></label>
+      <input type="text" id="f-instagram" placeholder="@nomeaccount" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Ruolo</label>
+      <select id="f-ruolo">
+        <option value="" disabled selected>— Seleziona —</option>
+        <option value="Volontario/a">Volontario/a</option>
+        <option value="Espositore/Espositrice">Espositore/Espositrice</option>
+        <option value="Musicista">Musicista</option>
+        <option value="Fotografo/Video maker">Fotografo / Video maker</option>
+        <option value="Truccatrice/Make-up artist">Truccatrice / Make-up artist</option>
+        <option value="Assistente backstage">Assistente backstage</option>
+        <option value="Staff organizzazione">Staff organizzazione</option>
+        <option value="Altro">Altro</option>
+      </select>
+    </div>
+    <div class="field" id="f-ruolo-altro-wrap" style="display:none">
+      <label>Specifica ruolo</label>
+      <input type="text" id="f-ruolo-altro" placeholder="Es. Accompagnatore/trice">
+    </div>
+
+    <button class="btn" id="f-submit" onclick="doSubmit()">Invia candidatura</button>
+    <div class="err" id="f-err"></div>
+    <p class="hint" style="text-align:center;margin-top:14px">I dati anagrafici completi e i consensi verranno raccolti il giorno dell'evento, al check-in in ingresso.</p>
+  </div>
+
+  <!-- STATO: invio in corso -->
+  <div id="s-sending" class="state" style="display:none"><span class="spinner"></span></div>
+
+  <!-- STATO: candidatura inviata -->
+  <div id="s-success" style="display:none">
+    <div class="result-icon ok"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="result-title">Candidatura ricevuta</div>
+    <div class="result-text" id="success-text">Ti aspettiamo!</div>
+  </div>
+
+  <!-- STATO: già candidat* -->
+  <div id="s-already" style="display:none">
+    <div class="result-icon warn"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="result-title">Sei già registrat*</div>
+    <div class="result-text">Risultavi già candidat* per questo evento — non serve rifare la candidatura.</div>
+  </div>
+
+</div></div>
+
+<script>
+let eventoId = null;
+const qs = new URLSearchParams(location.search);
+eventoId = qs.get('evento');
+
+function show(id){
+  ['s-loading','s-noevento','s-form','s-sending','s-success','s-already']
+    .forEach(s => document.getElementById(s).style.display = (s===id ? '' : 'none'));
+}
+
+async function init(){
+  if(!eventoId){ show('s-noevento'); return; }
+  try{
+    const d = await apiGet({ action:'getEventi' });
+    const ev = (d.eventi||[]).find(e => e.id === eventoId);
+    if(!ev){ show('s-noevento'); return; }
+    document.getElementById('f-tag').textContent = CONFIG.AGENCY_NAME || '';
+    document.getElementById('f-evento-nome').textContent = ev.nome || '';
+    show('s-form');
+  }catch(err){
+    show('s-noevento');
+  }
+}
+init();
+
+document.getElementById('f-ruolo').addEventListener('change', function(){
+  document.getElementById('f-ruolo-altro-wrap').style.display = (this.value==='Altro') ? '' : 'none';
+});
+
+async function doSubmit(){
+  const nome      = document.getElementById('f-nome').value.trim();
+  const cognome   = document.getElementById('f-cognome').value.trim();
+  const telefono  = document.getElementById('f-telefono').value.trim();
+  const instagram = document.getElementById('f-instagram').value.trim();
+  const ruoloSel  = document.getElementById('f-ruolo').value;
+  const ruolo     = ruoloSel === 'Altro'
+    ? (document.getElementById('f-ruolo-altro').value.trim() || 'Altro')
+    : ruoloSel;
+  const errEl = document.getElementById('f-err');
+  errEl.style.display = 'none';
+
+  if(!nome || !cognome || !telefono || !ruolo){
+    errEl.textContent = 'Compila nome, cognome, telefono e ruolo.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('f-submit').disabled = true;
+  show('s-sending');
+
+  try{
+    const res = await apiPost({
+      action: 'submit',
+      eventoId,
+      ruolo,
+      data: { nome, cognome, telefono, instagram },
+    });
+    document.getElementById('f-submit').disabled = false;
+
+    if(!res.ok){
+      errEl.textContent = 'Errore nell\'invio. Riprova, o contatta lo staff.';
+      errEl.style.display = 'block';
+      show('s-form');
+      return;
+    }
+
+    if(res.alreadyApplied){
+      show('s-already');
+      return;
+    }
+
+    document.getElementById('success-text').textContent =
+      `Grazie ${nome}, la tua candidatura come ${ruolo.toLowerCase()} è stata registrata. Ti aspettiamo!`;
+    show('s-success');
+  }catch(err){
+    document.getElementById('f-submit').disabled = false;
+    errEl.textContent = 'Errore di connessione. Riprova, o contatta lo staff.';
+    errEl.style.display = 'block';
+    show('s-form');
+  }
+}
+
+async function apiGet(params){
+  const query = new URLSearchParams({...params, token: CONFIG.TOKEN}).toString();
+  const res = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${query}`);
+  return res.json();
+}
+async function apiPost(payload){
+  const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({...payload, token: CONFIG.TOKEN}),
+    headers: {'Content-Type':'text/plain'},
+  });
+  return res.json();
+}
+</script>
+</body>
+</html>

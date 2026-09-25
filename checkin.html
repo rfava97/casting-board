@@ -279,8 +279,13 @@ h1{
       <div id="d-cf-hint" style="font-size:10px;color:var(--ink3);margin-top:5px;line-height:1.5"></div>
     </div>
     <div class="field">
+      <label>Email</label>
+      <input type="email" id="d-email" placeholder="nome@esempio.it" autocomplete="email">
+    </div>
+    <div class="field" id="d-ruolo-wrap">
       <label>Ruolo coperto in giornata</label>
       <select id="d-ruolo" onchange="onRuoloChange()">
+        <option value="" disabled selected>— Seleziona —</option>
         <option value="Modell*">Modell*</option>
         <option value="Volontario/a">Volontario/a</option>
         <option value="Espositore/Espositrice">Espositore/Espositrice</option>
@@ -368,12 +373,13 @@ h1{
 
   <!-- STATO: candidatura non trovata -->
   <div id="s-notfound" style="display:none">
-    <div class="result-icon err">
-      <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    <div class="result-icon warn">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 20c0-4 3-7 7-7"/><path d="M19 8v6M16 11h6"/></svg>
     </div>
-    <div class="result-title">Non ti troviamo</div>
-    <div class="result-text" id="notfound-text">Controlla di aver scritto bene il numero, oppure contatta lo staff all'ingresso.</div>
-    <button class="btn-outline" onclick="backToForm()">Riprova</button>
+    <div class="result-title">Prima volta qui?</div>
+    <div class="result-text" id="notfound-text">Non troviamo il tuo numero per questo evento. Se è la prima volta, registrati ora — bastano pochi secondi.</div>
+    <button class="btn" id="notfound-registrami-btn" onclick="registraSulPosto()">Registrami per questo evento</button>
+    <button class="btn-outline" onclick="backToForm()">Riprova con un altro numero</button>
   </div>
 
 </div></div>
@@ -446,8 +452,8 @@ async function doLookup(){
       const reason = d.reason;
       document.getElementById('notfound-text').textContent =
         reason === 'no_candidatura'
-          ? 'Il tuo numero risulta nel sistema ma non tra le candidature per questo evento. Contatta lo staff.'
-          : 'Controlla di aver scritto bene il numero di telefono usato in candidatura, oppure contatta lo staff all\'ingresso.';
+          ? 'Il tuo numero è già a sistema ma non risulta registrat* per questo evento. Registrati ora per aggiungerti.'
+          : 'Non troviamo il tuo numero per questo evento. Se è la prima volta, registrati ora — bastano pochi secondi.';
       show('s-notfound');
       return;
     }
@@ -480,6 +486,50 @@ async function doLookup(){
 function backToForm(){
   lookupResult = null;
   show('s-form');
+}
+
+// ============================================================
+// REGISTRAZIONE AL VOLO — per figure diverse dai modell* (volontari,
+// espositori, musicisti, fotografi...) che non sono mai passate da
+// apply.html e quindi non hanno ancora una Persona/Candidatura.
+// Riusa la stessa azione 'submit' di apply.html: se il telefono
+// risulta gi\u00e0 noto (es. un modello mai candidato a QUESTO evento)
+// aggancia la Persona esistente invece di duplicarla.
+// ============================================================
+async function registraSulPosto(){
+  const telefono = document.getElementById('f-telefono').value.trim();
+  const nome     = document.getElementById('f-nome').value.trim();
+  const cognome  = document.getElementById('f-cognome').value.trim();
+  const btn = document.getElementById('notfound-registrami-btn');
+  btn.disabled = true;
+  show('s-checking');
+  try{
+    const res = await apiPost({
+      action: 'submit',
+      eventoId,
+      data: { nome, cognome, telefono },
+    });
+    btn.disabled = false;
+    if(!res.ok){
+      document.getElementById('notfound-text').textContent = 'Errore nella registrazione. Riprova, o contatta lo staff.';
+      show('s-notfound');
+      return;
+    }
+    lookupResult = {
+      candidaturaId: res.candidaturaId,
+      personaId: res.id,
+      nome, cognome,
+      cover_url: '',
+      gia_presente: false,
+      check_in_at: null,
+      data_nascita: '', luogo_nascita: '', residenza_via: '', residenza_comune: '', codice_fiscale: '', sesso: '',
+    };
+    goToDetails();
+  }catch(err){
+    btn.disabled = false;
+    document.getElementById('notfound-text').textContent = 'Errore di connessione durante la registrazione. Riprova, o contatta lo staff.';
+    show('s-notfound');
+  }
 }
 
 // ============================================================
@@ -600,6 +650,9 @@ function goToDetails(){
   document.getElementById('d-via').value            = lookupResult.residenza_via || '';
   document.getElementById('d-comune').value         = lookupResult.residenza_comune || '';
   document.getElementById('d-cf').value              = lookupResult.codice_fiscale || '';
+  document.getElementById('d-email').value            = lookupResult.email || '';
+  document.getElementById('d-ruolo').value             = lookupResult.ruolo || '';
+  document.getElementById('d-ruolo-altro-wrap').style.display = 'none';
   cfCalcolatoAutomaticamente = '';
   document.getElementById('d-cf-hint').textContent = '';
   document.getElementById('d-err').style.display = 'none';
@@ -626,6 +679,11 @@ function goToConsent(){
   const sesso = document.getElementById('d-sesso').value;
   const cf = document.getElementById('d-cf').value.trim();
   const errEl = document.getElementById('d-err');
+  if(!document.getElementById('d-ruolo').value){
+    errEl.textContent = 'Seleziona il ruolo coperto in giornata.';
+    errEl.style.display = 'block';
+    return;
+  }
   if(!dataNascita){
     errEl.textContent = 'Inserisci la data di nascita.';
     errEl.style.display = 'block';
@@ -779,6 +837,8 @@ async function doFinalConfirm(){
     ? (document.getElementById('d-ruolo-altro').value.trim() || 'Altro')
     : ruoloSel;
 
+  const email = document.getElementById('d-email').value.trim();
+
   show('s-checking');
   try{
     if(!isMinor && sigHasContent){
@@ -795,6 +855,7 @@ async function doFinalConfirm(){
       action: 'confirmCheckin',
       candidaturaId: lookupResult.candidaturaId,
       personaId: lookupResult.personaId,
+      email,
       dataNascita: document.getElementById('d-nascita').value,
       luogoNascita: document.getElementById('d-luogo-nascita').value.trim(),
       residenzaVia: document.getElementById('d-via').value.trim(),
