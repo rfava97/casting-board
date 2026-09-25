@@ -244,17 +244,26 @@ h1{
   <div id="s-details" style="display:none">
     <span class="tag">Check-in</span>
     <h1 style="font-size:24px">Un attimo ancora</h1>
-    <p class="sub">Dati richiesti per la tessera del circolo</p>
+    <p class="sub">Conferma questi dati per procedere</p>
 
     <div class="field-row">
       <div class="field">
         <label>Data di nascita</label>
-        <input type="date" id="d-nascita">
+        <input type="date" id="d-nascita" onchange="tryCalcolaCF()">
       </div>
       <div class="field">
-        <label>Luogo di nascita</label>
-        <input type="text" id="d-luogo-nascita" placeholder="Brescia">
+        <label>Sesso alla nascita</label>
+        <select id="d-sesso" onchange="tryCalcolaCF()">
+          <option value="">—</option>
+          <option value="M">M</option>
+          <option value="F">F</option>
+        </select>
       </div>
+    </div>
+    <div class="field">
+      <label>Luogo di nascita</label>
+      <input type="text" id="d-luogo-nascita" placeholder="Inizia a scrivere il comune…" list="d-comuni-list" onchange="tryCalcolaCF()">
+      <datalist id="d-comuni-list"></datalist>
     </div>
     <div class="field">
       <label>Residenza (via e n.)</label>
@@ -266,7 +275,8 @@ h1{
     </div>
     <div class="field">
       <label>Codice Fiscale</label>
-      <input type="text" id="d-cf" placeholder="RSSMRA00A01B157X" maxlength="16" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+      <input type="text" id="d-cf" placeholder="Calcolato automaticamente" maxlength="16" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+      <div id="d-cf-hint" style="font-size:10px;color:var(--ink3);margin-top:5px;line-height:1.5"></div>
     </div>
     <div class="field">
       <label>Ruolo coperto in giornata</label>
@@ -309,6 +319,15 @@ h1{
       <input type="checkbox" id="c-accordi" onchange="updateConsentBtn()">
       <span>Confermo la mia partecipazione come volontario/a e/o di rispettare gli accordi presi precedentemente con l'organizzazione.</span>
     </label>
+
+    <div id="signature-box" style="display:none">
+      <label style="display:block;font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Firma (leggibile)</label>
+      <canvas id="signature-pad" width="600" height="200" style="width:100%;height:110px;background:#fff;border:1px solid var(--rule2);border-radius:var(--r);touch-action:none;display:block"></canvas>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+        <span style="font-size:10px;color:var(--ink3)">Firma con il dito qui sopra</span>
+        <button type="button" onclick="clearSignature()" style="background:none;border:none;color:var(--ink3);font-size:10px;text-decoration:underline;cursor:pointer;font-family:var(--sans)">Cancella</button>
+      </div>
+    </div>
 
     <div class="minor-box" id="minor-box" style="display:none">
       <p>Risulti minorenne: servono la firma di entrambi i genitori/tutori sul modulo e la copia di un documento d'identità di un genitore.</p>
@@ -398,6 +417,7 @@ async function init(){
   }
 }
 init();
+caricaComuni(); // in background, non blocca il check-in
 
 // ============================================================
 // LOOKUP — cerca la candidatura per telefono
@@ -463,18 +483,128 @@ function backToForm(){
 }
 
 // ============================================================
+// COMUNI + CALCOLO AUTOMATICO CODICE FISCALE
+// Dataset pubblico (comuni italiani + codice catastale), usato solo
+// per compilare il campo "Luogo di nascita" con suggerimenti e per
+// calcolare il C.F. Il campo C.F. resta sempre modificabile a mano:
+// se il comune non si trova (es. nat* all'estero, o comune storico
+// non presente nel dataset) si inserisce manualmente.
+// ============================================================
+let comuniMap = {}; // nome comune (maiuscolo) -> codice catastale
+
+async function caricaComuni(){
+  try{
+    const res = await fetch('https://raw.githubusercontent.com/matteocontrini/comuni-json/master/comuni.json');
+    const list = await res.json();
+    const datalist = document.getElementById('d-comuni-list');
+    const frag = document.createDocumentFragment();
+    list.forEach(c => {
+      comuniMap[c.nome.toUpperCase()] = c.codiceCatastale;
+      const opt = document.createElement('option');
+      opt.value = c.nome;
+      frag.appendChild(opt);
+    });
+    datalist.appendChild(frag);
+  }catch(err){
+    // Nessun problema: il C.F. resta semplicemente da inserire a mano
+  }
+}
+
+const CF_MESI = ['A','B','C','D','E','H','L','M','P','R','S','T'];
+const CF_DISPARI = {
+  '0':1,'1':0,'2':5,'3':7,'4':9,'5':13,'6':15,'7':17,'8':19,'9':21,
+  'A':1,'B':0,'C':5,'D':7,'E':9,'F':13,'G':15,'H':17,'I':19,'J':21,
+  'K':2,'L':4,'M':18,'N':20,'O':11,'P':3,'Q':6,'R':8,'S':12,'T':14,
+  'U':16,'V':10,'W':22,'X':25,'Y':24,'Z':23,
+};
+const CF_PARI = {
+  '0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
+  'A':0,'B':1,'C':2,'D':3,'E':4,'F':5,'G':6,'H':7,'I':8,'J':9,
+  'K':10,'L':11,'M':12,'N':13,'O':14,'P':15,'Q':16,'R':17,'S':18,'T':19,
+  'U':20,'V':21,'W':22,'X':23,'Y':24,'Z':25,
+};
+
+function cfPulisci(str){
+  return (str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
+}
+function cfConsonanti(str){ return cfPulisci(str).split('').filter(c => !'AEIOU'.includes(c)); }
+function cfVocali(str){ return cfPulisci(str).split('').filter(c => 'AEIOU'.includes(c)); }
+
+function cfCodiceCognome(cognome){
+  const cons = cfConsonanti(cognome), voc = cfVocali(cognome);
+  return (cons.join('') + voc.join('') + 'XXX').substring(0,3);
+}
+function cfCodiceNome(nome){
+  const cons = cfConsonanti(nome);
+  let code;
+  if(cons.length >= 4) code = cons[0] + cons[2] + cons[3];
+  else { const voc = cfVocali(nome); code = (cons.join('') + voc.join('') + 'XXX').substring(0,3); }
+  return code;
+}
+
+function calcolaCodiceFiscale({cognome, nome, dataNascita, sesso, codiceCatastale}){
+  const [anno, mese, giorno] = dataNascita.split('-').map(Number);
+  if(!anno || !mese || !giorno || !codiceCatastale) return null;
+  const cCognome = cfCodiceCognome(cognome);
+  const cNome    = cfCodiceNome(nome);
+  const cAnno    = String(anno).slice(-2);
+  const cMese    = CF_MESI[mese-1];
+  let g = giorno; if(sesso === 'F') g += 40;
+  const cGiorno  = String(g).padStart(2,'0');
+  const primi15  = cCognome + cNome + cAnno + cMese + cGiorno + codiceCatastale;
+  let somma = 0;
+  for(let i=0;i<15;i++){ somma += (i % 2 === 0) ? CF_DISPARI[primi15[i]] : CF_PARI[primi15[i]]; }
+  const controllo = String.fromCharCode(65 + (somma % 26));
+  return primi15 + controllo;
+}
+
+// Ricalcola il C.F. quando cambiano i dati necessari. Non sovrascrive
+// se l'utente ha gi\u00e0 scritto qualcosa di suo pugno nel campo \u2014 solo se
+// il campo \u00e8 vuoto o contiene un valore calcolato in precedenza da noi.
+let cfCalcolatoAutomaticamente = '';
+function tryCalcolaCF(){
+  const cfInput = document.getElementById('d-cf');
+  const hint = document.getElementById('d-cf-hint');
+  const dataNascita = document.getElementById('d-nascita').value;
+  const sesso = document.getElementById('d-sesso').value;
+  const luogo = document.getElementById('d-luogo-nascita').value.trim();
+  const codiceCatastale = comuniMap[luogo.toUpperCase()];
+
+  if(!dataNascita || !sesso || !luogo){ hint.textContent=''; return; }
+  if(!codiceCatastale){
+    hint.textContent = 'Comune non riconosciuto: inserisci il Codice Fiscale manualmente.';
+    return;
+  }
+  if(!lookupResult) return;
+  const cf = calcolaCodiceFiscale({
+    cognome: lookupResult.cognome, nome: lookupResult.nome,
+    dataNascita, sesso, codiceCatastale,
+  });
+  if(!cf) return;
+  if(!cfInput.value || cfInput.value === cfCalcolatoAutomaticamente){
+    cfInput.value = cf;
+    cfCalcolatoAutomaticamente = cf;
+    hint.textContent = 'Calcolato automaticamente \u2014 modificabile se non corrisponde ai tuoi documenti.';
+  }
+}
+
+// ============================================================
 // STEP DATI ANAGRAFICI — precompila se gi\u00e0 in archivio, poi
 // calcola la minore et\u00e0 rispetto alla data dell'evento
 // ============================================================
 function goToDetails(){
   if(!lookupResult) return;
   document.getElementById('d-nascita').value       = lookupResult.data_nascita || '';
+  document.getElementById('d-sesso').value          = lookupResult.sesso || '';
   document.getElementById('d-luogo-nascita').value = lookupResult.luogo_nascita || '';
   document.getElementById('d-via').value            = lookupResult.residenza_via || '';
   document.getElementById('d-comune').value         = lookupResult.residenza_comune || '';
   document.getElementById('d-cf').value              = lookupResult.codice_fiscale || '';
+  cfCalcolatoAutomaticamente = '';
+  document.getElementById('d-cf-hint').textContent = '';
   document.getElementById('d-err').style.display = 'none';
   show('s-details');
+  tryCalcolaCF();
 }
 
 function onRuoloChange(){
@@ -493,10 +623,16 @@ function calcolaEta(dataNascitaStr, riferimentoStr){
 
 function goToConsent(){
   const dataNascita = document.getElementById('d-nascita').value;
+  const sesso = document.getElementById('d-sesso').value;
   const cf = document.getElementById('d-cf').value.trim();
   const errEl = document.getElementById('d-err');
   if(!dataNascita){
     errEl.textContent = 'Inserisci la data di nascita.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(!sesso){
+    errEl.textContent = 'Seleziona il sesso alla nascita (serve per il Codice Fiscale).';
     errEl.style.display = 'block';
     return;
   }
@@ -511,15 +647,77 @@ function goToConsent(){
   moduloUploaded = false;
   documentoUploaded = false;
   document.getElementById('minor-box').style.display = isMinor ? '' : 'none';
+  document.getElementById('signature-box').style.display = isMinor ? 'none' : '';
   ['modulo','documento'].forEach(tipo => {
     document.getElementById('minor-upload-btn-'+tipo).classList.remove('done');
     document.getElementById('minor-file-'+tipo).value = '';
   });
   document.getElementById('minor-upload-label-modulo').textContent    = 'Modulo firmato da entrambi i genitori';
   document.getElementById('minor-upload-label-documento').textContent = "Documento d'identità di un genitore";
+  if(!isMinor) initSignaturePad();
   ['c-privacy','c-foto','c-accordi'].forEach(id => document.getElementById(id).checked = false);
   updateConsentBtn();
   show('s-consent');
+}
+
+// ============================================================
+// PAD FIRMA (maggiorenni) — canvas disegnabile con dito/mouse
+// ============================================================
+let sigCtx = null;
+let sigDrawing = false;
+let sigHasContent = false;
+let sigListenersAttached = false;
+
+function initSignaturePad(){
+  const canvas = document.getElementById('signature-pad');
+  sigCtx = canvas.getContext('2d');
+  sigCtx.clearRect(0,0,canvas.width,canvas.height);
+  sigHasContent = false;
+  sigCtx.strokeStyle = '#1a1a1a';
+  sigCtx.lineWidth = 3;
+  sigCtx.lineCap = 'round';
+  sigCtx.lineJoin = 'round';
+  if(!sigListenersAttached){
+    canvas.addEventListener('pointerdown', sigStart);
+    canvas.addEventListener('pointermove', sigMove);
+    window.addEventListener('pointerup', sigEnd);
+    sigListenersAttached = true;
+  }
+}
+function sigPos(evt){
+  const canvas = document.getElementById('signature-pad');
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (evt.clientX - rect.left) * (canvas.width / rect.width),
+    y: (evt.clientY - rect.top) * (canvas.height / rect.height),
+  };
+}
+function sigStart(evt){
+  evt.preventDefault();
+  sigDrawing = true;
+  const p = sigPos(evt);
+  sigCtx.beginPath();
+  sigCtx.moveTo(p.x, p.y);
+}
+function sigMove(evt){
+  if(!sigDrawing) return;
+  evt.preventDefault();
+  const p = sigPos(evt);
+  sigCtx.lineTo(p.x, p.y);
+  sigCtx.stroke();
+  sigHasContent = true;
+  updateConsentBtn();
+}
+function sigEnd(){ sigDrawing = false; }
+
+function clearSignature(){
+  const canvas = document.getElementById('signature-pad');
+  sigCtx.clearRect(0,0,canvas.width,canvas.height);
+  sigHasContent = false;
+  updateConsentBtn();
+}
+function getSignatureDataUrl(){
+  return document.getElementById('signature-pad').toDataURL('image/png');
 }
 
 // ============================================================
@@ -529,7 +727,8 @@ function goToConsent(){
 function updateConsentBtn(){
   const allChecked = ['c-privacy','c-foto','c-accordi'].every(id => document.getElementById(id).checked);
   const minorOk = !isMinor || (moduloUploaded && documentoUploaded);
-  document.getElementById('confirm-btn').disabled = !(allChecked && minorOk);
+  const adultOk = isMinor || sigHasContent;
+  document.getElementById('confirm-btn').disabled = !(allChecked && minorOk && adultOk);
 }
 
 function fileToBase64(file){
@@ -552,7 +751,7 @@ async function onMinorFileSelected(evt, tipo){
   try{
     const base64Data = await fileToBase64(file);
     await apiPost({
-      action: 'uploadModuloMinore',
+      action: 'uploadCheckinFile',
       candidaturaId: lookupResult.candidaturaId,
       tipo,
       fileName: file.name || (tipo+'.jpg'),
@@ -582,6 +781,16 @@ async function doFinalConfirm(){
 
   show('s-checking');
   try{
+    if(!isMinor && sigHasContent){
+      await apiPost({
+        action: 'uploadCheckinFile',
+        candidaturaId: lookupResult.candidaturaId,
+        tipo: 'firma',
+        fileName: 'firma.png',
+        mimeType: 'image/png',
+        base64Data: getSignatureDataUrl().split(',')[1],
+      });
+    }
     await apiPost({
       action: 'confirmCheckin',
       candidaturaId: lookupResult.candidaturaId,
@@ -591,6 +800,7 @@ async function doFinalConfirm(){
       residenzaVia: document.getElementById('d-via').value.trim(),
       residenzaComune: document.getElementById('d-comune').value.trim(),
       codiceFiscale: document.getElementById('d-cf').value.trim(),
+      sesso: document.getElementById('d-sesso').value,
       ruoloEvento,
       consensoPrivacy: document.getElementById('c-privacy').checked,
       consensoFoto: document.getElementById('c-foto').checked,

@@ -1021,6 +1021,7 @@ function renderContextBar(){
       <div style="margin-left:auto;display:flex;gap:6px">
         <button class="tbtn tbtn-ghost" onclick="copyApplyLink(curEvento)" title="Copia link candidatura"><svg class="icon" viewBox="0 0 24 24"><path d="M9 15l6-6M8 8l-1.5 1.5a4 4 0 1 0 5.5 5.5L13 14M16 16l1.5-1.5a4 4 0 1 0-5.5-5.5L11 10"/></svg></button>
         <button class="tbtn tbtn-ghost" onclick="openCheckinModal(curEvento)" title="Check-in: link e QR code per l'ingresso"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3h7v7H3V3Zm11 0h7v7h-7V3ZM3 14h7v7H3v-7Zm14 0h1v1h-1v-1Zm3 0h1v4h-4v-1h3v-3Zm-4 4h1v3h-1v-3Zm-3-4h4v1h-4v-1Z"/></svg></button>
+        <button class="tbtn tbtn-ghost" onclick="downloadModuliEvento()" title="Scarica i moduli di adesione dei presenti (un PDF con tutti)"><svg class="icon" viewBox="0 0 24 24"><path d="M9 12h6M9 16h6M9 8h1M14 3v5h5M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/></svg></button>
         <button class="tbtn tbtn-outline" onclick="startPdfExport()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg> PDF</button>
       </div>`;
     if(ffStatus) ffStatus.style.display = '';
@@ -1518,6 +1519,7 @@ function presenzaBoxHTML(c){
       </span>
       ${c.minore_modulo_url ? `<a href="${c.minore_modulo_url}" target="_blank" style="color:var(--gold2);text-decoration:underline">Vedi modulo firmato \u2197</a>` : ''}
       ${c.minore_documento_url ? `<a href="${c.minore_documento_url}" target="_blank" style="color:var(--gold2);text-decoration:underline">Vedi documento genitore \u2197</a>` : ''}
+      <a href="javascript:void(0)" onclick="downloadModuloSingolo('${c.id}')" style="color:var(--gold2);text-decoration:underline">Scarica modulo compilato \u2913</a>
     </div>` : ''}
   </div>`;
 }
@@ -2148,6 +2150,179 @@ function imgElementToB64(url) {
     // Aggiunge un piccolo delay e cache-bust per evitare risposte cached senza CORS header
     setTimeout(() => { img.src = url + (url.includes('?') ? '&' : '?') + '_pdf=' + Date.now(); }, 50);
   });
+}
+
+// ============================================================
+// MODULO DI ADESIONE — genera il PDF compilato sul modello del
+// modulo cartaceo Arci, con i dati raccolti al check-in. Firma
+// digitale per i maggiorenni; per i minorenni allega le foto del
+// modulo firmato dai genitori e del documento d'identità.
+// ============================================================
+function calcolaEtaGallery(dataNascitaIso, riferimentoIso){
+  if(!dataNascitaIso) return null;
+  const n = new Date(dataNascitaIso);
+  const r = riferimentoIso ? new Date(riferimentoIso) : new Date();
+  if(isNaN(n.getTime())) return null;
+  let eta = r.getFullYear() - n.getFullYear();
+  const m = r.getMonth() - n.getMonth();
+  if(m < 0 || (m === 0 && r.getDate() < n.getDate())) eta--;
+  return eta;
+}
+function fmtDataIt(iso){
+  if(!iso) return '\u2026';
+  const parts = String(iso).split('-');
+  return parts.length===3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : iso;
+}
+function loadImageDims(dataUrl){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload  = () => resolve({ w: img.naturalWidth||1, h: img.naturalHeight||1 });
+    img.onerror = () => resolve({ w:1, h:1 });
+    img.src = dataUrl;
+  });
+}
+async function addFittedImage(pdf, dataUrl, x, y, maxW, maxH){
+  const dims = await loadImageDims(dataUrl);
+  let w = maxW, h = maxW * dims.h / dims.w;
+  if(h > maxH){ h = maxH; w = maxH * dims.w / dims.h; }
+  const m = dataUrl.match(/^data:image\/(\w+);/);
+  let fmt = m ? m[1].toUpperCase() : 'JPEG';
+  if(fmt === 'JPG') fmt = 'JPEG';
+  pdf.addImage(dataUrl, fmt, x + (maxW-w)/2, y, w, h);
+  return h;
+}
+
+async function addModuloPage(pdf, c, isFirstPage){
+  const W=210, H=297, M=16;
+  if(!isFirstPage) pdf.addPage();
+
+  const ev = eventi.find(e=>e.id===curEvento);
+  const eventoNomeStr = ev ? ev.nome : '';
+  const eventoDataStr = ev && ev.data_evento ? fmtDataIt(ev.data_evento) : '';
+  const etaCalc = calcolaEtaGallery(c.data_nascita, ev && ev.data_evento);
+  const isMinorC = etaCalc!==null ? etaCalc<18 : (c.maggiorenne===false || String(c.maggiorenne).toUpperCase()==='FALSE');
+
+  let y = M;
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(30,30,30);
+  pdf.text('MODULO DI ADESIONE E LIBERATORIA', W/2, y, {align:'center'}); y+=6;
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(8); pdf.setTextColor(100,100,100);
+  pdf.text('Associazione Culturale Arci Casa delle Stelle \u2014 Contrada del Carmine 21/A, Brescia (BS) \u2014 C.F. 98236110171', W/2, y, {align:'center'}); y+=10;
+  pdf.setDrawColor(154,123,79); pdf.setLineWidth(0.3); pdf.line(M,y,W-M,y); y+=8;
+
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(10); pdf.setTextColor(20,20,20);
+  const dichiarazione =
+    `Io sottoscritt* ${c.nome||''} ${c.cognome||''}, nat* a ${c.luogo_nascita||'\u2026'}, il ${fmtDataIt(c.data_nascita)} ` +
+    `e residente a ${c.residenza_comune||'\u2026'} in via/viale/piazza ${c.residenza_via||'\u2026'}, ` +
+    `C.F. ${c.codice_fiscale||'\u2026'}, indirizzo mail ${c.email||'\u2026'}.`;
+  let lines = pdf.splitTextToSize(dichiarazione, W-2*M);
+  pdf.text(lines, M, y); y += lines.length*5 + 5;
+
+  pdf.setFont('helvetica','bold'); pdf.text('DICHIARO:', M, y); y+=6;
+  pdf.setFont('helvetica','normal');
+  const d1 = `di partecipare, in modo completamente gratuito, al programma e manifestazione di ${eventoNomeStr} ` +
+    `del giorno ${eventoDataStr}, organizzato dall'Associazione Culturale Arci Casa delle Stelle, con sede in Brescia (Bs), ` +
+    `Contrada del Carmine n.21/A, CF. 98236110171;`;
+  lines = pdf.splitTextToSize(d1, W-2*M);
+  pdf.text(lines, M, y); y += lines.length*5 + 3;
+
+  const d2 = c.consenso_foto
+    ? 'di autorizzare riprese audio e video, foto e la loro pubblicazione;'
+    : 'di NON autorizzare riprese audio e video, foto e la loro pubblicazione;';
+  lines = pdf.splitTextToSize(d2, W-2*M);
+  pdf.text(lines, M, y); y += lines.length*5 + 7;
+
+  pdf.setFontSize(7.3); pdf.setTextColor(95,95,95);
+  const informativa = "Informativa ai sensi del Regolamento UE 2016/679 (GDPR): i dati personali conferiti con la presente liberatoria " +
+    "saranno trattati nel rispetto della normativa vigente e dei principi di correttezza, liceit\u00e0, trasparenza e riservatezza; " +
+    "i dati forniti, incluso il ritratto contenuto nelle fotografie, verranno utilizzati per le finalit\u00e0 strettamente connesse " +
+    "e strumentali alle attivit\u00e0 indicate nella presente liberatoria. Il conferimento del consenso \u00e8 facoltativo. In qualsiasi " +
+    "momento \u00e8 possibile esercitare i diritti previsti dagli artt. 15-22 GDPR, in particolare la cancellazione, la rettifica o " +
+    "l'integrazione dei dati, inviando comunicazione scritta.";
+  lines = pdf.splitTextToSize(informativa, W-2*M);
+  pdf.text(lines, M, y); y += lines.length*3.5 + 7;
+
+  pdf.setFontSize(10); pdf.setTextColor(20,20,20); pdf.setFont('helvetica','bold');
+  pdf.text('Presto il consenso al trattamento dei dati: ' + (c.consenso_privacy ? 'S\u00cc' : 'NO'), M, y); y+=9;
+
+  pdf.setFont('helvetica','normal');
+  pdf.text(`NOTE (figura per cui si collabora): ${c.ruolo_evento||'\u2014'}`, M, y); y+=9;
+  pdf.text(`Luogo e Data: Brescia, ${c.check_in_at ? new Date(c.check_in_at).toLocaleDateString('it-IT') : eventoDataStr}`, M, y); y+=13;
+
+  pdf.text('Firma (leggibile):', M, y);
+  if(c.firma_url){
+    try{
+      const img = await loadImgB64(c.firma_url);
+      await addFittedImage(pdf, img, M+42, y-11, 55, 16);
+    }catch(_){ pdf.setDrawColor(180,180,180); pdf.line(M+42,y,M+110,y); }
+  } else {
+    pdf.setDrawColor(180,180,180); pdf.line(M+42,y,M+110,y);
+  }
+  y += 15;
+
+  if(isMinorC){
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5); pdf.setTextColor(30,30,30);
+    lines = pdf.splitTextToSize(
+      "FIRMA DI ENTRAMBI I GENITORI PER SOGGETTI MINORENNI E COPIA DI UN DOCUMENTO DEI GENITORI IN ALLEGATO", W-2*M);
+    pdf.text(lines, M, y); y += lines.length*4.5+4;
+
+    if(c.minore_modulo_url){
+      pdf.addPage();
+      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(30,30,30);
+      pdf.text(`Allegato \u2014 Modulo firmato dai genitori \u2014 ${c.nome||''} ${c.cognome||''}`, M, M);
+      try{
+        const img = await loadImgB64(c.minore_modulo_url);
+        await addFittedImage(pdf, img, M, M+8, W-2*M, H-2*M-16);
+      }catch(_){}
+    }
+    if(c.minore_documento_url){
+      pdf.addPage();
+      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(30,30,30);
+      pdf.text(`Allegato \u2014 Documento d'identit\u00e0 genitore \u2014 ${c.nome||''} ${c.cognome||''}`, M, M);
+      try{
+        const img = await loadImgB64(c.minore_documento_url);
+        await addFittedImage(pdf, img, M, M+8, W-2*M, H-2*M-16);
+      }catch(_){}
+    }
+  }
+}
+
+async function downloadModuloSingolo(candidaturaId){
+  const c = candidates.find(x=>x.id===candidaturaId);
+  if(!c){ showToast('Candidatura non trovata'); return; }
+  const overlay=document.getElementById('pdf-overlay');
+  overlay.classList.add('open'); setPdfP(30,'Genero il modulo\u2026');
+  try{
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    await addModuloPage(pdf, c, true);
+    setPdfP(95,'Quasi pronto\u2026');
+    pdf.save(`modulo_${c.cognome||''}_${c.nome||''}.pdf`.replace(/\s+/g,'_'));
+  }catch(err){
+    alert('Errore nella generazione del modulo: '+err.message);
+  }finally{
+    overlay.classList.remove('open'); setPdfP(0,'');
+  }
+}
+
+async function downloadModuliEvento(){
+  const presenti = candidates.filter(c=>c.presente);
+  if(!presenti.length){ alert('Nessun presente da esportare.'); return; }
+  const overlay=document.getElementById('pdf-overlay');
+  overlay.classList.add('open');
+  try{
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    for(let i=0;i<presenti.length;i++){
+      setPdfP(Math.round(i/presenti.length*95), `Modulo ${i+1}/${presenti.length}: ${presenti[i].nome} ${presenti[i].cognome}`);
+      await addModuloPage(pdf, presenti[i], i===0);
+    }
+    const ev = eventi.find(e=>e.id===curEvento);
+    pdf.save(`moduli_${ev?ev.nome:'evento'}.pdf`.replace(/\s+/g,'_'));
+  }catch(err){
+    alert('Errore nella generazione dei moduli: '+err.message);
+  }finally{
+    overlay.classList.remove('open'); setPdfP(0,'');
+  }
 }
 
 // ============================================================
