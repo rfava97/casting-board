@@ -199,7 +199,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 @media print {
   @page { size:A4 portrait; margin:10mm 8mm; }
 
-  #login, .controls, .brand-hero { display:none !important; }
+  #login, .controls, .brand-hero, .book-tabs { display:none !important; }
   #book { padding:0 !important; }
   html,body { background:#fff !important; font-size:11px; }
 
@@ -277,6 +277,32 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
   .data-val.small{ font-size:11px !important; }
   .scheda-footer{ flex-shrink:0; padding:6px 14px !important; }
 }
+/* ── TAB Modell* / Altre figure (solo vista brand singolo) ── */
+.book-tabs{
+  display:none;background:var(--bg2);border-bottom:1px solid var(--rule);
+  padding:0 24px;gap:4px;position:sticky;top:57px;z-index:99;
+}
+.book-tabs.show{display:flex}
+.book-tab{
+  background:none;border:none;border-bottom:2px solid transparent;
+  padding:12px 4px;margin-right:22px;font-size:12px;font-weight:500;
+  letter-spacing:0.04em;color:var(--ink3);cursor:pointer;font-family:var(--sans);
+  transition:color 0.15s,border-color 0.15s;
+}
+.book-tab:hover{color:var(--ink)}
+.book-tab.active{color:var(--ink);border-bottom-color:var(--gold)}
+.book-tab .cnt{color:var(--ink3);font-weight:400}
+
+/* ── Scheda leggera per figure senza foto/misure (MUA, Hairstylist...) ── */
+.scheda-light{padding:0}
+.scheda-light .scheda-name{font-size:22px;margin-bottom:2px}
+.scheda-light-body{padding:18px 20px}
+.scheda-light-role{
+  display:inline-block;font-size:9px;font-weight:500;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--ink3);background:var(--bg3);
+  padding:3px 9px;border-radius:2px;margin-top:6px;
+}
+
 .brand-hero{
   background:var(--ink);color:var(--bg3);
   padding:36px 28px 28px;
@@ -300,7 +326,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
 @media print {
   @page { size:A4 portrait; margin:10mm 8mm; }
 
-  #login, .controls { display:none !important; }
+  #login, .controls, .book-tabs { display:none !important; }
   #book { padding:0 !important; }
   html,body { background:#fff !important; font-size:11px; }
 
@@ -478,6 +504,12 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-siz
     </div>
   </div>
 
+  <!-- Tab Modell* / Altre figure — solo quando si guarda UN brand -->
+  <div class="book-tabs" id="book-tabs">
+    <button class="book-tab active" id="tab-modelle" onclick="switchBookTab('modelle')">Modell* <span class="cnt" id="tab-modelle-cnt"></span></button>
+    <button class="book-tab" id="tab-altre" onclick="switchBookTab('altre')">Altre figure <span class="cnt" id="tab-altre-cnt"></span></button>
+  </div>
+
   <!-- Book -->
   <div id="book">
     <div class="loading-state">
@@ -497,6 +529,7 @@ let curStatus     = 'All';
 let groupByBrand  = false;
 let allEventi     = [];
 let curEvento     = 'All';
+let curBookTab    = 'modelle'; // 'modelle' | 'altre' — solo quando si guarda un brand singolo
 
 // Modalità link: ?brand=BRAND_ID nell'URL
 const URL_BRAND = new URLSearchParams(window.location.search).get('brand');
@@ -530,14 +563,13 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── INIT ───────────────────────────────────────────────────
 async function init() {
   try {
-    const [bRes, eRes, cRes] = await Promise.all([
-      apiGet({ action: 'getBrands' }),
+    const [eRes, cRes] = await Promise.all([
       apiGet({ action: 'getEventi' }),
       apiGet({ action: 'getCandidates', evento: curEvento }),
     ]);
-    allBrands     = bRes.brands     || [];
     allEventi     = eRes.eventi     || [];
     allCandidates = cRes.candidates || [];
+    await loadBrandsForEvento();
 
     if (!IS_BRAND_LINK) {
       const evSel = document.getElementById('evento-sel');
@@ -580,12 +612,7 @@ async function init() {
 
     } else {
       // Modalità admin normale — popola il selettore brand
-      const sel = document.getElementById('brand-sel');
-      allBrands.forEach(b => {
-        const opt = document.createElement('option');
-        opt.value = b.id; opt.textContent = b.nome;
-        sel.appendChild(opt);
-      });
+      populateBrandSelect();
     }
 
     render();
@@ -595,12 +622,34 @@ async function init() {
   }
 }
 
+// ── BRAND (legati all'evento selezionato) ───────────────────
+// Senza eventoId un brand di un altro evento non deve mai comparire:
+// quando curEvento è 'Tutti gli eventi' l'elenco resta completo per
+// coerenza, ma appena si sceglie un evento specifico i brand vengono
+// ricaricati e filtrati di conseguenza.
+async function loadBrandsForEvento() {
+  const bRes = await apiGet(curEvento !== 'All' ? { action:'getBrands', eventoId: curEvento } : { action:'getBrands' });
+  allBrands = bRes.brands || [];
+}
+function populateBrandSelect() {
+  const sel = document.getElementById('brand-sel');
+  sel.innerHTML = '<option value="All">Tutti i brand</option>';
+  allBrands.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b.id; opt.textContent = b.nome;
+    sel.appendChild(opt);
+  });
+}
+
 // ── FILTER CONTROLS ─────────────────────────────────────────
 async function filterByEvento(val) {
   curEvento = val;
+  curBrand  = 'All'; // il brand scelto in precedenza potrebbe non esistere nel nuovo evento
   document.getElementById('book').innerHTML = '<div class="loading-state"><span class="spinner"></span><p>Caricamento…</p></div>';
   const cRes = await apiGet({ action:'getCandidates', evento: curEvento });
   allCandidates = cRes.candidates || [];
+  await loadBrandsForEvento();
+  populateBrandSelect();
   render();
 }
 function filterByBrand(val)  { curBrand  = val; render(); }
@@ -615,6 +664,13 @@ function toggleView() {
 }
 
 // ── RENDER ─────────────────────────────────────────────────
+function switchBookTab(tab){
+  curBookTab = tab;
+  document.getElementById('tab-modelle').classList.toggle('active', tab==='modelle');
+  document.getElementById('tab-altre').classList.toggle('active', tab==='altre');
+  render();
+}
+
 function render() {
   let list = allCandidates;
 
@@ -630,69 +686,147 @@ function render() {
     if (curStatus !== 'All') list = list.filter(c => c.status === curStatus);
   }
 
-  // Aggiorna contatore
-  document.getElementById('ctrl-count').textContent =
-    `${list.length} model${list.length !== 1 ? 's' : ''}`;
   document.getElementById('ctrl-title').textContent =
     curBrand !== 'All'
       ? (allBrands.find(b => b.id === curBrand)?.nome || 'Brand')
       : (CONFIG.AGENCY_NAME || 'Casting Book');
 
   const book = document.getElementById('book');
+  const tabsBar = document.getElementById('book-tabs');
 
   if (!list.length) {
+    tabsBar.classList.remove('show');
+    document.getElementById('ctrl-count').textContent = '0 model';
     book.innerHTML = `<div class="empty-state"><p>Nessun candidato corrisponde ai filtri selezionati.</p></div>`;
     return;
   }
 
-  // Cover page (solo se non filtrato per brand singolo)
-  let html = '';
-  if (curBrand === 'All') {
-    const today = new Date().toLocaleDateString('it-IT', { day:'numeric', month:'long', year:'numeric' });
-    html += `
-    <div class="cover-page">
-      <div>
-        <div style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">${esc(CONFIG.AGENCY_NAME||'Casting Studio')}</div>
-        <div class="cover-agency">Casting Book</div>
-      </div>
-      <div class="cover-meta">
-        ${list.length} model${list.length!==1?'s':''}<br>
-        ${allBrands.length} brand<br>
-        ${today}
-      </div>
-    </div>`;
+  // ── Vista brand singolo (link stilista, o brand scelto dal filtro admin) ──
+  // I ruoli non-modell* (MUA, Hairstylist...) sui brand hanno dati troppo
+  // diversi per stare nella stessa scheda: separati in un secondo tab
+  // invece di comparire come schede vuote in mezzo ai modell*.
+  const isSingleBrandView = IS_BRAND_LINK || curBrand !== 'All';
+  if (isSingleBrandView) {
+    const modelli    = list.filter(isModella);
+    const altreFigure = list.filter(isAltraFigura);
+
+    tabsBar.classList.toggle('show', altreFigure.length > 0);
+    document.getElementById('tab-modelle-cnt').textContent = `(${modelli.length})`;
+    document.getElementById('tab-altre-cnt').textContent = `(${altreFigure.length})`;
+    if (!altreFigure.length) curBookTab = 'modelle';
+    document.getElementById('tab-modelle').classList.toggle('active', curBookTab==='modelle');
+    document.getElementById('tab-altre').classList.toggle('active', curBookTab==='altre');
+
+    const active = curBookTab === 'altre' ? altreFigure : modelli;
+    document.getElementById('ctrl-count').textContent = `${active.length} ${curBookTab==='altre'?'persone':'model'+(active.length!==1?'s':'')}`;
+
+    const filterBrand = curBrand !== 'All' ? allBrands.find(b => b.id === curBrand) : null;
+    if (!active.length) {
+      book.innerHTML = `<div class="empty-state"><p>Nessun${curBookTab==='altre'?'a figura':' modell*'} in questa sezione.</p></div>`;
+      return;
+    }
+    book.innerHTML = active.map(c =>
+      curBookTab === 'altre' ? altraFiguraHTML(c, filterBrand) : schedaHTML(c, filterBrand)
+    ).join('');
+    return;
   }
 
-  if (groupByBrand && curBrand === 'All') {
+  tabsBar.classList.remove('show');
+  document.getElementById('ctrl-count').textContent = `${list.length} model${list.length !== 1 ? 's' : ''}`;
+
+  // Cover page
+  let html = '';
+  const today = new Date().toLocaleDateString('it-IT', { day:'numeric', month:'long', year:'numeric' });
+  html += `
+  <div class="cover-page">
+    <div>
+      <div style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">${esc(CONFIG.AGENCY_NAME||'Casting Studio')}</div>
+      <div class="cover-agency">Casting Book</div>
+    </div>
+    <div class="cover-meta">
+      ${list.length} model${list.length!==1?'s':''}<br>
+      ${allBrands.length} brand<br>
+      ${today}
+    </div>
+  </div>`;
+
+  if (groupByBrand) {
     // ── Vista raggruppata per brand ──
     const groups = [];
 
-    // Prima i candidati con almeno un brand
     allBrands.forEach(b => {
       const inBrand = list.filter(c => (c.brand_ids||[]).includes(b.id));
       if (inBrand.length) groups.push({ brand: b, candidates: inBrand });
     });
 
-    // Poi i candidati senza brand
     const noBrand = list.filter(c => !(c.brand_ids||[]).length);
     if (noBrand.length) groups.push({ brand: null, candidates: noBrand });
 
     groups.forEach(g => {
+      const modelli    = g.candidates.filter(isModella);
+      const altreFigure = g.candidates.filter(isAltraFigura);
       html += `
       <div class="brand-divider">
         <h2>${esc(g.brand ? g.brand.nome : 'Senza brand')}</h2>
-        <span>${g.candidates.length} model${g.candidates.length!==1?'s':''}</span>
+        <span>${g.candidates.length} persona${g.candidates.length!==1?'e':''}</span>
       </div>`;
-      g.candidates.forEach(c => { html += schedaHTML(c, g.brand); });
+      modelli.forEach(c => { html += schedaHTML(c, g.brand); });
+      if (altreFigure.length) {
+        html += `<div style="padding:4px 4px 10px;font-size:11px;color:var(--ink3);letter-spacing:0.04em;text-transform:uppercase">Altre figure</div>`;
+        altreFigure.forEach(c => { html += altraFiguraHTML(c, g.brand); });
+      }
     });
 
   } else {
-    // ── Vista lineare ──
-    const filterBrand = curBrand !== 'All' ? allBrands.find(b => b.id === curBrand) : null;
-    list.forEach(c => { html += schedaHTML(c, filterBrand); });
+    // ── Vista lineare — tutti insieme, ognuno con la propria scheda ──
+    list.forEach(c => { html += personHTML(c, null); });
   }
 
   book.innerHTML = html;
+}
+
+// ── RUOLI MULTIPLI ───────────────────────────────────────────
+// c.ruolo_evento è un array (una persona può coprire più ruoli lo
+// stesso giorno). Un array vuoto = candidatura pre-esistente senza
+// ruolo mai impostato: per compatibilità la si tratta come modell*.
+function isModella(c){
+  const ruoli = c.ruolo_evento || [];
+  return ruoli.length === 0 || ruoli.includes('Modell*');
+}
+function isAltraFigura(c){
+  const ruoli = c.ruolo_evento || [];
+  return ruoli.some(r => r !== 'Modell*');
+}
+function fmtRuoli(c){
+  const ruoli = (c.ruolo_evento || []).filter(r => r !== 'Modell*');
+  return ruoli.length ? ruoli.join(', ') : '—';
+}
+function personHTML(c, forceBrand){
+  return isModella(c) ? schedaHTML(c, forceBrand) : altraFiguraHTML(c, forceBrand);
+}
+
+// ── SCHEDA LEGGERA — figure senza foto/misure (MUA, Hairstylist...) ──
+function altraFiguraHTML(c, forceBrand) {
+  const ig = c.instagram ? c.instagram.replace('@', '') : null;
+  const cBrands = forceBrand
+    ? [forceBrand]
+    : (c.brand_ids||[]).map(bid => allBrands.find(b => b.id === bid)).filter(Boolean);
+
+  return `
+  <div class="scheda scheda-light">
+    <div class="scheda-header">
+      <span class="scheda-agency">${esc(CONFIG.AGENCY_NAME||'Casting Studio')}</span>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        ${cBrands.map(b => `<span class="scheda-brand">${esc(b.nome)}</span>`).join('')}
+      </div>
+    </div>
+    <div class="scheda-light-body">
+      <div class="scheda-name">${esc(c.nome||'')}&nbsp;${esc(c.cognome||'')}</div>
+      <span class="scheda-light-role">${esc(fmtRuoli(c))}</span>
+      ${ig ? `<div class="scheda-instagram" style="margin-top:10px"><a href="https://instagram.com/${esc(ig)}" target="_blank">@${esc(ig)}</a></div>` : ''}
+      ${c.telefono ? `<div style="font-size:12px;color:var(--ink3);margin-top:8px">${esc(c.telefono)}</div>` : ''}
+    </div>
+  </div>`;
 }
 
 // ── SCHEDA HTML ────────────────────────────────────────────
