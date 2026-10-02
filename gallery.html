@@ -1270,7 +1270,7 @@ function renderBrandBar(){
 // ── Link book per stilista ────────────────────────────────
 function brandBookUrl(brandId) {
   const base = window.location.href.replace(/gallery\.html.*$/, 'book.html');
-  return `${base}?brand=${encodeURIComponent(brandId)}`;
+  return `${base}?brand=${encodeURIComponent(brandId)}&evento=${encodeURIComponent(curEvento)}`;
 }
 async function copyBrandLink(brandId, brandNome) {
   const url = brandBookUrl(brandId);
@@ -1570,9 +1570,9 @@ function renderAltreFigurePanel(list){
       <td style="color:${consensiOk?'rgb(var(--green-rgb))':'var(--red)'}">${consensiOk?'Completi':'Incompleti'}</td>
       ${showBrandCol ? `<td style="min-width:160px">${needsBrand ? brandChipsInlineHTML(c) : '<span style="color:var(--ink3);font-size:10px">—</span>'}</td>` : ''}
       <td style="white-space:nowrap">
-        ${c.firma_url?`<a href="${c.firma_url}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Firma</a>`:''}
-        ${c.minore_modulo_url?` <a href="${c.minore_modulo_url}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Modulo</a>`:''}
-        ${c.minore_documento_url?` <a href="${c.minore_documento_url}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Documento</a>`:''}
+        ${c.firma_url?`<a href="${driveViewLink(c.firma_url)}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Firma</a>`:''}
+        ${c.minore_modulo_url?` <a href="${driveViewLink(c.minore_modulo_url)}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Modulo</a>`:''}
+        ${(c.minore_documento_url||[]).map((u,i)=>` <a href="${driveViewLink(u)}" target="_blank" style="color:var(--gold2);text-decoration:underline;font-size:10px">Documento${(c.minore_documento_url||[]).length>1?' '+(i+1):''}</a>`).join('')}
         ${c.presente?` <a href="javascript:void(0)" onclick="downloadModuloSingolo('${c.id}')" style="color:var(--gold2);text-decoration:underline;font-size:10px">Scarica ⇓</a>`:''}
       </td>
     </tr>`;
@@ -1686,8 +1686,8 @@ function presenzaBoxHTML(c){
       <span style="color:${consensiOk?'rgb(var(--green-rgb))':'var(--red)'}">
         Consensi: ${consensiOk ? 'completi' : 'incompleti'}
       </span>
-      ${c.minore_modulo_url ? `<a href="${c.minore_modulo_url}" target="_blank" style="color:var(--gold2);text-decoration:underline">Vedi modulo firmato \u2197</a>` : ''}
-      ${c.minore_documento_url ? `<a href="${c.minore_documento_url}" target="_blank" style="color:var(--gold2);text-decoration:underline">Vedi documento genitore \u2197</a>` : ''}
+      ${c.minore_modulo_url ? `<a href="${driveViewLink(c.minore_modulo_url)}" target="_blank" style="color:var(--gold2);text-decoration:underline">Vedi modulo firmato \u2197</a>` : ''}
+      ${(c.minore_documento_url||[]).map((u,i)=>`<a href="${driveViewLink(u)}" target="_blank" style="color:var(--gold2);text-decoration:underline">Vedi documento genitore${(c.minore_documento_url||[]).length>1?' '+(i+1):''} \u2197</a>`).join('')}
       <a href="javascript:void(0)" onclick="downloadModuloSingolo('${c.id}')" style="color:var(--gold2);text-decoration:underline">Scarica modulo compilato \u2913</a>
     </div>` : ''}
   </div>`;
@@ -2331,6 +2331,14 @@ function imgElementToB64(url) {
 // digitale per i maggiorenni; per i minorenni allega le foto del
 // modulo firmato dai genitori e del documento d'identità.
 // ============================================================
+// Il link salvato è un thumbnail (serve per incorporare l'immagine nel
+// PDF del modulo); per aprirlo a mano è più comodo il visualizzatore
+// Drive vero e proprio, che gestisce bene anche i PDF multipagina.
+function driveViewLink(thumbUrl){
+  const m = String(thumbUrl||'').match(/[?&]id=([^&]+)/);
+  return m ? `https://drive.google.com/file/d/${m[1]}/view` : thumbUrl;
+}
+
 function calcolaEtaGallery(dataNascitaIso, riferimentoIso){
   if(!dataNascitaIso) return null;
   const n = new Date(dataNascitaIso);
@@ -2447,12 +2455,14 @@ async function addModuloPage(pdf, c, isFirstPage){
         await addFittedImage(pdf, img, M, M+8, W-2*M, H-2*M-16);
       }catch(_){}
     }
-    if(c.minore_documento_url){
+    const documenti = c.minore_documento_url || [];
+    for(let di=0; di<documenti.length; di++){
       pdf.addPage();
       pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(30,30,30);
-      pdf.text(`Allegato \u2014 Documento d'identit\u00e0 genitore \u2014 ${c.nome||''} ${c.cognome||''}`, M, M);
+      const suffix = documenti.length>1 ? ` (${di+1}/${documenti.length})` : '';
+      pdf.text(`Allegato \u2014 Documento d'identit\u00e0 genitore${suffix} \u2014 ${c.nome||''} ${c.cognome||''}`, M, M);
       try{
-        const img = await loadImgB64(c.minore_documento_url);
+        const img = await loadImgB64(documenti[di]);
         await addFittedImage(pdf, img, M, M+8, W-2*M, H-2*M-16);
       }catch(_){}
     }

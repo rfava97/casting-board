@@ -384,18 +384,19 @@ h1{
     </div>
 
     <div class="minor-box" id="minor-box" style="display:none">
-      <p>Carica una foto del modulo cartaceo già compilato e firmato da entrambi i genitori/tutori, e una foto di un documento d'identità di un genitore.</p>
+      <p>Carica il modulo cartaceo già compilato e firmato da entrambi i genitori/tutori, e un documento d'identità di un genitore (puoi scattare una foto o caricare un PDF).</p>
       <button type="button" class="upload-btn" id="minor-upload-btn-modulo" onclick="document.getElementById('minor-file-modulo').click()" style="margin-bottom:8px">
         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         <span id="minor-upload-label-modulo">Modulo firmato da entrambi i genitori</span>
       </button>
-      <input type="file" id="minor-file-modulo" accept="image/*" capture="environment" style="display:none" onchange="onMinorFileSelected(event,'modulo')">
+      <input type="file" id="minor-file-modulo" accept="image/*,application/pdf" style="display:none" onchange="onMinorFileSelected(event,'modulo')">
 
       <button type="button" class="upload-btn" id="minor-upload-btn-documento" onclick="document.getElementById('minor-file-documento').click()">
         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-        <span id="minor-upload-label-documento">Documento d'identità di un genitore</span>
+        <span id="minor-upload-label-documento">Documento/i d'identità dei genitori</span>
       </button>
-      <input type="file" id="minor-file-documento" accept="image/*" capture="environment" style="display:none" onchange="onMinorFileSelected(event,'documento')">
+      <input type="file" id="minor-file-documento" accept="image/*,application/pdf" multiple style="display:none" onchange="onMinorFileSelected(event,'documento')">
+      <p style="font-size:10px;color:var(--ink3);margin-top:6px">Se i documenti sono di entrambi i genitori, puoi selezionarli insieme (fino a 3 file).</p>
     </div>
 
     <button class="btn" id="confirm-btn" onclick="doFinalConfirm()" disabled>Conferma presenza</button>
@@ -443,7 +444,7 @@ let eventoDataRif  = null; // data evento, usata per calcolare l'et\u00e0 a quel
 let lookupResult   = null;
 let isMinor          = false;
 let moduloUploaded   = false;
-let documentoUploaded = false;
+let documentiCount   = 0; // pu\u00f2 essere pi\u00f9 di un documento (es. carta d'identit\u00e0 di entrambi i genitori)
 
 const qs = new URLSearchParams(location.search);
 eventoId = qs.get('evento');
@@ -812,7 +813,7 @@ function goToConsent(){
   errEl.style.display = 'none';
 
   moduloUploaded = false;
-  documentoUploaded = false;
+  documentiCount = 0;
   document.getElementById('minor-box').style.display = isMinor ? '' : 'none';
   document.getElementById('signature-box').style.display = isMinor ? 'none' : '';
   ['modulo','documento'].forEach(tipo => {
@@ -820,7 +821,7 @@ function goToConsent(){
     document.getElementById('minor-file-'+tipo).value = '';
   });
   document.getElementById('minor-upload-label-modulo').textContent    = 'Modulo firmato da entrambi i genitori';
-  document.getElementById('minor-upload-label-documento').textContent = "Documento d'identità di un genitore";
+  document.getElementById('minor-upload-label-documento').textContent = "Documento/i d'identità dei genitori";
   if(!isMinor) initSignaturePad();
   ['c-privacy','c-foto','c-accordi'].forEach(id => document.getElementById(id).checked = false);
   updateConsentBtn();
@@ -893,7 +894,7 @@ function getSignatureDataUrl(){
 // ============================================================
 function updateConsentBtn(){
   const allChecked = ['c-privacy','c-foto','c-accordi'].every(id => document.getElementById(id).checked);
-  const minorOk = !isMinor || (moduloUploaded && documentoUploaded);
+  const minorOk = !isMinor || (moduloUploaded && documentiCount > 0);
   const adultOk = isMinor || sigHasContent;
   document.getElementById('confirm-btn').disabled = !(allChecked && minorOk && adultOk);
 }
@@ -907,31 +908,61 @@ function fileToBase64(file){
   });
 }
 
+// Il modulo \u00e8 sempre un solo file. I documenti d'identit\u00e0 possono
+// essere pi\u00f9 di uno (es. entrambi i genitori): si caricano in sequenza,
+// uno alla volta, e si accumulano sulla candidatura invece di
+// sovrascriversi (gestito lato backend).
 async function onMinorFileSelected(evt, tipo){
-  const file = evt.target.files[0];
-  if(!file || !lookupResult) return;
-  const btn        = document.getElementById('minor-upload-btn-'+tipo);
-  const label       = document.getElementById('minor-upload-label-'+tipo);
-  const doneLabel   = tipo === 'documento' ? 'Documento caricato \u2713' : 'Modulo caricato \u2713';
-  const originalLabel = tipo === 'documento' ? "Documento d'identità di un genitore" : 'Modulo firmato da entrambi i genitori';
-  label.textContent = 'Caricamento in corso\u2026';
-  try{
-    const base64Data = await fileToBase64(file);
-    await apiPost({
-      action: 'uploadCheckinFile',
-      candidaturaId: lookupResult.candidaturaId,
-      tipo,
-      fileName: file.name || (tipo+'.jpg'),
-      mimeType: file.type || 'image/jpeg',
-      base64Data,
-    });
-    if(tipo === 'documento') documentoUploaded = true; else moduloUploaded = true;
-    btn.classList.add('done');
-    label.textContent = doneLabel;
-  }catch(err){
-    if(tipo === 'documento') documentoUploaded = false; else moduloUploaded = false;
-    label.textContent = 'Caricamento fallito, riprova (' + originalLabel + ')';
+  const files = Array.from(evt.target.files || []);
+  if(!files.length || !lookupResult) return;
+  const btn   = document.getElementById('minor-upload-btn-'+tipo);
+  const label = document.getElementById('minor-upload-label-'+tipo);
+  const originalLabel = tipo === 'documento' ? "Documento/i d'identità dei genitori" : 'Modulo firmato da entrambi i genitori';
+
+  if(tipo === 'modulo'){
+    label.textContent = 'Caricamento in corso\u2026';
+    try{
+      const base64Data = await fileToBase64(files[0]);
+      await apiPost({
+        action: 'uploadCheckinFile',
+        candidaturaId: lookupResult.candidaturaId,
+        tipo,
+        fileName: files[0].name || 'modulo.jpg',
+        mimeType: files[0].type || 'image/jpeg',
+        base64Data,
+      });
+      moduloUploaded = true;
+      btn.classList.add('done');
+      label.textContent = 'Modulo caricato \u2713';
+    }catch(err){
+      moduloUploaded = false;
+      label.textContent = 'Caricamento fallito, riprova (' + originalLabel + ')';
+    }
+    updateConsentBtn();
+    return;
   }
+
+  for(let i=0;i<files.length;i++){
+    label.textContent = files.length>1 ? `Caricamento ${i+1}/${files.length}\u2026` : 'Caricamento in corso\u2026';
+    try{
+      const base64Data = await fileToBase64(files[i]);
+      await apiPost({
+        action: 'uploadCheckinFile',
+        candidaturaId: lookupResult.candidaturaId,
+        tipo,
+        fileName: files[i].name || `documento-${documentiCount+1}.jpg`,
+        mimeType: files[i].type || 'image/jpeg',
+        base64Data,
+      });
+      documentiCount++;
+    }catch(err){
+      label.textContent = 'Caricamento fallito, riprova (' + originalLabel + ')';
+      updateConsentBtn();
+      return;
+    }
+  }
+  btn.classList.add('done');
+  label.textContent = `${documentiCount} document${documentiCount===1?'o':'i'} caricat${documentiCount===1?'o':'i'} \u2713`;
   updateConsentBtn();
 }
 
